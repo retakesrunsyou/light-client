@@ -1393,6 +1393,7 @@ public final class Menu {
                 d.rect(kx + 1, y + 7, 4, 9, rh || active ? 0xFFFFFFFF : 0xFFE6E6E6);
                 d.rect(kx, y + 8, 6, 7, rh || active ? 0xFFFFFFFF : 0xFFE6E6E6);
                 hit(id, tx - 3, y + 2, tw + 6, SET_H - 4, st);
+                sliderTrack.put(sl, new int[] {tx, tw});
             } else if (st instanceof TextSetting) {
                 TextSetting ts = (TextSetting) st;
                 boolean focused = typing == ts;
@@ -1570,14 +1571,16 @@ public final class Menu {
         return "\u2026" + s.substring(i);
     }
 
+    /** Where each slider's bar was last drawn (x, width): dragging follows the bar, not other things on its row. */
+    private final java.util.Map<SliderSetting, int[]> sliderTrack = new java.util.IdentityHashMap<>();
+
     private void slideTo(SliderSetting sl, int mx) {
-        for (Hit h : hits) {
-            if (h.setting == sl) {
-                float t = (mx - (h.x + 3)) / (float) Math.max(1, h.w - 6);
-                sl.set(sl.min + Math.max(0f, Math.min(1f, t)) * (sl.max - sl.min));
-                return;
-            }
+        int[] tr = sliderTrack.get(sl);
+        if (tr == null) {
+            return;
         }
+        float t = (mx - tr[0]) / (float) Math.max(1, tr[1]);
+        sl.set(sl.min + Math.max(0f, Math.min(1f, t)) * (sl.max - sl.min));
     }
 
     private boolean pageClicked(int mx, int my) {
