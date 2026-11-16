@@ -588,6 +588,16 @@ final class GamePlatform implements Platform {
     }
 
     @Override
+    public int mouseHeld() {
+        try {
+            long window = org.lwjgl.glfw.GLFW.glfwGetCurrentContext();
+            return window == 0 ? -1 : org.lwjgl.glfw.GLFW.glfwGetMouseButton(window, 0) == org.lwjgl.glfw.GLFW.GLFW_PRESS ? 1 : 0;
+        } catch (Throwable e) {
+            return -1;
+        }
+    }
+
+    @Override
     public boolean keyDown(int key) {
         if (key < 0 || mc().screen != null) {
             return false;

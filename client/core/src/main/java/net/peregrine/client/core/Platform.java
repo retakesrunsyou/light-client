@@ -318,6 +318,11 @@ public interface Platform {
         return false;
     }
 
+    /** The left mouse button: 1 held, 0 not, -1 can't tell. (A slider stops following once it's let go.) */
+    default int mouseHeld() {
+        return -1;
+    }
+
     /** Is the freelook key (Left Alt by default) held, while playing? */
     default boolean freelookKeyDown() {
         return false;

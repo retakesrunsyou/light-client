@@ -63,6 +63,7 @@ public final class Menu {
     private Module page;          // the feature whose settings page is open, or null for the list
     private long pageOpenedAt;
     private SliderSetting draggingSlider;
+    private int dragClickedAt, dragEventAt, dragSeenAt;   // for the log line when a slider is let go
     private TextSetting typing;        // the text box being typed into
     private KeySetting bindingKey;     // a key setting waiting for a key
     private final Map<Setting, Float> settingKnob = new IdentityHashMap<Setting, Float>();
@@ -551,6 +552,18 @@ public final class Menu {
         lastMx = screenMx;
         lastMy = screenMy;
         layout(p);
+        if (draggingSlider != null && p.mouseHeld() == 0) {
+            mouseReleased();   // let go somewhere the menu didn't hear about
+        }
+        if (draggingSlider != null && !editingHud && screenMx > -500) {
+            // A held slider follows the pointer the menu is drawn with (flat or 3D), every frame.
+            float before = draggingSlider.value;
+            slideTo(draggingSlider, Math.round(screenMx / k));
+            dragSeenAt = Math.round(screenMx / k);
+            if (draggingSlider.value != before) {
+                styleChanged(draggingSlider);
+            }
+        }
         SelfTest.count(editingHud ? "editor" : "menu");
         long now = System.currentTimeMillis();
         float dt = lastFrame == 0 ? 0f : Math.min(0.1f, (now - lastFrame) / 1000f);
@@ -1683,6 +1696,8 @@ public final class Menu {
                 ((ActionSetting) h.setting).action.run();
             } else if (h.setting instanceof SliderSetting) {
                 draggingSlider = (SliderSetting) h.setting;
+                dragClickedAt = mx;
+                dragEventAt = dragSeenAt = Integer.MIN_VALUE;
                 slideTo(draggingSlider, mx);
                 styleChanged(draggingSlider);
             }
@@ -2219,8 +2234,7 @@ public final class Menu {
             return true;
         }
         if (draggingSlider != null && !editingHud) {
-            slideTo(draggingSlider, Math.round(screenMx / k));
-            styleChanged(draggingSlider);
+            dragEventAt = Math.round(screenMx / k);   // the slider itself follows the pointer in render()
             return true;
         }
         return editingHud && editor.mouseDragged(screenMx, screenMy);
@@ -2233,6 +2247,10 @@ public final class Menu {
         }
         picker.release();
         if (draggingSlider != null) {
+            int[] tr = sliderTrack.get(draggingSlider);
+            System.out.println("[Peregrine] slider " + draggingSlider.id + " = " + draggingSlider.text() + " (bar "
+                    + (tr == null ? "?" : tr[0] + "+" + tr[1]) + ", clicked " + dragClickedAt + ", dragged " + dragEventAt
+                    + ", pointer " + dragSeenAt + ", scale " + k + ")");
             styleChanged(draggingSlider);
             draggingSlider = null;
             pc.markDirty();
