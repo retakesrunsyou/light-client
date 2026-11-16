@@ -9,6 +9,8 @@
 		"BorderlessMixin",
 		"BossBarMixin",
 		"CapeMixin",
+		"PieChartMixin",
+		"PieResultsMixin",
 		"KeepSneakMixin",
 		"ClockMixin",
 		"CloudsMixin",

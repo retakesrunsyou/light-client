@@ -425,6 +425,16 @@ public interface Platform {
         return -1;
     }
 
+    /**
+     * The game's own profiler numbers (what F3's pie chart shows) for one part, path being names
+     * from "root" down with the game's separator between them: the part itself first, then what
+     * it's made of, each {name, share of the part %, share of the whole frame %, colour (RGB)}.
+     * Null if they aren't being measured (yet) or this version can't.
+     */
+    default java.util.List<Object[]> profilerTimes(String path) {
+        return null;
+    }
+
     /** False for features this Minecraft version can't do; they're hidden from the menu. */
     default boolean supports(String moduleId) {
         return true;

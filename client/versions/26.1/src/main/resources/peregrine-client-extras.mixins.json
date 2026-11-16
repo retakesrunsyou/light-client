@@ -13,6 +13,8 @@
 		"BorderlessMixin",
 		"BossBarMixin",
 		"CapeMixin",
+		"PieChartMixin",
+		"PieResultsMixin",
 		"ClickSoundMixin",
 		"ClickSoundMouseMixin",
 		"ClockMixin",

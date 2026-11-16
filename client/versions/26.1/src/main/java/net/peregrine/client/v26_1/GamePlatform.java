@@ -1132,4 +1132,9 @@ final class GamePlatform implements Platform {
         int a = s.indexOf('{'), b = s.indexOf('}');
         return a >= 0 && b > a ? s.substring(a + 1, b) + s.substring(b + 1) : s;
     }
+
+    @Override
+    public java.util.List<Object[]> profilerTimes(String path) {
+        return PieData.times(path);
+    }
 }

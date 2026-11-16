@@ -1021,4 +1021,9 @@ final class GamePlatform implements Platform {
         Object id = CustomCape.id(name, png);
         return id == null ? null : id.toString();
     }
+
+    @Override
+    public java.util.List<Object[]> profilerTimes(String path) {
+        return PieData.times(path);
+    }
 }
