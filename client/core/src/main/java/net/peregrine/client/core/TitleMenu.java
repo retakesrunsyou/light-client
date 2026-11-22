@@ -13,7 +13,7 @@ package net.peregrine.client.core;
  */
 public final class TitleMenu {
 
-    public static final String CLIENT_VERSION = "2.1.4";
+    public static final String CLIENT_VERSION = "2.2.0";
 
     static final String BRAND = "Light Client";
     static final int H = 20, GAP = 4, SMALL_H = 15;
