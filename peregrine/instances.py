@@ -516,7 +516,7 @@ def _announce_later(account: dict) -> None:
             pass
         try:
             from . import profiles
-            print(f"[peregrine] Peregrine badge: {profiles.announce(account)}")
+            print(f"[peregrine] Light Client badge: {profiles.announce(account)}")
         except Exception as e:
-            print(f"[peregrine] Peregrine badge not updated: {e}")
+            print(f"[peregrine] Light Client badge not updated: {e}")
     threading.Thread(target=go, name="peregrine-badge", daemon=True).start()

@@ -175,7 +175,7 @@ class ClipViewer(QDialog):
             if t.is_file():
                 pic.setPixmap(QPixmap(str(t)).scaled(880, 495, Qt.KeepAspectRatio, Qt.SmoothTransformation))
             v.addWidget(pic, 1)
-            v.addWidget(QLabel("This copy of Peregrine can't play videos itself: use Open in your player.", objectName="faint"))
+            v.addWidget(QLabel("This copy of Light Client can't play videos itself: use Open in your player.", objectName="faint"))
         # playback row
         row = QHBoxLayout()
         self.play_btn = QPushButton("Play")

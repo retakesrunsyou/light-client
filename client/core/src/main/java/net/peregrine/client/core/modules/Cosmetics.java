@@ -201,7 +201,7 @@ public final class Cosmetics extends Module {
     private static volatile boolean fetching;
 
     public Cosmetics() {
-        super("cosmetics", "Cosmetics", "Peregrine capes and badges", Category.VISUALS, true);
+        super("cosmetics", "Cosmetics", "Light Client capes and badges", Category.VISUALS, true);
         instance = this;
     }
 
@@ -317,11 +317,11 @@ public final class Cosmetics extends Module {
                 JsonObject body = prove(base, token, me);
                 body.addProperty("target", key(uuid));
                 http("POST", base + "/v1/cape/report", body.toString(), null);
-                p.showMessage("Peregrine: thanks, that cape is reported and hidden for you.");
+                p.showMessage("Light Client: thanks, that cape is reported and hidden for you.");
             } catch (Exception e) {
                 System.out.println("[Peregrine] cape report not sent: " + e.getMessage());
             }
-        }, "Peregrine report");
+        }, "Light Client report");
         t.setDaemon(true);
         t.start();
     }
@@ -386,7 +386,7 @@ public final class Cosmetics extends Module {
             } catch (Exception e) {
                 System.out.println("[Peregrine] cape not shared: " + e.getMessage());
             }
-        }, "Peregrine cape");
+        }, "Light Client cape");
         t.setDaemon(true);
         t.start();
     }
@@ -561,7 +561,7 @@ public final class Cosmetics extends Module {
             } finally {
                 asking = false;
             }
-        }, "Peregrine players");
+        }, "Light Client players");
         t.setDaemon(true);
         t.start();
     }
@@ -656,7 +656,7 @@ public final class Cosmetics extends Module {
                     remember(dir, "shared.txt", version);
                     sharedVersion = version;
                     announce(CUSTOM);
-                    p.showMessage("Peregrine: your own cape is shared. Other Peregrine players see it now.");
+                    p.showMessage("Light Client: your own cape is shared. Other Light Client players see it now.");
                 } else if (code == 400 || code == 413) {
                     // turned away for its size or shape (e.g. the service isn't updated yet): try again in a while
                     shareWait = 6 * 3600_000L;
@@ -666,15 +666,15 @@ public final class Cosmetics extends Module {
                     refusedVersion = version;
                     String why = said.contains("\"error\"") ? JsonParser.parseString(said).getAsJsonObject().get("error").getAsString()
                             : "it wasn't accepted";
-                    p.showMessage("Peregrine: your cape isn't shared with others: " + why + " You still see it yourself.");
+                    p.showMessage("Light Client: your cape isn't shared with others: " + why + " You still see it yourself.");
                 } else {
                     System.out.println("[Peregrine] cape not shared yet (" + code + "): " + said);
                     // the check is down (503) or today's uploads are used up (429): wait longer, say so once
                     shareWait = code == 429 ? 6 * 3600_000L : 10 * 60_000L;
                     if (!toldWaiting && (code == 503 || code == 429)) {
                         toldWaiting = true;
-                        p.showMessage(code == 429 ? "Peregrine: that's enough new capes for today, yours is shared tomorrow. You still see it yourself."
-                                : "Peregrine: the cape safety check isn't working right now, your cape is shared as soon as it is. You still see it yourself.");
+                        p.showMessage(code == 429 ? "Light Client: that's enough new capes for today, yours is shared tomorrow. You still see it yourself."
+                                : "Light Client: the cape safety check isn't working right now, your cape is shared as soon as it is. You still see it yourself.");
                     }
                 }
             } catch (Exception e) {
@@ -682,7 +682,7 @@ public final class Cosmetics extends Module {
             } finally {
                 sharing = false;
             }
-        }, "Peregrine share cape");
+        }, "Light Client share cape");
         t.setDaemon(true);
         t.start();
     }
@@ -794,7 +794,7 @@ public final class Cosmetics extends Module {
             } finally {
                 fetching = false;
             }
-        }, "Peregrine cosmetics");
+        }, "Light Client cosmetics");
         t.setDaemon(true);
         t.start();
     }

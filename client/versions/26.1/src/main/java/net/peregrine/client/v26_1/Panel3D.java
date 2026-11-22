@@ -79,7 +79,7 @@ public final class Panel3D {
             RenderTarget main = Minecraft.getInstance().getMainRenderTarget();
             int w = main.width, h = main.height;
             if (target == null) {
-                target = new TextureTarget("Peregrine 3D menu", w, h, true);
+                target = new TextureTarget("Light Client 3D menu", w, h, true);
             } else if (target.width != w || target.height != h) {
                 target.resize(w, h);
             }

@@ -191,7 +191,7 @@ public final class Schematics {
             } catch (Throwable e) {
                 status = "Couldn't load it: " + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
             }
-        }, "Peregrine schematic");
+        }, "Light Client schematic");
         t.setDaemon(true);
         t.start();
     }

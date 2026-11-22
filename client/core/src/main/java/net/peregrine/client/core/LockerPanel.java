@@ -138,7 +138,7 @@ final class LockerPanel extends MenuPanel {
                     cd.roundOutline(px2, py2, pw2, ph2, 2, 0x40FFFFFF);
                 }
                 name = Cosmetics.CAPES[i];
-                sub = picked ? "Wearing" : i == Cosmetics.CUSTOM ? "Only you" : "Peregrine";
+                sub = picked ? "Wearing" : i == Cosmetics.CUSTOM ? "Only you" : "Light Client";
             } else {
                 LockerSkins.Skin sk = list.get(i);
                 String tex = skins.texture(p, sk);

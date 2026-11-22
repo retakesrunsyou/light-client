@@ -311,7 +311,7 @@ class LibraryPage(QWidget):
             self.rows.addLayout(box)
 
         if loader != "fabric":
-            note = QLabel("Optimization mods need Fabric. Peregrine moves this instance to Fabric when you press Play "
+            note = QLabel("Optimization mods need Fabric. Light Client moves this instance to Fabric when you press Play "
                           "with Performance mode on.", objectName="muted")
             note.setWordWrap(True)
             self.list.addWidget(note)

@@ -195,7 +195,7 @@ public final class Clips extends Module {
                 if (encoder == null) {
                     setNote("Clips: ffmpeg can't encode video here");
                 }
-            }, "Peregrine clips (testing encoders)");
+            }, "Light Client clips (testing encoders)");
             t.setDaemon(true);
             t.start();
             return;

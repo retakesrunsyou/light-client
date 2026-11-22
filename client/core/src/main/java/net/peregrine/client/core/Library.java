@@ -88,7 +88,7 @@ public final class Library {
     }
 
     static final String API = "https://api.modrinth.com/v2";
-    static final String UA = "retakesrunsyou/peregrine-launcher (Peregrine Client in game)";
+    static final String UA = "retakesrunsyou/peregrine-launcher (Light Client in game)";
 
     private static final Map<Kind, List<Item>> INSTALLED = new ConcurrentHashMap<Kind, List<Item>>();
     private static final Map<Kind, Long> SCANNED = new ConcurrentHashMap<Kind, Long>();
@@ -149,7 +149,7 @@ public final class Library {
                     SCANNED.put(k, System.currentTimeMillis());
                     SCANNING.remove(k);
                 }
-            }, "Peregrine library");
+            }, "Light Client library");
             t.setDaemon(true);
             t.start();
         }
@@ -412,7 +412,7 @@ public final class Library {
             } catch (Exception e) {
                 // offline: results just won't say "Installed"
             }
-        }, "Peregrine library ids");
+        }, "Light Client library ids");
         t.setDaemon(true);
         t.start();
     }
@@ -463,7 +463,7 @@ public final class Library {
             } catch (Exception e) {
                 r.state = e.getMessage() == null ? "Couldn't install it" : e.getMessage();
             }
-        }, "Peregrine install");
+        }, "Light Client install");
         t.setDaemon(true);
         t.start();
     }
@@ -549,7 +549,7 @@ public final class Library {
             } catch (Exception e) {
                 ICON_FILES.put(url, "");
             }
-        }, "Peregrine icon");
+        }, "Light Client icon");
         t.setDaemon(true);
         t.start();
         return null;

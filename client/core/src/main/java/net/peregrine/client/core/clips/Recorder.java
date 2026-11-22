@@ -182,10 +182,10 @@ public final class Recorder {
             startedAt = System.currentTimeMillis();
         }
         final Process p = process;
-        errors = new Thread(() -> drain(p), "Peregrine clips (ffmpeg)");
+        errors = new Thread(() -> drain(p), "Light Client clips (ffmpeg)");
         errors.setDaemon(true);
         errors.start();
-        writer = new Thread(this::writeLoop, "Peregrine clips");
+        writer = new Thread(this::writeLoop, "Light Client clips");
         writer.setDaemon(true);
         writer.start();
     }
@@ -443,7 +443,7 @@ public final class Recorder {
             } catch (Exception e) {
                 done.accept(new String[] {null, e.getMessage()});
             }
-        }, "Peregrine clip");
+        }, "Light Client clip");
         t.setDaemon(true);
         t.start();
     }

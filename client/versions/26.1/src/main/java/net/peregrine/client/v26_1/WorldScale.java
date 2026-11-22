@@ -45,7 +45,7 @@ public final class WorldScale {
             real = mc.getMainRenderTarget();
             int w = Math.max(1, Math.round(real.width * s)), h = Math.max(1, Math.round(real.height * s));
             if (small == null) {
-                small = new TextureTarget("Peregrine world", w, h, true);
+                small = new TextureTarget("Light Client world", w, h, true);
             } else if (small.width != w || small.height != h) {
                 small.resize(w, h);
             }
@@ -65,7 +65,7 @@ public final class WorldScale {
         active = false;
         try {
             CommandEncoder enc = RenderSystem.getDevice().createCommandEncoder();
-            try (RenderPass pass = enc.createRenderPass(() -> "Peregrine world upscale", real.getColorTextureView(), OptionalInt.empty())) {
+            try (RenderPass pass = enc.createRenderPass(() -> "Light Client world upscale", real.getColorTextureView(), OptionalInt.empty())) {
                 pass.setPipeline(RenderPipelines.TRACY_BLIT);
                 RenderSystem.bindDefaultUniforms(pass);
                 pass.bindTexture("InSampler", small.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));

@@ -43,7 +43,7 @@ public final class SkinFaces {
                     }
                 }
             }
-        }, "Peregrine skin");
+        }, "Light Client skin");
         t.setDaemon(true);
         t.start();
         return null;

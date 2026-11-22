@@ -1146,8 +1146,8 @@ public final class Menu {
             bx -= 3;
         }
         y += SET_H + 2;
-        y = moduleRow(d, mx, my, dt, a, "main_menu", "Peregrine main menu", x, y, w);
-        y = moduleRow(d, mx, my, dt, a, "pause_menu", "Peregrine pause menu", x, y, w);
+        y = moduleRow(d, mx, my, dt, a, "main_menu", "Light Client main menu", x, y, w);
+        y = moduleRow(d, mx, my, dt, a, "pause_menu", "Light Client pause menu", x, y, w);
         y = moduleRow(d, mx, my, dt, a, "clean_menus", "Keep resource packs out of menus", x, y, w);
         y += 8;
         heading(d, "HUD", x, y);

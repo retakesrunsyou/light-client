@@ -532,7 +532,7 @@ public final class TitleMenu {
                 String name = net.peregrine.client.core.modules.Cosmetics.CAPES[i];
                 String n = cd.trim(name, w - 6);
                 cd.text(n, x + (w - cd.width(n)) / 2, cy + h - 22, Theme.TEXT, false);
-                String sub = picked ? "Wearing" : i == net.peregrine.client.core.modules.Cosmetics.CUSTOM ? "Only you" : "Peregrine";
+                String sub = picked ? "Wearing" : i == net.peregrine.client.core.modules.Cosmetics.CUSTOM ? "Only you" : "Light Client";
                 cd.text(sub, x + (w - cd.width(sub)) / 2, cy + h - 11, picked ? a : Theme.FAINT, false);
             } else {
                 int iw = w - 8, ih = iw * 9 / 16;

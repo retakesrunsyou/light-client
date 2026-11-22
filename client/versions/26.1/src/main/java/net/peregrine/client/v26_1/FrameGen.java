@@ -377,7 +377,7 @@ public final class FrameGen {
         }
         started = true;
         running = true;
-        presenter = new Thread(FrameGen::presenterLoop, "Peregrine frames");
+        presenter = new Thread(FrameGen::presenterLoop, "Light Client frames");
         presenter.setDaemon(true);
         presenter.setPriority(Thread.MAX_PRIORITY);
         presenter.start();

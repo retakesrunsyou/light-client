@@ -75,7 +75,7 @@ def sync(inst, enabled: bool, progress=None) -> str:
     if dest.exists() and (not marker.is_file() or marker.read_text().strip() != stamp):
         dest.unlink()
     downloads = [net.Download(asset["browser_download_url"], dest, size=asset.get("size"))]
-    net.fetch_all(downloads, "Peregrine Client", progress)
+    net.fetch_all(downloads, "Light Client", progress)
     marker.write_text(stamp + "\n")
     if not _has_fabric_api(mods):
         modrinth.install(["fabric-api"], inst.data["mc_version"], "fabric", mods, progress)

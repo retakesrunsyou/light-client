@@ -60,7 +60,7 @@ public final class UpdateNotice {
             } catch (InterruptedException e) {
                 // the game is closing
             }
-        }, "Peregrine update check");
+        }, "Light Client update check");
         checker.setDaemon(true);
         checker.start();
     }
@@ -145,7 +145,7 @@ public final class UpdateNotice {
             shownAt = now;
             holdUntil = 0;
         }
-        String title = "Peregrine " + v + " is out!";
+        String title = "Light Client " + v + " is out!";
         String line = "Restart the launcher to update";
         int w = v == null ? W_MIN : Math.max(W_MIN, Math.max(d.width(title), d.width(line)) + 46);
         int sw = p.screenWidth();

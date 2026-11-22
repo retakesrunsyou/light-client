@@ -27,7 +27,7 @@ public final class MainMenu extends Module {
     public final SliderSetting dim = add(new SliderSetting("dim", "Darken the picture", 0f, 80f, 5f, 0f, "%.0f%%"));
 
     public MainMenu() {
-        super("main_menu", "Peregrine main menu", "Replaces Minecraft's title screen with Peregrine's",
+        super("main_menu", "Light Client main menu", "Replaces Minecraft's title screen with Light Client's",
                 Category.UTILITY, true);
     }
 }

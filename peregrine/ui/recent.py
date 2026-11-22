@@ -317,7 +317,7 @@ class RecentPage(QWidget):
         else:
             self.title.setText("Welcome")
             self.meta.setText("")
-            self.text.setText("Make an instance: pick a Minecraft version and Peregrine sets up Fabric, "
+            self.text.setText("Make an instance: pick a Minecraft version and Light Client sets up Fabric, "
                               "performance mods and the in-game menu for you.")
             self.last_box.hide()
             self.play_btn.setText("NEW INSTANCE")

@@ -678,7 +678,7 @@ class LockerPage(QWidget):
         else:
             self.account_profile = None
             self.status.setText("Sign in with Microsoft to wear skins and official capes. "
-                                "You can still collect skins and pick your Peregrine cape.")
+                                "You can still collect skins and pick your Light Client cape.")
 
     def _got_account_skin(self, data):
         self.account_skin = data
@@ -771,7 +771,7 @@ class LockerPage(QWidget):
                 c = AddCard("Change picture", "Choose another", "image")
                 c.clicked.connect(self.pick_picture)
                 bcards.append(c)
-            self._grid("Behind Peregrine's main menu in game", bcards)
+            self._grid("Behind Light Client's main menu in game", bcards)
         else:
             pc = []
             worn = locker.peregrine_cape()
@@ -785,7 +785,7 @@ class LockerPage(QWidget):
                 c.key = ("pcape", i)
                 c.clicked.connect(lambda c=c: self.pick(c.key))
                 pc.append(c)
-            self._grid("Peregrine capes · other Peregrine players see these", pc)
+            self._grid("Light Client capes · other Light Client players see these", pc)
             own = []
             if custom_cape.exists():
                 i = locker.CUSTOM_CAPE
@@ -854,7 +854,7 @@ class LockerPage(QWidget):
         elif kind == "pcape":
             self.view.set_cape(locker.cape_asset(what), locker.cape_frames(what), locker.cape_frame_ms(what))
             self.pick_name.setText("Your own cape" if what == locker.CUSTOM_CAPE
-                                   else locker.CAPE_NAMES[what] + " cape" if what else "No Peregrine cape")
+                                   else locker.CAPE_NAMES[what] + " cape" if what else "No Light Client cape")
             self.wear.setText("WEAR THIS CAPE")
             self.view.show_back(bool(what))
         elif kind == "mcape":
@@ -924,7 +924,7 @@ class LockerPage(QWidget):
                 self._idle()
                 tell(self, "Couldn't read that video",
                      (str(got) + " " if isinstance(got, Exception) else "")
-                     + "Try a GIF, or install ffmpeg so Peregrine can read any video.", "error")
+                     + "Try a GIF, or install ffmpeg so Light Client can read any video.", "error")
                 return
             self.status.setText("Making your cape…")
             workers.run(custom_cape.make, got, Path(path).name, done=self._cape_made, failed=self._cape_failed)
@@ -974,7 +974,7 @@ class LockerPage(QWidget):
             if what == locker.CUSTOM_CAPE:
                 self._done("Wearing your own cape in game. Only you see it; other players see no cape.")
             else:
-                self._done(f"Wearing the {locker.CAPE_NAMES[what]} cape in game" if what else "Peregrine cape off")
+                self._done(f"Wearing the {locker.CAPE_NAMES[what]} cape in game" if what else "Light Client cape off")
             self.render()
             return
         if kind == "account-skin":

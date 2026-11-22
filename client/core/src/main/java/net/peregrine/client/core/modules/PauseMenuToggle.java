@@ -15,7 +15,7 @@ public final class PauseMenuToggle extends Module {
             () -> order.value = DEFAULT_ORDER));
 
     public PauseMenuToggle() {
-        super("pause_menu", "Peregrine pause menu", "Replaces Minecraft's pause menu with Peregrine's. Drag its buttons to rearrange them",
+        super("pause_menu", "Light Client pause menu", "Replaces Minecraft's pause menu with Light Client's. Drag its buttons to rearrange them",
                 Category.UTILITY, true);
     }
 }

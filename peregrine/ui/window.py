@@ -535,7 +535,7 @@ class MainWindow(QMainWindow):
             self.say(f"{names} crashed the game, so it's switched off for {inst.name}. Press Play again.")
             tell(
                 self, "Fixed a crash",
-                f"Minecraft crashed because of {names}, one of the mods Peregrine adds.\n\n"
+                f"Minecraft crashed because of {names}, one of the mods Light Client adds.\n\n"
                 f"It's switched off for {inst.name} now, so the game will start next time. "
                 "It'll be tried again when you move this instance to another Minecraft version.", "success")
         else:

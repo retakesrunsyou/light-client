@@ -23,7 +23,7 @@ def latest_version(project_id: str) -> dict:
     versions = net.get_json(f"{modrinth.API}/project/{project_id}/version",
                             params={"loaders": json.dumps(["fabric"])})
     if not versions:
-        raise RuntimeError("This modpack has no Fabric version Peregrine can install.")
+        raise RuntimeError("This modpack has no Fabric version Light Client can install.")
     releases = [v for v in versions if v.get("version_type") == "release"]
     return (releases or versions)[0]
 
@@ -47,7 +47,7 @@ def install(project: dict, progress=None) -> "instances.Instance":
             loader_key = next((k for k in deps if k != "minecraft"), None)
             if loader_key and loader_key not in SUPPORTED_LOADERS:
                 name = LOADER_NAMES.get(loader_key, loader_key)
-                raise RuntimeError(f"This modpack needs {name}, which Peregrine doesn't support yet.")
+                raise RuntimeError(f"This modpack needs {name}, which Light Client doesn't support yet.")
 
             inst = instances.create(
                 project["title"], deps["minecraft"], "fabric" if loader_key else "vanilla",

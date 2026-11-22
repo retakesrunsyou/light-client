@@ -140,8 +140,8 @@ def empty_state(icon_name: str, title: str, text: str) -> QWidget:
 
 # Files the launcher adds itself, shown with friendly names in Content.
 BUILT_IN = {
-    "peregrine-client-": ("Peregrine Client", "Built in", "The Right Shift menu, HUD and Peregrine main menu"),
-    "fabric-api": ("Fabric API", "Required", "Needed by Peregrine Client and most Fabric mods"),
+    "peregrine-client-": ("Light Client", "Built in", "The Right Shift menu, HUD and Light Client main menu"),
+    "fabric-api": ("Fabric API", "Required", "Needed by Light Client and most Fabric mods"),
 }
 
 
@@ -359,7 +359,7 @@ class HomePage(QWidget):
             head = QLabel("Let's get you playing", objectName="h2")
             head.setAlignment(Qt.AlignCenter)
             col.addWidget(head)
-            text = QLabel("Make an instance: pick a Minecraft version, and Peregrine sets up\n"
+            text = QLabel("Make an instance: pick a Minecraft version, and Light Client sets up\n"
                           "Fabric, performance mods and the in-game menu for you.", objectName="muted")
             text.setAlignment(Qt.AlignCenter)
             col.addWidget(text)
@@ -800,7 +800,7 @@ class SettingsPage(QWidget):
         if not game.WINDOWS:
             gamesec.row("Use GameMode", self._check(cfg, "use_gamemode"),
                         "Boosts performance while playing, if Feral GameMode is installed.")
-        gamesec.row("Peregrine extras", self._check(cfg, "extras"),
+        gamesec.row("Light Client extras", self._check(cfg, "extras"),
                     "AppleSkin, Enchantment Descriptions, Not Enough Animations, Continuity, "
                     "Simple Voice Chat and Iris on every Fabric instance, kept up to date, with a "
                     "shader pack ready to switch on in Content. Turn any of them off in Content.")
@@ -844,7 +844,7 @@ class SettingsPage(QWidget):
         browse.clicked.connect(lambda: self.pick_java(path))
         jrow.addWidget(path)
         jrow.addWidget(browse)
-        java.row("Java executable", jrow, "Leave empty and Peregrine downloads the right Java for each version.")
+        java.row("Java executable", jrow, "Leave empty and Light Client downloads the right Java for each version.")
         extra = QLineEdit(cfg["extra_jvm_args"], placeholderText="None")
         extra.setMinimumWidth(240)
         extra.editingFinished.connect(lambda: self.save("extra_jvm_args", extra.text().strip()))
@@ -853,7 +853,7 @@ class SettingsPage(QWidget):
 
         # ---- launcher
         sounds = Section("Click sounds", "Your own sounds for the in-game Click sounds (turn them on in the game's "
-                                         "menu). Short sounds work best; anything left at Default uses Peregrine's.")
+                                         "menu). Short sounds work best; anything left at Default uses Light Client's.")
         from .. import click_sounds
         for kind, label in click_sounds.KINDS:
             sounds.row(label, self._click_sound_row(kind))
@@ -868,7 +868,7 @@ class SettingsPage(QWidget):
         on_launch.currentIndexChanged.connect(lambda i: self.save("on_launch", on_launch.itemData(i)))
         launcher.row("When the game starts", on_launch)
         launcher.row("Closing the window keeps it in the tray", self._check(cfg, "close_to_tray"),
-                     "Peregrine stays in the system tray, one click away. Right-click the tray icon to quit.")
+                     "Light Client stays in the system tray, one click away. Right-click the tray icon to quit.")
         launcher.row("Show the console when playing", self._check(cfg, "open_console"))
         launcher.row("Show snapshot versions", self._check(cfg, "show_snapshots"))
         if DISCORD_APP_ID:
@@ -879,10 +879,10 @@ class SettingsPage(QWidget):
         if _profiles.available():
             badge_toggle = self._check(cfg, "show_badge")
             badge_toggle.toggled.connect(self._badge_changed)
-            launcher.row("Show my Peregrine badge to others", badge_toggle,
-                         "Other Peregrine players see the falcon by your name and the cape you picked in game.")
+            launcher.row("Show my Light Client badge to others", badge_toggle,
+                         "Other Light Client players see the Light Client badge by your name and the cape you picked in game.")
         launcher.row("In-game menu (Right Shift)", self._check(cfg, "ingame_menu"),
-                     "Adds Peregrine Client to Fabric instances: HUD, zoom, toggle sprint and more.")
+                     "Adds Light Client to Fabric instances: HUD, zoom, toggle sprint and more.")
         self.body.addWidget(launcher)
 
         # ---- login (only shown when no client ID is built into this release)
@@ -890,7 +890,7 @@ class SettingsPage(QWidget):
             login = None
         else:
             login = Section("Microsoft login",
-                            "Peregrine needs its own Azure app client ID, approved by Mojang, "
+                            "Light Client needs its own Azure app client ID, approved by Mojang, "
                             "before Microsoft accounts can sign in. See DEVELOPING.md for steps.")
             cid = QLineEdit(cfg["client_id"], placeholderText="Client ID")
             cid.setMinimumWidth(300)
@@ -899,8 +899,8 @@ class SettingsPage(QWidget):
             self.body.addWidget(login)
 
         # ---- updates
-        updates = Section("Updates", f"You're on Peregrine {VERSION}.")
-        updates.row("Check for updates when Peregrine starts", self._check(cfg, "check_updates"))
+        updates = Section("Updates", f"You're on Light Client {VERSION}.")
+        updates.row("Check for updates when Light Client starts", self._check(cfg, "check_updates"))
         check_now = QPushButton("Check now")
         check_now.setEnabled(bool(UPDATE_REPO))
         if not UPDATE_REPO:
@@ -999,7 +999,7 @@ class AccountsPage(QWidget):
                 h.addWidget(use)
             if a.get("type") == "msa":
                 copy = QPushButton("Copy ID")
-                copy.setToolTip("Your Minecraft ID, for the Peregrine cosmetics list (capes and badges others see)")
+                copy.setToolTip("Your Minecraft ID, for the Light Client cosmetics list (capes and badges others see)")
                 copy.clicked.connect(lambda _=False, u=a["uuid"], b=copy: self.copy_id(u, b))
                 h.addWidget(copy)
             trash = icon_button("trash", "Remove account", Theme.p["danger"])

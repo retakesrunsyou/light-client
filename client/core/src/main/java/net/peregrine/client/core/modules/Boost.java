@@ -32,7 +32,7 @@ public final class Boost extends Module {
     public static volatile float worldScale = 1f;
 
     public Boost() {
-        super("boost", "Performance boost", "Peregrine's own speed-ups: world resolution, fewer frames in the background, a particle cap, nearer chests and signs",
+        super("boost", "Performance boost", "Light Client's own speed-ups: world resolution, fewer frames in the background, a particle cap, nearer chests and signs",
                 Category.PERFORMANCE, true);
     }
 

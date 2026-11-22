@@ -74,7 +74,7 @@ final class VoicePanel extends MenuPanel {
             top += banner(d, x, top, w, st, st.startsWith("Couldn't") || st.startsWith("No ") || st.contains("lost") ? Theme.BAD : a);
         }
         if (!VoiceChat.available()) {
-            banner(d, x, top, w, "Voice needs the Peregrine service: start the game from the launcher", Theme.BAD);
+            banner(d, x, top, w, "Voice needs the Light Client service: start the game from the launcher", Theme.BAD);
             return;
         }
         if (in) {
@@ -121,7 +121,7 @@ final class VoicePanel extends MenuPanel {
         String how = m != null && m.mode.index == 1 ? "Push to talk: hold " + Keys.name(m.talkKey.key) : "Your mic turns on when you speak";
         d.text(how, x, iy, Theme.MUTED, false);
         d.text("Change it in Modules > HUD > Voice chat", x, iy + 11, Theme.FAINT, false);
-        d.text("Up to 8 players. Voice passes through the Peregrine service", x, iy + 28, Theme.FAINT, false);
+        d.text("Up to 8 players. Voice passes through the Light Client service", x, iy + 28, Theme.FAINT, false);
         d.text("and is never stored or recorded.", x, iy + 39, Theme.FAINT, false);
     }
 

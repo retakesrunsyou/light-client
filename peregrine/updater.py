@@ -84,7 +84,7 @@ def apply(update: dict, progress=None) -> None:
     work = Path(tempfile.mkdtemp(prefix="peregrine-update-"))
     try:
         if progress:
-            progress(0, 1, f"Downloading Peregrine {update['version']}")
+            progress(0, 1, f"Downloading Light Client {update['version']}")
         zip_path = work / ASSET_NAME
         net.fetch(net.Download(update["url"], zip_path))
         out = work / "src"
@@ -111,7 +111,7 @@ def _apply_windows(update: dict, progress=None) -> None:
     work = Path(tempfile.mkdtemp(prefix="peregrine-update-"))
     setup = work / WINDOWS_ASSET
     if progress:
-        progress(0, 1, f"Downloading Peregrine {update['version']}")
+        progress(0, 1, f"Downloading Light Client {update['version']}")
     net.fetch(net.Download(update["url"], setup))
     if progress:
         progress(1, 2, "Installing update")
@@ -124,7 +124,7 @@ def _apply_appimage(update: dict, progress=None) -> None:
     current = Path(os.environ["APPIMAGE"])
     new = current.with_name(current.name + ".new")
     if progress:
-        progress(0, 1, f"Downloading Peregrine {update['version']}")
+        progress(0, 1, f"Downloading Light Client {update['version']}")
     net.fetch(net.Download(update["url"], new))
     new.chmod(0o755)
     os.replace(new, current)

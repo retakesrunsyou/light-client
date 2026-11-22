@@ -40,7 +40,7 @@ public final class Skeleton {
             } catch (Throwable e) {
                 System.err.println("[Peregrine] couldn't build the skeleton: " + e);
             }
-        }, "Peregrine skeleton");
+        }, "Light Client skeleton");
         t.setDaemon(true);
         t.setPriority(Thread.MIN_PRIORITY);
         t.start();

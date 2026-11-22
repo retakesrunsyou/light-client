@@ -119,7 +119,7 @@ final class CustomCape {
                     break;
                 }
             }
-        }, "Peregrine cape");
+        }, "Light Client cape");
         t.setDaemon(true);
         t.start();
     }

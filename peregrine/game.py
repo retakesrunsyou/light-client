@@ -377,7 +377,7 @@ def find_java(profile: dict, override: str = "", progress=None) -> str:
     system = shutil.which("java")
     if system and java_major(system) >= need:
         return system
-    raise RuntimeError(f"This Minecraft version needs Java {need}, and Peregrine couldn't download it. "
+    raise RuntimeError(f"This Minecraft version needs Java {need}, and Light Client couldn't download it. "
                        f"Check your internet connection" + (f", or install Java {need} from adoptium.net."
                                                             if WINDOWS else
                                                             f", or install it with: sudo apt install openjdk-{need}-jre"))

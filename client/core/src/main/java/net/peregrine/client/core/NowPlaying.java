@@ -89,7 +89,7 @@ public final class NowPlaying {
         if (worker != null && worker.isAlive()) {
             return;
         }
-        worker = new Thread(NowPlaying::loop, "Peregrine now playing");
+        worker = new Thread(NowPlaying::loop, "Light Client now playing");
         worker.setDaemon(true);
         worker.start();
     }

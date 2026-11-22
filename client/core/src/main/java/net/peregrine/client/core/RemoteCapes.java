@@ -94,7 +94,7 @@ public final class RemoteCapes {
             } finally {
                 FETCHING.remove(hash);
             }
-        }, "Peregrine cape download");
+        }, "Light Client cape download");
         t.setDaemon(true);
         t.start();
     }

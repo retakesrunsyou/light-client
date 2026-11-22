@@ -62,7 +62,7 @@ public final class ServerIcons {
                         }
                     }
                 }
-            }, "Peregrine server icon");
+            }, "Light Client server icon");
             t.setDaemon(true);
             t.start();
         }

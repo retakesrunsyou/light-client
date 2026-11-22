@@ -157,7 +157,7 @@ public final class VoiceChat {
             return;
         }
         if (!available()) {
-            status = "Voice needs the Peregrine service (start the game from the launcher)";
+            status = "Voice needs the Light Client service (start the game from the launcher)";
             return;
         }
         final String token = p.accessToken();
@@ -190,7 +190,7 @@ public final class VoiceChat {
             } finally {
                 connecting = false;
             }
-        }, "Peregrine voice join");
+        }, "Light Client voice join");
         t.setDaemon(true);
         t.start();
     }
@@ -367,10 +367,10 @@ public final class VoiceChat {
             return;
         }
         running = true;
-        Thread mic = new Thread(VoiceChat::micLoop, "Peregrine voice mic");
+        Thread mic = new Thread(VoiceChat::micLoop, "Light Client voice mic");
         mic.setDaemon(true);
         mic.start();
-        Thread out = new Thread(VoiceChat::speakerLoop, "Peregrine voice out");
+        Thread out = new Thread(VoiceChat::speakerLoop, "Light Client voice out");
         out.setDaemon(true);
         out.start();
     }

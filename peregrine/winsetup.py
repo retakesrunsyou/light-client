@@ -112,7 +112,7 @@ def close_running(app_dir: Path, wait: float = 20.0, log=print) -> None:
         if _exe_free(exe):
             return
         time.sleep(0.4)
-    log("Peregrine is still open: closing it")
+    log("Light Client is still open: closing it")
     if sys.platform == "win32":
         _powershell(f"Get-Process | Where-Object {{ $_.Path -eq {_ps_quote(exe)} }} | Stop-Process -Force")
         for _ in range(25):
@@ -224,7 +224,7 @@ def register(app_dir: Path, version: str):
     import winreg
     exe = app_dir / EXE
     with winreg.CreateKey(winreg.HKEY_CURRENT_USER, UNINSTALL_KEY) as k:
-        for name, value in (("DisplayName", APP_NAME), ("DisplayVersion", version), ("Publisher", "Peregrine"),
+        for name, value in (("DisplayName", APP_NAME), ("DisplayVersion", version), ("Publisher", "Light Client"),
                             ("DisplayIcon", f"{exe},0"), ("InstallLocation", str(app_dir)),
                             ("UninstallString", f'"{exe}" --uninstall'),
                             ("QuietUninstallString", f'"{exe}" --uninstall --quiet'),

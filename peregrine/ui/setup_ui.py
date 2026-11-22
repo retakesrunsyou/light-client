@@ -734,7 +734,7 @@ class InstallerWindow(Shell):
         try:
             self.backend.launch(self.target)
         except Exception as e:
-            print(f"couldn't start Peregrine: {e}")
+            print(f"couldn't start Light Client: {e}")
         self.close()
 
 

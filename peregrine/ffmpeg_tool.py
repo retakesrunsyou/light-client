@@ -37,7 +37,7 @@ def downloadable() -> bool:
 def download(progress=None) -> str:
     """Downloads ffmpeg and ffprobe into Peregrine's tools folder; returns ffmpeg's path."""
     if not downloadable():
-        raise RuntimeError("There's no ready-made ffmpeg for this computer. Install ffmpeg yourself and restart Peregrine.")
+        raise RuntimeError("There's no ready-made ffmpeg for this computer. Install ffmpeg yourself and restart Light Client.")
     name = "ffmpeg-master-latest-win64-gpl.zip" if sys.platform == "win32" else "ffmpeg-master-latest-linux64-gpl.tar.xz"
     DIR.mkdir(parents=True, exist_ok=True)
     archive = DIR / name

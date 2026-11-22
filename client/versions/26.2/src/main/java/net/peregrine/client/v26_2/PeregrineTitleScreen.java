@@ -13,7 +13,7 @@ public final class PeregrineTitleScreen extends Screen {
     private final TitleMenu menu = Peregrine.get().titleMenu();
 
     public PeregrineTitleScreen() {
-        super(Component.literal("Peregrine"));
+        super(Component.literal("Light Client"));
         menu.shown();
     }
 

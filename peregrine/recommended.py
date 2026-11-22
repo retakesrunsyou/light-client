@@ -8,7 +8,7 @@ from . import modrinth, net
 MODS = [
     ("3dskinlayers", "3D Skin Layers", "Your skin's outer layer (hat, jacket, sleeves) in real 3D", "skinlayers"),
     ("lambdynamiclights", "LambDynamicLights", "A torch in your hand lights up the area around you", "dynamiclights"),
-    ("wavey-capes", "Wavey Capes", "Capes (Peregrine's too) that flow and swing with physics", "waveycapes"),
+    ("wavey-capes", "Wavey Capes", "Capes (Light Client's too) that flow and swing with physics", "waveycapes"),
 ]
 # AppleSkin, voice chat, Iris and the rest come with every instance: see extras.py.
 

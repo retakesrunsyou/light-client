@@ -150,7 +150,7 @@ final class RemoteCape {
             } finally {
                 LOADING.remove(hash);
             }
-        }, "Peregrine remote cape");
+        }, "Light Client remote cape");
         t.setDaemon(true);
         t.start();
     }

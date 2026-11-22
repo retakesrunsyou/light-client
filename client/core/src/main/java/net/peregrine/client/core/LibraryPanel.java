@@ -177,7 +177,7 @@ final class LibraryPanel extends MenuPanel {
                     right -= 22;
                 }
             } else {
-                String tag = "Peregrine";
+                String tag = "Light Client";
                 int tw = rd.width(tag) + 8;
                 rd.roundRect(right - tw, ry + 9, tw, 12, 3, Theme.withAlpha(a, 0x38));
                 rd.text(tag, right - tw + 4, ry + 11, a, false);
@@ -245,7 +245,7 @@ final class LibraryPanel extends MenuPanel {
                     loading = false;
                 }
             }
-        }, "Peregrine search");
+        }, "Light Client search");
         t.setDaemon(true);
         t.start();
         if (!next) {

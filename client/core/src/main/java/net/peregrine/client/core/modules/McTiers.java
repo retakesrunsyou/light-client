@@ -137,7 +137,7 @@ public final class McTiers extends Module {
                 QUEUE.add(id);
             }
             if (worker == null || !worker.isAlive()) {
-                worker = new Thread(McTiers::work, "Peregrine tiers");
+                worker = new Thread(McTiers::work, "Light Client tiers");
                 worker.setDaemon(true);
                 worker.start();
             }

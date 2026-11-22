@@ -35,7 +35,7 @@ def available() -> bool:
 
 def _url(path: str) -> str:
     if not PROFILES_URL:
-        raise NotSetUp("Profiles aren't switched on in this version of Peregrine yet.")
+        raise NotSetUp("Profiles aren't switched on in this version of Light Client yet.")
     return PROFILES_URL.rstrip("/") + path
 
 
@@ -152,7 +152,7 @@ def _prove(account: dict) -> dict:
     uuid = account["uuid"].replace("-", "").lower()
     c = net.session.post(_url("/v1/challenge"), json={}, timeout=30)
     if c.status_code != 200:
-        raise RuntimeError(f"The Peregrine service didn't answer ({c.status_code}).")
+        raise RuntimeError(f"The Light Client service didn't answer ({c.status_code}).")
     nonce = c.json()["nonce"]
     sig = rsasign.sign_sha256(pair["privateKey"], f"peregrine:{nonce}:{uuid}".encode())
     return {"uuid": uuid, "nonce": nonce, "sig": base64.b64encode(sig).decode(),
@@ -284,7 +284,7 @@ def lookup(name: str) -> dict:
     uuid, spelled = player_id(name)
     r = net.session.get(_url(f"/v1/profile/{uuid}"), timeout=30)
     if r.status_code == 404:
-        raise LookupError(f"{spelled} hasn't shared a Peregrine profile.")
+        raise LookupError(f"{spelled} hasn't shared a Light Client profile.")
     r.raise_for_status()
     p = r.json()
     if spelled and not re.fullmatch(r"[0-9a-f]{32}", spelled):

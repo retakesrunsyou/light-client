@@ -174,7 +174,7 @@ final class LockerSkins {
             } finally {
                 busy = false;
             }
-        }, "Peregrine skin");
+        }, "Light Client skin");
         t.setDaemon(true);
         t.start();
     }

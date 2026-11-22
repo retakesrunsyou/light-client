@@ -424,7 +424,7 @@ class RecommendedDialog(Sheet):
         v.setContentsMargins(28, 24, 28, 22)
         v.setSpacing(12)
         v.addWidget(big_title("Recommended"))
-        sub = QLabel("Popular, well-made mods that go with Peregrine Client. Each is the version made "
+        sub = QLabel("Popular, well-made mods that go with Light Client. Each is the version made "
                      f"for Minecraft {inst.data['mc_version']}.", objectName="muted", wordWrap=True)
         v.addWidget(sub)
         body = QWidget()
