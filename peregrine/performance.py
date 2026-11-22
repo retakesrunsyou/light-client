@@ -476,12 +476,36 @@ def sync_set(inst, slugs, prefix: str, on: bool, progress=None, force: bool = Fa
                 tracked.pop(key)
                 if not key.startswith("dep:"):
                     summary["unavailable"].append(key)
+    if prefix == "perf":
+        _park_stranded(mods, set(tracked.values()))
     tracked = {k: v for k, v in tracked.items() if (mods / v).exists() or (mods / (v + ".disabled")).exists()}
     inst.update(**{f"{prefix}_files": tracked, f"{prefix}_mc": mc, f"{prefix}_checked": now,
                    f"{prefix}_skip": skip, f"{prefix}_off": sorted(off)})
     if progress and summary["unavailable"]:
         progress(1, 1, f"Not out yet for {mc}: {', '.join(summary['unavailable'])}")
     return summary
+
+
+# The mod ids of the mods in MODS, for spotting a copy left behind that we no longer track.
+OUR_IDS = {"sodium", "c2me", "lithium", "ferritecore", "modernfix", "iris", "entityculling", "scalablelux", "clumps"}
+
+
+def _park_stranded(mods: Path, tracked: set) -> list:
+    """One of the FPS pack's mods sitting in the folder untracked (left over from a failed
+    install) without a library it needs would stop the game starting: it gets .disabled
+    added to its name (nothing is deleted), and comes back once the pack has what it needs."""
+    names = [f.name for f in mods.glob("*.jar") if f.name not in tracked]
+    parked = []
+    for fn, why in unmet(mods, names).items():
+        m = _meta(mods / fn) or {}
+        if m.get("id") in OUR_IDS:
+            try:
+                (mods / fn).rename(mods / (fn + ".disabled"))
+                parked.append(fn)
+                print(f"[peregrine] put aside {fn}: {why}")
+            except OSError:
+                pass
+    return parked
 
 
 # ------------------------------------------------------------------ crashes
