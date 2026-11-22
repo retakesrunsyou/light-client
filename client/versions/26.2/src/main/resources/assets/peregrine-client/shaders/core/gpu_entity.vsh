@@ -18,10 +18,10 @@ in vec2 UV0;
 in ivec2 UV1;         // x: which body part
 in vec3 Normal;       // in the body part's own space
 
-// The table, one 32-bit value per texel (4 bytes in RGBA order). Per copy, starting at
-// ModelOffset.x + gl_InstanceID * ModelOffset.y: light, overlay, colour (ARGB), then for each
-// body part 12 numbers (3 rows of its 4x4 matrix) and 9 (3 rows of its normal matrix).
-uniform samplerBuffer PartData;
+// The table, in 16-byte rows of four 32-bit numbers. Per copy, starting at row
+// ModelOffset.x + gl_InstanceID * ModelOffset.y: one row (light, overlay, colour ARGB, unused),
+// then per body part six rows: 3 rows of its 4x4 matrix, then 3 rows of its normal matrix.
+uniform usamplerBuffer PartData;
 
 #ifndef NO_OVERLAY
 uniform sampler2D Sampler1;
@@ -51,33 +51,21 @@ out vec4 overlayColor;
 
 out vec2 texCoord0;
 
-uint lc_word(int i) {
-    uvec4 b = uvec4(round(texelFetch(PartData, i) * 255.0));
-    return b.r | (b.g << 8u) | (b.b << 16u) | (b.a << 24u);
-}
-
-float lc_num(int i) {
-    return uintBitsToFloat(lc_word(i));
-}
-
 vec4 lc_row(int i) {
-    return vec4(lc_num(i), lc_num(i + 1), lc_num(i + 2), lc_num(i + 3));
-}
-
-vec3 lc_row3(int i) {
-    return vec3(lc_num(i), lc_num(i + 1), lc_num(i + 2));
+    return uintBitsToFloat(texelFetch(PartData, i));
 }
 
 void main() {
     int copy = int(ModelOffset.x + 0.5) + gl_InstanceID * int(ModelOffset.y + 0.5);
-    uint light = lc_word(copy);
-    uint overlay = lc_word(copy + 1);
-    uint argb = lc_word(copy + 2);
-    int m = copy + 3 + UV1.x * 21;
+    uvec4 head = texelFetch(PartData, copy);
+    uint light = head.x;
+    uint overlay = head.y;
+    uint argb = head.z;
+    int m = copy + 1 + UV1.x * 6;
 
     vec4 p = vec4(Position, 1.0);
-    vec3 pos = vec3(dot(lc_row(m), p), dot(lc_row(m + 4), p), dot(lc_row(m + 8), p));
-    vec3 nrm = vec3(dot(lc_row3(m + 12), Normal), dot(lc_row3(m + 15), Normal), dot(lc_row3(m + 18), Normal));
+    vec3 pos = vec3(dot(lc_row(m), p), dot(lc_row(m + 1), p), dot(lc_row(m + 2), p));
+    vec3 nrm = vec3(dot(lc_row(m + 3).xyz, Normal), dot(lc_row(m + 4).xyz, Normal), dot(lc_row(m + 5).xyz, Normal));
     float len = length(nrm);
     nrm = len > 0.0 ? nrm / len : vec3(0.0, 1.0, 0.0);
     vec4 color = vec4(float((argb >> 16u) & 255u), float((argb >> 8u) & 255u), float(argb & 255u), float(argb >> 24u)) / 255.0;

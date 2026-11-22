@@ -75,7 +75,12 @@ public final class GpuEntities {
             .addAttribute("UV1", GpuFormat.RG16_SINT)
             .addAttribute("Normal", GpuFormat.RGBA8_SNORM)
             .build();
-    static final int PART_WORDS = 21, HEAD_WORDS = 3;
+    /**
+     * The table, in 16-byte rows of four 32-bit numbers: per mob one row (light, hurt flash,
+     * tint), then per body part six rows (3 for where it is, 3 for which way its faces point).
+     * Read by the graphics card as whole rows (a texel buffer of 32-bit unsigned numbers).
+     */
+    static final int PART_WORDS = 24, HEAD_WORDS = 4;
 
     // ------------------------------------------------------------------ baked shapes
 
@@ -276,7 +281,7 @@ public final class GpuEntities {
                 for (BindGroupLayout layout : v.getBindGroupLayouts()) {
                     b.withBindGroupLayout(layout);
                 }
-                b.withBindGroupLayout(BindGroupLayout.builder().withUniform("PartData", UniformType.TEXEL_BUFFER, GpuFormat.RGBA8_UNORM).build());
+                b.withBindGroupLayout(BindGroupLayout.builder().withUniform("PartData", UniformType.TEXEL_BUFFER, GpuFormat.RGBA32_UINT).build());
                 b.withPolygonMode(v.getPolygonMode());
                 b.withCull(v.isCull());
                 ColorTargetState[] targets = v.getColorTargetStates();
@@ -433,9 +438,9 @@ public final class GpuEntities {
             put(out, o, m.m00(), m.m10(), m.m20(), m.m30());
             put(out, o + 4, m.m01(), m.m11(), m.m21(), m.m31());
             put(out, o + 8, m.m02(), m.m12(), m.m22(), m.m32());
-            put(out, o + 12, n.m00(), n.m10(), n.m20(), Float.NaN);
-            put(out, o + 15, n.m01(), n.m11(), n.m21(), Float.NaN);
-            put(out, o + 18, n.m02(), n.m12(), n.m22(), Float.NaN);
+            put(out, o + 12, n.m00(), n.m10(), n.m20(), 0f);
+            put(out, o + 16, n.m01(), n.m11(), n.m21(), 0f);
+            put(out, o + 20, n.m02(), n.m12(), n.m22(), 0f);
         }
         for (int k : kids) {
             pose(b, k, out, at);
@@ -447,9 +452,7 @@ public final class GpuEntities {
         out[o] = Float.floatToRawIntBits(a);
         out[o + 1] = Float.floatToRawIntBits(b);
         out[o + 2] = Float.floatToRawIntBits(c);
-        if (!Float.isNaN(d)) {
-            out[o + 3] = Float.floatToRawIntBits(d);
-        }
+        out[o + 3] = Float.floatToRawIntBits(d);
     }
 
     // ------------------------------------------------------------------ drawing
@@ -570,7 +573,7 @@ public final class GpuEntities {
         for (int i = 0; i < ts.length; i++) {
             Group g = live.get(i);
             ts[i] = new DynamicUniforms.Transform(look.modelView, new Vector4f(1f, 1f, 1f, 1f),
-                    new Vector3f(g.start, g.baked.stride(), 0f), new Matrix4f());
+                    new Vector3f(g.start / 4f, g.baked.stride() / 4f, 0f), new Matrix4f());
             most = Math.max(most, g.baked.quads * 6);
         }
         GpuBufferSlice[] slices = RenderSystem.getDynamicUniforms().writeTransforms(ts);

@@ -23,7 +23,6 @@ import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.systems.ScissorState;
 import com.mojang.blaze3d.textures.GpuTextureView;
-import com.mojang.blaze3d.textures.TextureFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
@@ -75,7 +74,13 @@ public final class GpuEntities {
             .add("Normal", VertexFormatElement.NORMAL)
             .padding(1)
             .build();
-    static final int PART_WORDS = 21, HEAD_WORDS = 3;
+    /**
+     * The table, in 16-byte rows: per mob one row (light, hurt flash, tint), then per body part six
+     * rows (3 for where it is, 3 for which way its faces point). It goes to the graphics card as a
+     * uniform buffer, the fastest kind for it to read, in chunks of at most BLOCK_ROWS rows (16 KB,
+     * the size every graphics card supports).
+     */
+    static final int PART_WORDS = 24, HEAD_WORDS = 4, BLOCK_ROWS = 1024, BLOCK_BYTES = BLOCK_ROWS * 16;
 
     // ------------------------------------------------------------------ baked shapes
 
@@ -160,7 +165,7 @@ public final class GpuEntities {
     static Baked shape(Model<?> model) throws Exception {
         Baked b = new Baked(model);
         collect(b, model.root());
-        if (b.quads == 0 || b.slots == 0 || b.slots > 512) {
+        if (b.quads == 0 || b.slots == 0 || 1 + 6 * b.slots > BLOCK_ROWS) {
             return null;
         }
         return b;
@@ -218,6 +223,7 @@ public final class GpuEntities {
         final Baked baked;
         int[] words = new int[1024];
         int len, count, start;
+        final List<long[]> chunks = new ArrayList<long[]>();   // {byte offset, first copy, copies}
 
         Group(Baked baked) {
             this.baked = baked;
@@ -274,7 +280,8 @@ public final class GpuEntities {
                         b.withUniform(u.name(), u.type());
                     }
                 }
-                b.withUniform("PartData", UniformType.TEXEL_BUFFER, TextureFormat.RGBA8);
+                b.withUniform("PartBlock", UniformType.UNIFORM_BUFFER);
+                b.withShaderDefine("LC_ROWS", BLOCK_ROWS);
                 b.withPolygonMode(v.getPolygonMode());
                 b.withCull(v.isCull());
                 b.withColorTargetState(v.getColorTargetState());
@@ -410,9 +417,9 @@ public final class GpuEntities {
             put(out, o, m.m00(), m.m10(), m.m20(), m.m30());
             put(out, o + 4, m.m01(), m.m11(), m.m21(), m.m31());
             put(out, o + 8, m.m02(), m.m12(), m.m22(), m.m32());
-            put(out, o + 12, n.m00(), n.m10(), n.m20(), Float.NaN);
-            put(out, o + 15, n.m01(), n.m11(), n.m21(), Float.NaN);
-            put(out, o + 18, n.m02(), n.m12(), n.m22(), Float.NaN);
+            put(out, o + 12, n.m00(), n.m10(), n.m20(), 0f);
+            put(out, o + 16, n.m01(), n.m11(), n.m21(), 0f);
+            put(out, o + 20, n.m02(), n.m12(), n.m22(), 0f);
         }
         for (int k : kids) {
             pose(b, k, out, at);
@@ -424,9 +431,7 @@ public final class GpuEntities {
         out[o] = Float.floatToRawIntBits(a);
         out[o + 1] = Float.floatToRawIntBits(b);
         out[o + 2] = Float.floatToRawIntBits(c);
-        if (!Float.isNaN(d)) {
-            out[o + 3] = Float.floatToRawIntBits(d);
-        }
+        out[o + 3] = Float.floatToRawIntBits(d);
     }
 
     // ------------------------------------------------------------------ drawing
@@ -442,38 +447,53 @@ public final class GpuEntities {
             return;
         }
         try {
-            int words = 0;
+            // lay the copies out in chunks that each fit one uniform block, each starting where the
+            // graphics card allows a block to start
+            int align = Math.max(16, RenderSystem.getDevice().getUniformOffsetAlignment());
+            long at = 0;
+            int copies = 0;
             for (Map<Baked, Group> byModel : FRAME.values()) {
                 for (Group g : byModel.values()) {
-                    if (g.count > 0) {
-                        g.start = words;
-                        words += g.len;
+                    g.chunks.clear();
+                    if (g.count == 0) {
+                        continue;
                     }
+                    int rows = g.baked.stride() / 4;
+                    int per = Math.max(1, BLOCK_ROWS / rows);
+                    for (int first = 0; first < g.count; first += per) {
+                        at = (at + align - 1) / align * align;
+                        int n = Math.min(per, g.count - first);
+                        g.chunks.add(new long[] {at, first, n});
+                        at += (long) n * rows * 16;
+                    }
+                    copies += g.count;
                 }
             }
-            if (words == 0) {
+            if (copies == 0) {
                 report(0, 0);
                 return;
             }
-            long bytes = (long) words * 4;
+            long bytes = at + BLOCK_BYTES;   // so the last block can be bound whole
             int slot = tableAt = (tableAt + 1) % TABLES.length;
             GpuBuffer table = TABLES[slot];
             if (table == null || table.isClosed() || table.size() < bytes) {
                 if (table != null && !table.isClosed()) {
                     table.close();
                 }
-                long size = Math.max(1 << 16, Long.highestOneBit(bytes) << 1);
+                long size = Math.max(1 << 17, Long.highestOneBit(bytes) << 1);
                 table = RenderSystem.getDevice().createBuffer(() -> "Light Client GPU mob table",
-                        GpuBuffer.USAGE_UNIFORM_TEXEL_BUFFER | GpuBuffer.USAGE_COPY_DST, size);
+                        GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_COPY_DST, size);
                 TABLES[slot] = table;
             }
-            ByteBuffer data = MemoryUtil.memAlloc((int) bytes).order(ByteOrder.LITTLE_ENDIAN);
+            ByteBuffer data = MemoryUtil.memCalloc((int) bytes).order(ByteOrder.LITTLE_ENDIAN);
             int draws = 0;
             try {
                 for (Map<Baked, Group> byModel : FRAME.values()) {
                     for (Group g : byModel.values()) {
-                        if (g.count > 0) {
-                            data.asIntBuffer().position(g.start).put(g.words, 0, g.len);
+                        int stride = g.baked.stride();
+                        for (long[] c : g.chunks) {
+                            data.position((int) c[0]);
+                            data.asIntBuffer().put(g.words, (int) c[1] * stride, (int) c[2] * stride);
                         }
                     }
                 }
@@ -535,6 +555,7 @@ public final class GpuEntities {
         if (live.isEmpty()) {
             return 0;
         }
+        int drawn = 0;
         RenderSetup setup = setup(type);
         Matrix4fStack mv = RenderSystem.getModelViewStack();
         Consumer<Matrix4fStack> modifier = layering(setup);
@@ -549,7 +570,7 @@ public final class GpuEntities {
             for (int i = 0; i < ts.length; i++) {
                 Group g = live.get(i);
                 ts[i] = new DynamicUniforms.Transform(modelView, new Vector4f(1f, 1f, 1f, 1f),
-                        new Vector3f(g.start, g.baked.stride(), 0f), new Matrix4f());
+                        new Vector3f(0f, g.baked.stride() / 4f, 0f), new Matrix4f());
             }
             GpuBufferSlice[] slices = RenderSystem.getDynamicUniforms().writeTransforms(ts);
             RenderTarget target = type.outputTarget().getRenderTarget();
@@ -573,14 +594,17 @@ public final class GpuEntities {
                 for (Map.Entry<String, RenderSetup.TextureAndSampler> t : textures.entrySet()) {
                     pass.bindTexture(t.getKey(), t.getValue().textureView(), t.getValue().sampler());
                 }
-                pass.setUniform("PartData", table);
                 for (int i = 0; i < live.size(); i++) {
                     Group g = live.get(i);
                     int indexCount = g.baked.quads * 6;
                     pass.setUniform("DynamicTransforms", slices[i]);
                     pass.setVertexBuffer(0, g.baked.vertices);
                     pass.setIndexBuffer(indices, quads.type());
-                    pass.drawIndexed(0, 0, indexCount, g.count);
+                    for (long[] c : g.chunks) {
+                        pass.setUniform("PartBlock", table.slice(c[0], BLOCK_BYTES));
+                        pass.drawIndexed(0, 0, indexCount, (int) c[2]);
+                        drawn++;
+                    }
                 }
             }
         } finally {
@@ -588,7 +612,7 @@ public final class GpuEntities {
                 mv.popMatrix();
             }
         }
-        return live.size();
+        return drawn;
     }
 
     private static int peakCopies, peakDraws;
