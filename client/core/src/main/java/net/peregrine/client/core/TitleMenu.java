@@ -94,7 +94,7 @@ public final class TitleMenu {
     private final Button[] buttons = {
         new Button("Singleplayer", "controller", Platform.Screen.SINGLEPLAYER, true),
         new Button("Multiplayer", "globe", Platform.Screen.MULTIPLAYER, false),
-        new Button("Client menu", "grid", Platform.Screen.PEREGRINE_MENU, false),
+        new Button("Light Client menu", "grid", Platform.Screen.PEREGRINE_MENU, false),
         new Button("Settings", "sliders", Platform.Screen.OPTIONS, false),
         new Button("Quit game", "power", Platform.Screen.QUIT, false),
     };
@@ -158,28 +158,34 @@ public final class TitleMenu {
         homeWidth = Math.min(182, Math.max(106, sw - 2 * left - (player ? pw + 30 : 0)));
         boolean recent = pc.lastServerName() != null && p.supportsJoin() && sh >= 180;
         boolean shortScreen = sh < 205;
-        int rowHeight = shortScreen ? 14 : 20;
-        int headerHeight = shortScreen ? 26 : 36;
-        int recentHeight = shortScreen ? 27 : 34;
-        int stackHeight = headerHeight + (recent ? recentHeight + 5 : 0) + buttons.length * (rowHeight + 3);
-        logoY = Math.max(7, (sh - 42 - stackHeight) / 2);
+        int rowHeight = shortScreen ? 15 : 20;
+        int rowGap = shortScreen ? 3 : 5;
+        int headerHeight = shortScreen ? 28 : 40;
+        int recentHeight = shortScreen ? 28 : 36;
+        int stackHeight = headerHeight + (recent ? recentHeight + 7 : 0) + buttons.length * (rowHeight + rowGap);
+        logoY = Math.max(7, (sh - 34 - stackHeight) / 2);
         int y = logoY + headerHeight;
         card[0] = left;
         card[1] = y;
         card[2] = recent ? homeWidth : 0;
         card[3] = recentHeight;
-        if (recent) y += recentHeight + 5;
+        if (recent) y += recentHeight + 7;
         for (Button button : buttons) {
             button.place(left, y, homeWidth, rowHeight);
-            y += rowHeight + 3;
+            y += rowHeight + rowGap;
         }
 
-        int footerY = Math.max(y + 1, sh - 42);
-        int footerWidth = Math.min(homeWidth, (sw - 2 * left - 12) / 2);
-        lockerButton.place(left, footerY, footerWidth, 15);
-        newsButton.place(left + footerWidth + 5, footerY, footerWidth, 15);
-        for (int i = 0; i < small.length; i++) {
-            small[i].place(left + 20 * i, footerY + 17, 16, 16);
+        // the bottom row: separate chips, each its own size
+        int footerY = Math.max(y + 4, sh - 26);
+        int fx = left;
+        Button[] row = {lockerButton, newsButton, small[0], small[1], small[2]};
+        for (Button b : row) {
+            int bw = chipWidth(b.label);
+            if (fx + bw > sw - left - 120 && b != lockerButton) {   // narrow windows: icons only
+                bw = 18;
+            }
+            b.place(fx, footerY, bw, 18);
+            fx += bw + 5;
         }
         if (player) {
             panel[0] = sw - left - pw;
@@ -190,6 +196,15 @@ public final class TitleMenu {
             panel[2] = 0;
         }
     }
+
+    /** A footer chip's width: icon, label, padding (about 5.5 GUI px a letter). */
+    private static int chipWidth(String label) {
+        Integer measured = CHIP_W.get(label);
+        return measured != null ? measured : 26 + Math.round(label.length() * 5.6f);
+    }
+
+    /** Footer chips' widths as last drawn (the font decides): the layout uses them from then on. */
+    private static final java.util.Map<String, Integer> CHIP_W = new java.util.HashMap<>();
 
     private static int lockerLeft(int sw) {
         return Math.max(14, Math.round(sw * 0.06f));
@@ -301,22 +316,40 @@ public final class TitleMenu {
         int offset = -Math.round((1f - entrance) * 10);
         home.pushScale(offset, 0, 1f);
         int mouseX = mx - offset;
-        int panelY = logoY - 6;
-        int panelH = small[0].y + small[0].h + 4 - panelY;
-        home.shadow(left - 8, panelY, homeWidth + 16, panelH);
-        home.roundRect(left - 8, panelY, homeWidth + 16, panelH, 7, 0xE4111520);
-        home.roundOutline(left - 8, panelY, homeWidth + 16, panelH, 7, 0x55606A7C);
-        home.roundRect(left - 3, logoY, 24, 24, 5, Theme.withAlpha(a, 0x24));
-        lightMark(home, left, logoY + 3, a);
-        home.textScaled(BRAND, left + 27, logoY + 1, Theme.TEXT, 1.45f, false);
-        home.text("Minecraft " + p.minecraftVersion(), left + 28, logoY + 16, Theme.MUTED, false);
+        // the logo and name, on their own (a soft light behind the prism)
+        float pulse = 0.5f + 0.5f * (float) Math.sin((System.currentTimeMillis() % 4000) / 4000.0 * Math.PI * 2);
+        home.glow(left - 4, logoY - 2, 26, 26, Theme.withAlpha(a, Math.round(0x30 + 0x20 * pulse)));
+        lightMark(home, left + 1, logoY + 3, a);
+        home.textScaled(BRAND, left + 26, logoY, Theme.TEXT, 1.6f, true);
+        home.text("Minecraft " + p.minecraftVersion(), left + 27, logoY + 17, Theme.MUTED, true);
 
         if (card[2] > 0) drawCard(home, p, mouseX, my, dt, a);
-        for (Button button : buttons) drawAction(home, button, mouseX, my, dt, a);
-        home.rect(left, lockerButton.y - 3, homeWidth, 1, 0x286A768A);
+        int i = 0;
+        for (Button button : buttons) {   // the tiles come in one after another
+            float in = shownAt < 0 ? 1f : FadeDraw.progress(shownAt + 60L * i++, 260);
+            if (in < 1f) {
+                Draw f = new FadeDraw(home, in);
+                f.pushScale(-Math.round((1f - in) * 8), 0, 1f);
+                drawAction(f, button, mouseX + Math.round((1f - in) * 8), my, dt, a);
+                f.popScale();
+            } else {
+                drawAction(home, button, mouseX, my, dt, a);
+            }
+        }
+        boolean measured = false;
+        for (Button b : new Button[] {lockerButton, newsButton, small[0], small[1], small[2]}) {
+            int real = home.width(b.label) + 30;
+            if (!Integer.valueOf(real).equals(CHIP_W.get(b.label))) {
+                CHIP_W.put(b.label, real);
+                measured = true;
+            }
+        }
+        if (measured) {
+            layout(p);
+        }
         drawAction(home, lockerButton, mouseX, my, dt, a);
         drawAction(home, newsButton, mouseX, my, dt, a);
-        for (Button button : small) button.drawIcon(home, mouseX, my, dt, a);
+        for (Button button : small) drawAction(home, button, mouseX, my, dt, a);
         home.popScale();
 
         if (panel[2] > 0) {
@@ -340,25 +373,34 @@ public final class TitleMenu {
         d.rect(x + 2, y + 9, 5, 1, Theme.mix(accent, 0xFFFFFFFF, 0.35f));
     }
 
+    /** A floating glass tile: dark and see-through, an accent bar and a lift when hovered. */
     private static void drawAction(Draw d, Button button, int mx, int my, float dt, int accent) {
         button.glow = Glass.ease(button.glow, button.contains(mx, my), dt);
-        int x = button.x, y = button.y;
-        int bg = button.primary ? Theme.mix(accent, 0xFFFFFFFF, 0.16f * button.glow)
-            : Theme.mix(0xEA1E2432, 0xF0323B50, button.glow);
-        int fg = button.primary ? Theme.onColor(accent) : Theme.TEXT;
-        d.roundRect(x, y, button.w, button.h, 4, bg);
-        if (button.primary) {
-            d.roundOutline(x, y, button.w, button.h, 4, Theme.mix(accent, 0xFFFFFFFF, 0.45f));
-            d.text("›", x + button.w - 12, y + (button.h - d.lineHeight()) / 2, fg, false);
+        float g = button.glow;
+        int x = button.x, y = button.y - Math.round(g), w = button.w, h = button.h;
+        d.shadow(x, y, w, h);
+        int bg = button.primary ? Theme.mix(Theme.withAlpha(accent, 0x58), Theme.withAlpha(accent, 0x80), g)
+                : Theme.mix(0xA8141822, 0xD0222936, g);
+        d.roundRect(x, y, w, h, 4, bg);
+        d.roundOutline(x, y, w, h, 4, button.primary ? Theme.withAlpha(accent, Math.round(0x90 + 0x60 * g))
+                : Theme.mix(0x26FFFFFF, Theme.withAlpha(accent, 0xA0), g));
+        if (g > 0.01f && !button.primary) {   // the accent bar grows in from the middle
+            int bh = Math.round((h - 8) * g);
+            d.rect(x + 1, y + (h - bh) / 2, 2, bh, Theme.withAlpha(accent, Math.round(0xFF * g)));
         }
-        if (!button.primary) {
-            d.roundOutline(x, y, button.w, button.h, 4, Theme.withAlpha(accent, Math.round(32 + button.glow * 110)));
+        int fg = Theme.mix(0xFFDDE0E8, 0xFFFFFFFF, g);
+        boolean iconOnly = w < 24;
+        int iy = y + (h - 9) / 2;
+        if (iconOnly) {
+            MenuIcons.draw(d, button.icon, x + (w - 9) / 2, iy, fg);
+            return;
         }
-        MenuIcons.draw(d, button.icon, x + 6, y + (button.h - 9) / 2, fg);
-        d.text(d.trim(button.label, button.w - 35), x + 21, y + (button.h - d.lineHeight()) / 2 + 1, fg, false);
-        if (!button.primary && button.h >= 16 && button.glow > 0.02f) {
-            d.text("›", x + button.w - 11 + Math.round(button.glow * 2),
-                y + (button.h - d.lineHeight()) / 2 + 1, fg, false);
+        MenuIcons.draw(d, button.icon, x + 7, iy, button.primary ? Theme.mix(accent, 0xFFFFFFFF, 0.5f) : fg);
+        boolean chevron = h >= 19 && w > 90;
+        d.text(d.trim(button.label, w - (chevron ? 34 : 24)), x + 21 + Math.round(g * 2), y + (h - d.lineHeight()) / 2 + 1, fg, true);
+        if (chevron) {
+            MenuIcons.draw(d, "chevron", x + w - 13 + Math.round(g * 2), iy,
+                    Theme.withAlpha(button.primary ? 0xFFFFFFFF : accent, Math.round(0x60 + 0x9F * g)));
         }
     }
 
@@ -833,12 +875,10 @@ public final class TitleMenu {
         boolean hover = mx >= x && mx < x + w && my >= y && my < y + h;
         cardGlow = hover ? Math.min(1f, cardGlow + dt * 9f) : Math.max(0f, cardGlow - dt * 6f);
         d.shadow(x, y, w, h);
-        d.roundRect(x, y, w, h, 3, Theme.mix(0xD81B1E25, 0xE82A2E38, cardGlow));
-        if (cardGlow > 0) {
-            d.roundOutline(x, y, w, h, 3, Theme.withAlpha(a, Math.round(0xC0 * cardGlow)));
-        }
+        d.roundRect(x, y, w, h, 5, Theme.mix(0xB8161B26, 0xD8232A38, cardGlow));
+        d.roundOutline(x, y, w, h, 5, Theme.mix(Theme.withAlpha(a, 0x70), Theme.withAlpha(a, 0xE0), cardGlow));
         int[] icon = ServerIcons.get(pc.lastServerAddress(), null);
-        int is = 24, ix = x + 6, iy = y + (h - is) / 2;
+        int is = Math.min(26, h - 8), ix = x + 5, iy = y + (h - is) / 2;
         if (icon != null) {
             d.pushScale(ix, iy, is / (float) ServerIcons.CELLS);
             for (int i = 0; i < icon.length; i++) {
@@ -852,10 +892,20 @@ public final class TitleMenu {
             MenuIcons.draw(d, "globe", ix + 7, iy + 7, Theme.TEXT);
         }
         int tx = ix + is + 7;
-        int textTop = y + (h - 21) / 2;
-        d.text("Jump back in", tx, textTop, Theme.MUTED, false);
-        d.text(d.trim(pc.lastServerName(), x + w - 16 - tx), tx, textTop + 11, Theme.TEXT, true);
-        MenuIcons.draw(d, "chevron", x + w - 14 + Math.round(cardGlow * 2), y + (h - 9) / 2, Theme.mix(Theme.MUTED, Theme.TEXT, cardGlow));
+        boolean roomy = h >= 34;
+        int textTop = y + (h - (roomy ? 30 : 21)) / 2;
+        d.text("Jump back in", tx, textTop, Theme.withAlpha(a, 0xE0), false);
+        d.text(d.trim(pc.lastServerName(), x + w - 22 - tx), tx, textTop + 10, Theme.TEXT, true);
+        String addr = pc.lastServerAddress();
+        if (roomy && addr != null && !addr.equals(pc.lastServerName())) {
+            d.text(d.trim(addr, x + w - 22 - tx), tx, textTop + 20, Theme.MUTED, false);
+        }
+        // a play mark on the right
+        int px = x + w - 15 + Math.round(cardGlow * 2), py = y + h / 2;
+        for (int r = 0; r < 7; r++) {
+            int half = r < 4 ? r : 6 - r;
+            d.rect(px, py - 3 + r, half + 1, 1, Theme.mix(a, 0xFFFFFFFF, cardGlow * 0.4f));
+        }
     }
 
     public boolean mouseClicked(int mx, int my, int button) {
