@@ -427,6 +427,11 @@ public final class TitleMenu {
         int gh = sh - y0 - 8;
         if (lockerTab == 0) {
             grid(0, net.peregrine.client.core.modules.Cosmetics.shown(), 58, 82, 0, gx, y0, gw, gh);
+            for (int[] c : cards) {   // places in the list -> the capes there
+                if (c[0] == 0) {
+                    c[1] = net.peregrine.client.core.modules.Cosmetics.atPosition(c[1]);
+                }
+            }
         } else if (lockerTab == 1) {
             grid(3, Math.min(skins.list(p).size(), skinGlow.length), 58, 92, 0, gx, y0, gw, gh);
         } else {

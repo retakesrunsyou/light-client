@@ -35,9 +35,9 @@ import net.peregrine.client.core.settings.ChoiceSetting;
  */
 public final class Cosmetics extends Module {
 
-    public static final String[] CAPES = {"None", "Falcon", "Violet", "Ember", "Starry night", "Pumpkin", "Frost", "Your own"};
+    public static final String[] CAPES = {"None", "Falcon", "Violet", "Ember", "Starry night", "Pumpkin", "Frost", "Your own", "Prism", "Lightspeed"};
     /** Texture names, under assets/peregrine-client/textures/cape/ ("custom" is your own, made in the launcher). */
-    public static final String[] FILES = {null, "falcon", "violet", "ember", "starry", "pumpkin", "frost", "custom"};
+    public static final String[] FILES = {null, "falcon", "violet", "ember", "starry", "pumpkin", "frost", "custom", "prism", "lightspeed"};
     /** "Your own" cape: a picture, GIF or video made into a cape in the launcher's Locker. Shared with other
      *  Peregrine players once the service's safety check has passed it. */
     public static final int CUSTOM = 7;
@@ -47,6 +47,7 @@ public final class Cosmetics extends Module {
 
     static {
         FRAMES.put("starry", 24);
+        FRAMES.put("lightspeed", 16);
     }
 
     // ---- your own cape (<data>/capes/custom: frame_000.png ... and cape.json, written by the launcher)
@@ -124,7 +125,22 @@ public final class Cosmetics extends Module {
 
     /** How many capes the menus list: "Your own" only once you've made one. */
     public static int shown() {
-        return hasCustom() ? CAPES.length : CUSTOM;
+        return hasCustom() ? CAPES.length : CAPES.length - 1;
+    }
+
+    /**
+     * Which cape is at a place in the Locker's list: the Light Client capes in order (newer ones,
+     * added after "Your own", among them), then your own last. Saved choices keep their numbers.
+     */
+    public static int atPosition(int pos) {
+        if (pos < CUSTOM) {
+            return pos;
+        }
+        int after = CAPES.length - 1 - CUSTOM;   // capes added after "Your own"
+        if (pos - CUSTOM < after) {
+            return CUSTOM + 1 + (pos - CUSTOM);
+        }
+        return CUSTOM;
     }
 
     /** The PNG of a frame of your own cape ("custom_<version>_<frame>"). */

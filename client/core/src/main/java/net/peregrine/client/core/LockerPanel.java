@@ -105,13 +105,14 @@ final class LockerPanel extends MenuPanel {
         float pulse = 0.5f + 0.5f * (float) Math.sin(now / 380.0);
         menu.clipArea(d, gx - 2, top - 2, gw + 8, gh + 2);
         List<LockerSkins.Skin> list = tab == 1 ? skins.list(p) : null;
-        for (int i = 0; i < n; i++) {
-            int cx = gx + (i % cols) * (cw + gap);
-            int cy = top + (i / cols) * (chH + gap) - Math.round(smooth);
+        for (int pos = 0; pos < n; pos++) {
+            int i = tab == 0 ? Cosmetics.atPosition(pos) : pos;   // the cape (or skin) at this place
+            int cx = gx + (pos % cols) * (cw + gap);
+            int cy = top + (pos / cols) * (chH + gap) - Math.round(smooth);
             if (cy + chH < top || cy > top + gh) {
                 continue;
             }
-            float ap = Glass.backOut(appear(i));
+            float ap = Glass.backOut(appear(pos));
             Draw cd = ap < 1f ? new FadeDraw(d, Math.max(0.05f, Math.min(1f, ap))) : d;
             cy += Math.round((1f - Math.min(1f, ap)) * 10);
             boolean hover = in(mx, my, cx, cy, cw, chH) && in(mx, my, gx, top, gw, gh);

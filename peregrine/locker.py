@@ -18,8 +18,8 @@ from . import auth, config, net, paths
 
 PROFILE = "https://api.minecraftservices.com/minecraft/profile"
 LIBRARY = paths.DATA / "skins" / "library"
-CAPE_NAMES = ("None", "Falcon", "Violet", "Ember", "Starry night", "Pumpkin", "Frost", "Your own")
-CAPE_FILES = ("", "falcon", "violet", "ember", "starry", "pumpkin", "frost", "custom")
+CAPE_NAMES = ("None", "Falcon", "Violet", "Ember", "Starry night", "Pumpkin", "Frost", "Your own", "Prism", "Lightspeed")
+CAPE_FILES = ("", "falcon", "violet", "ember", "starry", "pumpkin", "frost", "custom", "prism", "lightspeed")
 CUSTOM_CAPE = 7   # your own picture, GIF or video (custom_cape.py); only you see it
 
 
@@ -259,7 +259,7 @@ def peregrine_cape() -> int:
         return 1
 
 
-ANIMATED = {"starry": 24}
+ANIMATED = {"starry": 24, "lightspeed": 16}
 
 
 def cape_frames(index: int):
