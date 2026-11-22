@@ -109,8 +109,8 @@ final class PeregrineScreen extends Screen {
             onClose();  // the same key closes it
             return true;
         }
-        if (e.key() != org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) {
-            Panel3D.passKey(e, true);   // in the world: walk, jump...
+        if (e.key() != org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE && !menu.wantsTyping()) {
+            Panel3D.passKey(e, true);   // in the world: walk, jump... (not while typing in the search bar)
         }
         return super.keyPressed(e);  // Esc closes
     }

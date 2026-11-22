@@ -1,6 +1,6 @@
 package net.peregrine.client.core.settings;
 
-/** One of a few named options; clicking it moves to the next. */
+/** One of a few named options, picked from a dropdown list in the menu. */
 public class ChoiceSetting extends Setting {
 
     public final String[] options;

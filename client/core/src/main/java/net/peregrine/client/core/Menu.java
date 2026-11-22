@@ -175,6 +175,7 @@ public final class Menu {
         typing = null;
         bindingKey = null;
         picker.close();
+        dropdown = null;
         draggingSlider = null;
         hits.clear();
         sideSlide = -1;
@@ -256,6 +257,7 @@ public final class Menu {
     /** Chooses something in the sidebar. */
     void choose(String id) {
         picker.close();
+        dropdown = null;
         if (page != null) {
             closePage();
         }
@@ -349,6 +351,7 @@ public final class Menu {
         }
         search = "";
         picker.close();
+        dropdown = null;
         page = m;
         pageOpenedAt = System.currentTimeMillis();
         scroll = 0;
@@ -662,8 +665,8 @@ public final class Menu {
             d.roundRect(searchX, searchY, searchW, TABBAR_H, 8, 0x50000000);
             d.roundOutline(searchX, searchY, searchW, TABBAR_H, 8, (searchFocused || searching) ? Theme.withAlpha(a, 0xC0) : 0x22FFFFFF);
             boolean caret = searchFocused && (now / 500) % 2 == 0;
-            String shown = searching || searchFocused ? search + (caret ? "|" : "") : pn != null ? pn.placeholder()
-                    : page != null ? "Search settings..." : "Search modules...";
+            String shown = searching || searchFocused ? search + (caret ? "|" : "") : worldPanel() ? "Click to search"
+                    : pn != null ? pn.placeholder() : page != null ? "Search settings..." : "Search modules...";
             MenuIcons.draw(d, "search", searchX + 5, searchY + 4, searching ? a : Theme.FAINT);
             if (searchFocused) {
                 while (!shown.isEmpty() && d.width(shown) > searchW - 22) {
@@ -1355,7 +1358,7 @@ public final class Menu {
         d.popScale();
         d.clip(s(listX), s(top), s(listW), s(viewH));
         d.pushScale(0, 0, k);
-        boolean inView = in(mx, my, listX, top, listW, viewH);
+        boolean inView = in(mx, my, listX, top, listW, viewH) && dropdown == null;   // an open list: nothing behind it lights up
         int y = top + 2 - Math.round(smoothScroll);
 
         // Keybind: a key that switches this feature while playing.
@@ -1575,15 +1578,16 @@ public final class Menu {
                 String val = action ? ((ActionSetting) st).button() : ((ChoiceSetting) st).text();
                 int pw2 = d.width(val) + (action ? 14 : 22);
                 int bx = right - pw2;
-                boolean ph2 = inView && in(mx, my, bx, y + 3, pw2, 16);
+                boolean ph2 = inView && in(mx, my, bx, y + 3, pw2, 16) && dropdown == null;
+                boolean open = !action && dropdown == st;
                 d.roundRect(bx, y + 3, pw2, 16, action ? Theme.withAlpha(a, ph2 ? 0xFF : 0x2A)
-                        : ph2 ? Theme.ROW_HOVER : Theme.FIELD);
+                        : ph2 || open ? Theme.ROW_HOVER : Theme.FIELD);
                 d.roundOutline(bx, y + 3, pw2, 16, action ? Theme.withAlpha(a, 0xA0)
-                        : ph2 ? Theme.withAlpha(a, 0xC0) : Theme.HAIRLINE);
+                        : ph2 || open ? Theme.withAlpha(a, 0xC0) : Theme.HAIRLINE);
                 int tc = action ? (ph2 ? 0xFF15171C : Theme.withAlpha(a, 0xFF)) : Theme.TEXT;
                 d.text(val, bx + 7, y + 7, tc, false);
-                if (!action) {  // a small arrow: click to cycle
-                    arrowRight(d, bx + pw2 - 10, y + 8, ph2 ? a : Theme.FAINT);
+                if (!action) {  // a small arrow: opens the list of options
+                    arrowDown(d, bx + pw2 - 11, y + 9, ph2 || open ? a : Theme.FAINT);
                 }
                 hit(id, bx, y + 3, pw2, 16, st);
             }
@@ -1618,6 +1622,7 @@ public final class Menu {
         }
         scrollbar(d, top, viewH, inView, a);
         picker.render(d, mx, my, a);
+        renderDropdown(d, mx, my, a);
 
     }
 
@@ -1646,6 +1651,9 @@ public final class Menu {
     }
 
     private boolean pageClicked(int mx, int my) {
+        if (dropdown != null) {
+            return dropdownClicked(mx, my);
+        }
         if (picker.open()) {
             picker.click(mx, my);
             pc.markDirty();
@@ -1728,7 +1736,8 @@ public final class Menu {
                 ((BoolSetting) h.setting).value = !((BoolSetting) h.setting).value;
                 styleChanged(h.setting);
             } else if (h.setting instanceof ChoiceSetting) {
-                ((ChoiceSetting) h.setting).next();
+                openDropdown((ChoiceSetting) h.setting, h);
+                return true;
             } else if (h.setting instanceof ColorSetting) {
                 ColorSetting cs = (ColorSetting) h.setting;
                 picker.show(new SettingTarget(cs), h.x + h.w - ColorPicker.W, h.y + h.h + 3,
@@ -1978,6 +1987,7 @@ public final class Menu {
         typing = null;
         bindingKey = null;
         binding = null;
+        dropdown = null;
         page = null;
         search = view == 0 ? listSearch : "";
         searchFocused = false;
@@ -2016,6 +2026,151 @@ public final class Menu {
             d.rect(x + i, y + 3 + i, 1, 1, c);
         }
         d.rect(x, y + 3, 1, 1, c);
+    }
+
+    // ------------------------------------------------------------ dropdowns (settings with a few options)
+
+    /** The setting whose options are listed below it, or null. */
+    private ChoiceSetting dropdown;
+    private int ddAnchorX, ddAnchorY, ddAnchorW, ddAnchorH;
+    private int ddHover = -1, ddScroll;
+    private long ddOpenedAt;
+    /** Where the open list was drawn: x, y, w, row height, first shown option, rows shown. */
+    private final int[] ddBox = new int[6];
+    private static final int DD_ROW = 16;
+
+    private void openDropdown(ChoiceSetting cs, Hit h) {
+        if (dropdown == cs) {
+            dropdown = null;   // clicking it again closes it
+            return;
+        }
+        dropdown = cs;
+        ddAnchorX = h.x;
+        ddAnchorY = h.y;
+        ddAnchorW = h.w;
+        ddAnchorH = h.h;
+        ddHover = cs.index;
+        ddScroll = 0;
+        ddOpenedAt = System.currentTimeMillis();
+    }
+
+    /** The open list of options: below its button (above when there's no room), the current one ticked. */
+    private void renderDropdown(Draw d, int mx, int my, int a) {
+        ChoiceSetting cs = dropdown;
+        if (cs == null) {
+            return;
+        }
+        Platform p = pc.platform();
+        int sw = Math.round(p.screenWidth() / k), sh = Math.round(p.screenHeight() / k);
+        int w = ddAnchorW;
+        for (String o : cs.options) {
+            w = Math.max(w, d.width(o) + 30);
+        }
+        w = Math.min(w, sw - 8);
+        int fit = Math.max(3, (sh - 16) / DD_ROW);
+        int shown = Math.min(cs.options.length, Math.min(fit, 10));
+        int h = shown * DD_ROW + 4;
+        int x = Math.max(4, Math.min(sw - w - 4, ddAnchorX + ddAnchorW - w));
+        int below = ddAnchorY + ddAnchorH + 3, above = ddAnchorY - 3 - h;
+        int y = below + h <= sh - 4 || above < 4 ? Math.min(below, sh - 4 - h) : above;
+        // keep the chosen option in view when the list scrolls
+        int maxScroll = cs.options.length - shown;
+        ddScroll = Math.max(0, Math.min(maxScroll, ddScroll));
+        float t = Math.min(1f, (System.currentTimeMillis() - ddOpenedAt) / 110f);
+        int drop = Math.round((1f - t) * 4);
+        y += below == y ? -drop : drop;
+        ddBox[0] = x;
+        ddBox[1] = y;
+        ddBox[2] = w;
+        ddBox[3] = DD_ROW;
+        ddBox[4] = ddScroll;
+        ddBox[5] = shown;
+        Draw f = t < 1f ? new FadeDraw(d, t) : d;
+        f.roundRect(x + 1, y + 2, w, h, 6, 0x50000000);                 // soft shadow
+        f.roundRect(x, y, w, h, 6, 0xF2181B22);
+        f.roundOutline(x, y, w, h, 6, Theme.withAlpha(a, 0x90));
+        int hoverRow = in(mx, my, x, y + 2, w, shown * DD_ROW) ? (my - y - 2) / DD_ROW + ddScroll : -1;
+        if (hoverRow >= 0) {
+            ddHover = hoverRow;
+        }
+        for (int r = 0; r < shown; r++) {
+            int i = r + ddScroll;
+            int ry = y + 2 + r * DD_ROW;
+            boolean chosen = i == cs.index, hover = i == ddHover;
+            if (hover) {
+                f.roundRect(x + 2, ry, w - 4, DD_ROW, 4, chosen ? Theme.withAlpha(a, 0x50) : Theme.ROW_HOVER);
+            } else if (chosen) {
+                f.roundRect(x + 2, ry, w - 4, DD_ROW, 4, Theme.withAlpha(a, 0x28));
+            }
+            if (chosen) {   // a tick
+                int cx = x + 7, cy = ry + 8;
+                for (int j = 0; j < 3; j++) {
+                    f.rect(cx + j, cy - 1 + j, 1, 2, a);
+                }
+                for (int j = 0; j < 5; j++) {
+                    f.rect(cx + 3 + j, cy + 1 - j, 1, 2, a);
+                }
+            }
+            f.text(f.trim(cs.options[i], w - 26), x + 20, ry + 4, chosen ? Theme.TEXT : hover ? Theme.TEXT : Theme.MUTED, false);
+        }
+        if (maxScroll > 0) {   // a thin scrollbar
+            int track = shown * DD_ROW - 4;
+            int bar = Math.max(8, track * shown / cs.options.length);
+            int by = y + 4 + (track - bar) * ddScroll / maxScroll;
+            f.roundRect(x + w - 4, by, 2, bar, 1, 0x60FFFFFF);
+        }
+    }
+
+    /** A click while the list is open: picks an option, or closes the list. Always used. */
+    private boolean dropdownClicked(int mx, int my) {
+        ChoiceSetting cs = dropdown;
+        dropdown = null;
+        if (in(mx, my, ddBox[0], ddBox[1] + 2, ddBox[2], ddBox[5] * ddBox[3])) {
+            int i = (my - ddBox[1] - 2) / ddBox[3] + ddBox[4];
+            if (i >= 0 && i < cs.options.length) {
+                cs.index = i;
+                styleChanged(cs);
+                pc.markDirty();
+            }
+        } else if (in(mx, my, ddAnchorX, ddAnchorY, ddAnchorW, ddAnchorH)) {
+            return true;   // its own button: just closes it
+        }
+        return true;
+    }
+
+    /** Keys while the list is open: up / down move, Enter picks, Esc closes. */
+    private boolean dropdownKey(int key) {
+        ChoiceSetting cs = dropdown;
+        if (key == KEY_ESCAPE) {
+            dropdown = null;
+            return true;
+        }
+        if (key == 265 || key == 264) {   // up, down
+            ddHover = Math.max(0, Math.min(cs.options.length - 1, (ddHover < 0 ? cs.index : ddHover) + (key == 264 ? 1 : -1)));
+            if (ddHover < ddScroll) {
+                ddScroll = ddHover;
+            } else if (ddHover >= ddScroll + ddBox[5]) {
+                ddScroll = ddHover - ddBox[5] + 1;
+            }
+            return true;
+        }
+        if (key == KEY_ENTER || key == 32) {
+            if (ddHover >= 0 && ddHover < cs.options.length) {
+                cs.index = ddHover;
+                styleChanged(cs);
+                pc.markDirty();
+            }
+            dropdown = null;
+            return true;
+        }
+        return true;   // nothing else while it's open
+    }
+
+    private static void arrowDown(Draw d, int x, int y, int c) {
+        for (int i = 0; i < 3; i++) {
+            d.rect(x + i, y + i, 1, 1, c);
+            d.rect(x + 4 - i, y + i, 1, 1, c);
+        }
     }
 
     private static void arrowRight(Draw d, int x, int y, int c) {
@@ -2105,6 +2260,9 @@ public final class Menu {
         }
         int mx = Math.round(screenMx / k);
         int my = Math.round(screenMy / k);
+        if (dropdown != null) {   // an open list takes the click, wherever it lands
+            return dropdownClicked(mx, my);
+        }
         if (binding != null) {
             boolean onBind = false;
             for (Hit h : hits) {
@@ -2355,6 +2513,14 @@ public final class Menu {
     /** amount: positive = scroll up. */
     public boolean mouseScrolled(double amount, int screenMx, int screenMy) {
         int mx = Math.round(screenMx / k), my = Math.round(screenMy / k);
+        if (dropdown != null) {
+            if (in(mx, my, ddBox[0], ddBox[1], ddBox[2], ddBox[5] * ddBox[3] + 4)) {
+                ddScroll -= (int) Math.signum(amount);   // the list itself scrolls
+            } else {
+                dropdown = null;   // scrolling the page moves the button away: close it
+            }
+            return true;
+        }
         if (editingHud) {
             return editor.mouseScrolled(amount, screenMx, screenMy);
         }
@@ -2378,6 +2544,9 @@ public final class Menu {
 
     /** Returns true if the key was used. Esc is used by the HUD editor and settings pages (to go back). */
     public boolean keyPressed(int key) {
+        if (dropdown != null) {
+            return dropdownKey(key);
+        }
         if (bindingKey != null) {
             if (key == KEY_BACKSPACE || key == Keys.KEY_DELETE) {
                 bindingKey.key = Keys.NONE;
@@ -2398,6 +2567,10 @@ public final class Menu {
                 pc.markDirty();
             }
             return true;  // every other key just types (via charTyped)
+        }
+        if (searchFocused && worldPanel() && (key == KEY_ESCAPE || key == KEY_ENTER)) {
+            searchFocused = false;   // done searching: keys walk again
+            return true;
         }
         if (binding != null) {
             if (key == KEY_BACKSPACE || key == Keys.KEY_DELETE) {
@@ -2459,6 +2632,20 @@ public final class Menu {
         return false;
     }
 
+    /** True while something in the menu takes the keyboard: a search bar you clicked, a text box, a key being set. */
+    public boolean wantsTyping() {
+        return searchFocused || typing != null || bindingKey != null || binding != null;
+    }
+
+    /**
+     * The menu is a panel in the world you walk around with: typing doesn't search until you
+     * click the search bar, so walking (W A S D), jumping and the rest never type into it.
+     */
+    private boolean worldPanel() {
+        net.peregrine.client.core.modules.Menu3D m = net.peregrine.client.core.modules.Menu3D.get();
+        return m != null && m.mode.index == net.peregrine.client.core.modules.Menu3D.WORLD && pc.platform().supports("menu_3d");
+    }
+
     public boolean charTyped(char c) {
         if (System.currentTimeMillis() - boundAt < 250) {
             boundAt = 0;
@@ -2475,10 +2662,14 @@ public final class Menu {
         if (editingHud || Character.isISOControl(c) || search.length() >= 24) {
             return false;
         }
+        boolean free = !worldPanel() || searchFocused;   // in the world: only once the search bar is clicked
         if (search.isEmpty() && c == ' ') {
-            return true;
+            return free;
         }
         if (page != null) {  // on a feature's page, typing searches its settings
+            if (!free) {
+                return false;
+            }
             search += c;
             scroll = 0;
             smoothScroll = 0;
@@ -2489,14 +2680,14 @@ public final class Menu {
             return true;
         }
         if (pn != null) {  // a page with its own search (Browse searches Modrinth)
-            if (pn.placeholder().isEmpty()) {
+            if (pn.placeholder().isEmpty() || !free) {
                 return false;
             }
             search += c;
             pn.searchChanged(search);
             return true;
         }
-        if (view != 0) {
+        if (view != 0 || !free) {
             return false;
         }
         search += c;

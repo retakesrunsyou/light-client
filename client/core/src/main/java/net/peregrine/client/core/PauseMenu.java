@@ -173,12 +173,14 @@ public final class PauseMenu {
         if (address == null || p.localWorld()) {
             return null;
         }
-        String id = serverTex.get(address);
+        int px = (int) Math.round(20 * p.guiScale());
+        String key = address + "@" + px;
+        String id = serverTex.get(key);
         if (id == null) {
-            java.nio.file.Path f = ServerIcons.file(address, p.serverIcon());
+            java.nio.file.Path f = ServerIcons.sized(address, p.serverIcon(), px);
             if (f != null) {
                 id = p.loadImage(f);
-                serverTex.put(address, id == null ? "" : id);
+                serverTex.put(key, id == null ? "" : id);
             }
         }
         return id == null || id.isEmpty() ? null : id;

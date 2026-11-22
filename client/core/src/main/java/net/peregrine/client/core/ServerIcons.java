@@ -84,7 +84,91 @@ public final class ServerIcons {
         return FILES.get(address);
     }
 
+    private static final Map<String, java.nio.file.Path> SIZED = new HashMap<String, java.nio.file.Path>();
+    private static final Map<String, byte[]> PNGS = new HashMap<String, byte[]>();
+
+    /**
+     * The server's own icon made for exactly px x px screen pixels: shrunk with every source
+     * pixel counted (so it's sharp, never jaggy or blurry) and rounded corners smoothed in.
+     * Null until the icon is known. Each size is made once.
+     */
+    public static synchronized java.nio.file.Path sized(String address, byte[] gameIcon, int px) {
+        if (address == null || px <= 0) {
+            return null;
+        }
+        get(address, gameIcon);
+        byte[] png = PNGS.get(address);
+        if (png == null) {
+            return null;
+        }
+        px = Math.max(8, Math.min(256, px));
+        String key = address + "@" + px;
+        java.nio.file.Path f = SIZED.get(key);
+        if (f != null) {
+            return f;
+        }
+        try {
+            BufferedImage out = resize(ImageIO.read(new ByteArrayInputStream(png)), px, 0.16f);
+            java.io.File file = new java.io.File(System.getProperty("java.io.tmpdir"),
+                    "lightclient-server-" + Integer.toHexString(address.toLowerCase().hashCode()) + "-" + px + ".png");
+            ImageIO.write(out, "png", file);
+            SIZED.put(key, file.toPath());
+            return file.toPath();
+        } catch (Throwable e) {
+            return FILES.get(address);   // the full-size one still works
+        }
+    }
+
+    /**
+     * Area-average resize to size x size (premultiplied, so see-through edges don't go dark),
+     * with rounded corners (radius as a fraction of the size, 0 for square) anti-aliased.
+     */
+    static BufferedImage resize(BufferedImage img, int size, float round) {
+        int w = img.getWidth(), h = img.getHeight();
+        BufferedImage out = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        float r = round * size;
+        for (int oy = 0; oy < size; oy++) {
+            for (int ox = 0; ox < size; ox++) {
+                double sx0 = ox * (double) w / size, sx1 = (ox + 1) * (double) w / size;
+                double sy0 = oy * (double) h / size, sy1 = (oy + 1) * (double) h / size;
+                double a = 0, cr = 0, cg = 0, cb = 0, area = 0;
+                for (int y = (int) sy0; y < Math.min(h, Math.ceil(sy1)); y++) {
+                    double wy = Math.min(sy1, y + 1) - Math.max(sy0, y);
+                    for (int x = (int) sx0; x < Math.min(w, Math.ceil(sx1)); x++) {
+                        double wx = Math.min(sx1, x + 1) - Math.max(sx0, x);
+                        double wt = wx * wy;
+                        int c = img.getRGB(x, y);
+                        double ca = (c >>> 24) / 255.0 * wt;
+                        a += ca;
+                        cr += ((c >> 16) & 0xFF) * ca;
+                        cg += ((c >> 8) & 0xFF) * ca;
+                        cb += (c & 0xFF) * ca;
+                        area += wt;
+                    }
+                }
+                if (a <= 0 || area <= 0) {
+                    continue;
+                }
+                double alpha = a / area * corner(ox + 0.5f, oy + 0.5f, size, r);
+                int ia = (int) Math.round(Math.max(0, Math.min(1, alpha)) * 255);
+                out.setRGB(ox, oy, ia << 24 | (int) Math.round(cr / a) << 16 | (int) Math.round(cg / a) << 8 | (int) Math.round(cb / a));
+            }
+        }
+        return out;
+    }
+
+    /** How much of this pixel is inside the rounded square (1 inside, 0 outside, smooth at the edge). */
+    private static double corner(float x, float y, int size, float r) {
+        if (r < 0.5f) {
+            return 1;
+        }
+        float cx = Math.max(r, Math.min(size - r, x)), cy = Math.max(r, Math.min(size - r, y));
+        double d = Math.hypot(x - cx, y - cy) - r;
+        return Math.max(0, Math.min(1, 0.5 - d));
+    }
+
     private static void keep(String address, byte[] png) {
+        PNGS.put(address, png);
         try {
             java.io.File f = new java.io.File(System.getProperty("java.io.tmpdir"),
                     "lightclient-server-" + Integer.toHexString(address.toLowerCase().hashCode()) + ".png");

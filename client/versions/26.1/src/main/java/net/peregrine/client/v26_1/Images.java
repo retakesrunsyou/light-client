@@ -20,11 +20,7 @@ final class Images {
         try (InputStream in = Files.newInputStream(png)) {
             NativeImage img = NativeImage.read(in);
             Object tex = newTexture(img);
-            try {  // smooth when stretched (where this version allows choosing)
-                tex.getClass().getMethod("setFilter", boolean.class, boolean.class).invoke(tex, true, false);
-            } catch (Throwable ignored) {
-                // keep the default
-            }
+            smooth(tex);
             String path = "dynamic/" + Integer.toHexString(png.toAbsolutePath().toString().hashCode());
             Object id = net.minecraft.resources.Identifier.fromNamespaceAndPath("peregrine-client", path);
             Minecraft.getInstance().getTextureManager().register((net.minecraft.resources.Identifier) id, (net.minecraft.client.renderer.texture.AbstractTexture) tex);
@@ -32,6 +28,32 @@ final class Images {
         } catch (Throwable t) {
             System.err.println("[Peregrine] couldn't load " + png.getFileName() + ": " + t);
             return null;
+        }
+    }
+
+    /** Smooth (linear) filtering, so a picture drawn smaller or larger than it is never looks blocky. */
+    static void smooth(Object tex) {
+        try {  // older versions
+            tex.getClass().getMethod("setFilter", boolean.class, boolean.class).invoke(tex, true, false);
+            return;
+        } catch (Throwable ignored) {
+            // newer: the texture carries a sampler
+        }
+        try {
+            Object cache = com.mojang.blaze3d.systems.RenderSystem.class.getMethod("getSamplerCache").invoke(null);
+            for (java.lang.reflect.Method m : cache.getClass().getMethods()) {
+                if (m.getName().equals("getClampToEdge") && m.getParameterCount() == 1 && m.getParameterTypes()[0].isEnum()) {
+                    @SuppressWarnings({"unchecked", "rawtypes"})
+                    Object linear = Enum.valueOf((Class) m.getParameterTypes()[0], "LINEAR");
+                    Object sampler = m.invoke(cache, linear);
+                    java.lang.reflect.Field f = net.minecraft.client.renderer.texture.AbstractTexture.class.getDeclaredField("sampler");
+                    f.setAccessible(true);
+                    f.set(tex, sampler);
+                    return;
+                }
+            }
+        } catch (Throwable ignored) {
+            // keep the default
         }
     }
 

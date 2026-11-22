@@ -48,6 +48,25 @@ public final class ServerHud extends HudModule {
         return showIcon.value ? ServerIcons.get(p.serverAddress(), p.serverIcon()) : null;
     }
 
+    private final java.util.Map<String, String> textures = new java.util.HashMap<String, String>();
+
+    /** The icon as a texture sized for the screen pixels it covers (GUI scale x this module's size). */
+    private String texture(Platform p, int size) {
+        String address = p.serverAddress();
+        int px = (int) Math.round(size * p.guiScale() * scale);
+        String key = address + "@" + px;
+        String id = textures.get(key);
+        if (id == null) {
+            java.nio.file.Path f = ServerIcons.sized(address, p.serverIcon(), px);
+            if (f == null) {
+                return null;
+            }
+            id = p.loadImage(f);
+            textures.put(key, id == null ? "" : id);
+        }
+        return id.isEmpty() ? null : id;
+    }
+
     private int iconSize(Draw d) {
         return d.lineHeight() + 2;
     }
@@ -89,17 +108,23 @@ public final class ServerHud extends HudModule {
         if (icon != null) {
             int size = iconSize(d);
             int iy = y + (h - size) / 2;
-            // drawn from half-size cells, so it stays sharp at every GUI scale
-            d.pushScale(tx, iy, size / (float) ServerIcons.CELLS);
-            for (int cy = 0; cy < ServerIcons.CELLS; cy++) {
-                for (int cx = 0; cx < ServerIcons.CELLS; cx++) {
-                    int c = icon[cy * ServerIcons.CELLS + cx];
-                    if ((c >>> 24) != 0) {
-                        d.rect(cx, cy, 1, 1, c);
+            String tex = d.hasTextures() ? texture(p, size) : null;
+            if (tex != null) {
+                // the server's real icon, made for exactly this many screen pixels: sharp at any size
+                d.texture(tex, tx, iy, size, size, 0f, 0f, 1f, 1f, 0xFFFFFFFF);
+            } else {
+                // no textures here: a grid of its colours
+                d.pushScale(tx, iy, size / (float) ServerIcons.CELLS);
+                for (int cy = 0; cy < ServerIcons.CELLS; cy++) {
+                    for (int cx = 0; cx < ServerIcons.CELLS; cx++) {
+                        int c = icon[cy * ServerIcons.CELLS + cx];
+                        if ((c >>> 24) != 0) {
+                            d.rect(cx, cy, 1, 1, c);
+                        }
                     }
                 }
+                d.popScale();
             }
-            d.popScale();
             tx += size + 4;
             if (divider.value) {
                 d.rect(tx, y + 3, 1, h - 6, 0x60FFFFFF);
