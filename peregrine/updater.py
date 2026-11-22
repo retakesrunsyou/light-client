@@ -35,8 +35,23 @@ def kind() -> str:
     return "script" if installed_app_dir() is not None else "source"
 
 
+# The same apps under the Light Client name (releases carry both; older launchers look for the old names).
+NEW_NAMES = {WINDOWS_ASSET: "Light-Client-Setup.exe", APPIMAGE_ASSET: "Light-Client-x86_64.AppImage"}
+
+
 def _asset_name() -> str:
     return {"windows": WINDOWS_ASSET, "appimage": APPIMAGE_ASSET}.get(kind(), ASSET_NAME)
+
+
+def _find_asset(release: dict):
+    """The release file for this kind of install: the Light Client name if it's there, else the old one."""
+    name = _asset_name()
+    assets = release.get("assets", [])
+    for want in (NEW_NAMES.get(name), name):
+        hit = next((a for a in assets if want and a["name"] == want), None)
+        if hit:
+            return hit
+    return None
 
 
 def _parse(v: str) -> tuple:
@@ -64,7 +79,7 @@ def check() -> Optional[dict]:
     release = net.get_json(f"https://api.github.com/repos/{UPDATE_REPO}/releases/latest",
                            headers={"Accept": "application/vnd.github+json"})
     latest = release.get("tag_name", "")
-    asset = next((a for a in release.get("assets", []) if a["name"] == _asset_name()), None)
+    asset = _find_asset(release)
     if not asset or not is_newer(latest):
         return None
     return {"version": latest.lstrip("vV"), "url": asset["browser_download_url"],

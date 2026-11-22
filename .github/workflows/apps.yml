@@ -124,7 +124,9 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" dist/Peregrine-Setup.exe --clobber
+        run: |
+          cp dist/Peregrine-Setup.exe dist/Light-Client-Setup.exe
+          gh release upload "${{ github.event.release.tag_name }}" dist/Peregrine-Setup.exe dist/Light-Client-Setup.exe --clobber
 
   appimage:
     runs-on: ubuntu-22.04
@@ -195,5 +197,8 @@ jobs:
         if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" Peregrine-x86_64.AppImage --clobber
+        run: |
+          cp Peregrine-x86_64.AppImage Light-Client-x86_64.AppImage
+          gh release upload "${{ github.event.release.tag_name }}" Peregrine-x86_64.AppImage Light-Client-x86_64.AppImage \
+            packaging/Light-Client-Linux-Installer.sh --clobber
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installs or updates Peregrine for the current user: a private Python
+# Installs or updates Light Client Launcher for the current user: a private Python
 # environment, a `peregrine` command, and an app menu entry.
 # Run it again any time; your instances, worlds and settings are kept.
 set -euo pipefail
@@ -39,7 +39,7 @@ if [ -x "$LDCONFIG" ]; then
   fi
 fi
 if [ ${#missing[@]} -gt 0 ]; then
-  echo "Peregrine needs these system packages first. Run:"
+  echo "Light Client needs these system packages first. Run:"
   echo
   echo "  sudo apt install ${missing[*]}"
   echo
@@ -49,9 +49,9 @@ fi
 
 # ---- copy the app
 if [ -n "$OLD" ]; then
-  echo "Updating Peregrine $OLD → $NEW"
+  echo "Updating Light Client $OLD → $NEW"
 else
-  echo "Installing Peregrine $NEW"
+  echo "Installing Light Client $NEW"
 fi
 mkdir -p "$APP" "$BIN" "$APPS" "$ICONS"
 rm -rf "$APP/peregrine.new"
@@ -78,6 +78,7 @@ cat > "$BIN/peregrine" <<EOF
 cd "$APP" && exec "$APP/venv/bin/python" -m peregrine "\$@"
 EOF
 chmod +x "$BIN/peregrine"
+ln -sf "$BIN/peregrine" "$BIN/light-client"   # the new name runs it too
 
 # App icon: the SVG plus PNG sizes, since some docks and taskbars only use PNGs.
 cp "$SRC/peregrine.svg" "$ICONS/peregrine.svg"
@@ -115,7 +116,7 @@ Categories=Game;
 Keywords=minecraft;launcher;mods;fabric;
 Terminal=false
 EOF
-# A shortcut on the desktop too, so Peregrine is always one double-click away.
+# A shortcut on the desktop too, so Light Client is always one double-click away.
 DESKTOP_DIR="$(command -v xdg-user-dir >/dev/null && xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")"
 if [ -d "$DESKTOP_DIR" ] && [ "$DESKTOP_DIR" != "$HOME" ]; then
   cp "$APPS/peregrine.desktop" "$DESKTOP_DIR/peregrine.desktop"
@@ -127,8 +128,8 @@ command -v gtk-update-icon-cache >/dev/null && gtk-update-icon-cache -q -t "$DAT
 
 trap - ERR
 echo
-echo "Done! Open 'Light Client Launcher' from your app menu, or run: peregrine"
+echo "Done! Open 'Light Client Launcher' from your app menu, or run: light-client"
 case ":$PATH:" in
   *":$BIN:"*) ;;
-  *) echo "(If 'peregrine' says command not found, log out and back in once.)" ;;
+  *) echo "(If 'light-client' says command not found, log out and back in once.)" ;;
 esac
