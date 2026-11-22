@@ -104,7 +104,7 @@ PY
 cat > "$APPS/peregrine.desktop" <<EOF
 [Desktop Entry]
 Type=Application
-Name=Peregrine Launcher
+Name=Light Client Launcher
 GenericName=Minecraft Launcher
 Comment=Launch and speed up Minecraft: Java Edition
 Exec="$BIN/peregrine"
@@ -127,7 +127,7 @@ command -v gtk-update-icon-cache >/dev/null && gtk-update-icon-cache -q -t "$DAT
 
 trap - ERR
 echo
-echo "Done! Open 'Peregrine Launcher' from your app menu, or run: peregrine"
+echo "Done! Open 'Light Client Launcher' from your app menu, or run: peregrine"
 case ":$PATH:" in
   *":$BIN:"*) ;;
   *) echo "(If 'peregrine' says command not found, log out and back in once.)" ;;

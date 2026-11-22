@@ -79,18 +79,18 @@ jobs:
           $exe = "$dir\Peregrine.exe"
           if (-not (Test-Path $exe)) { throw "not installed at $exe" }
           $desk = [Environment]::GetFolderPath('Desktop')
-          $lnk = "$desk\Peregrine Launcher.lnk"
+          $lnk = "$desk\Light Client Launcher.lnk"
           if (-not (Test-Path $lnk)) { throw 'no desktop shortcut' }
-          $menu = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Peregrine Launcher.lnk"
+          $menu = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Light Client Launcher.lnk"
           if (-not (Test-Path $menu)) { throw 'no Start menu shortcut' }
           $sh = New-Object -ComObject Shell.Application
-          $item = $sh.NameSpace($desk).ParseName('Peregrine Launcher.lnk')
+          $item = $sh.NameSpace($desk).ParseName('Light Client Launcher.lnk')
           $aumid = $item.ExtendedProperty('System.AppUserModel.ID')
           "taskbar id on the shortcut: $aumid" | Tee-Object -FilePath log\install-check.txt
           if ($aumid -ne 'Peregrine.Launcher') { throw 'the shortcut has no taskbar id' }
           $key = Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Peregrine'
           "Apps entry: $($key.DisplayName) $($key.DisplayVersion), $($key.EstimatedSize) KB, uninstall: $($key.UninstallString)" | Tee-Object -Append -FilePath log\install-check.txt
-          if ($key.DisplayName -ne 'Peregrine Launcher') { throw 'no Apps entry' }
+          if ($key.DisplayName -ne 'Light Client Launcher') { throw 'no Apps entry' }
       - name: The installed app starts, then uninstalls cleanly
         shell: pwsh
         env:
@@ -111,7 +111,7 @@ jobs:
           if (Test-Path "$dir\Peregrine.exe") { $fail += 'the app folder is still there'; Get-ChildItem $dir | Select-Object -First 10 | ForEach-Object { Say "  left: $($_.Name)" } }
           if (Test-Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Peregrine') { $fail += 'the Apps entry is still there' }
           $desk = [Environment]::GetFolderPath('Desktop')
-          if (Test-Path "$desk\Peregrine Launcher.lnk") { $fail += 'the desktop shortcut is still there' }
+          if (Test-Path "$desk\Light Client Launcher.lnk") { $fail += 'the desktop shortcut is still there' }
           if (-not (Test-Path "$env:APPDATA\Peregrine")) { $fail += 'settings were removed but should stay' }
           if ($fail.Count) { $fail | ForEach-Object { Say "FAIL $_" }; exit 1 }
           Say 'uninstalled cleanly, settings kept'
@@ -157,7 +157,7 @@ jobs:
           cat > "$app/peregrine.desktop" <<'EOF'
           [Desktop Entry]
           Type=Application
-          Name=Peregrine Launcher
+          Name=Light Client Launcher
           GenericName=Minecraft Launcher
           Comment=Launch and speed up Minecraft: Java Edition
           Exec=Peregrine %U

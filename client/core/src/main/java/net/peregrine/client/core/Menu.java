@@ -47,6 +47,11 @@ public final class Menu {
 
     private final Peregrine pc;
     private String search = "";
+    private boolean searchFocused;
+    private int windowX = -1, windowY = -1;
+    private int windowW, windowH;
+    private int dragX, dragY;
+    private boolean movingWindow, resizingWindow;
     private Module.Category tab;
     private int scroll;
     private float smoothScroll;
@@ -54,7 +59,7 @@ public final class Menu {
     private boolean editingHud;
     private final HudEditor editor;
     private float k = 1f;        // the menu is drawn at this fraction of the GUI scale, for finer detail
-    private int lastMx, lastMy;  // mouse position from the last frame (screen pixels)
+    private int lastMx;  // mouse position from the last frame (screen pixels)
     private long openedAt;
     private long lastFrame;
     private final Map<Module, Float> knob = new IdentityHashMap<Module, Float>();
@@ -164,8 +169,10 @@ public final class Menu {
         rowGlow.clear();
         tabSlide = -1;
         page = null;
-        search = listSearch;
         listSearch = "";
+        searchFocused = false;
+        typing = null;
+        bindingKey = null;
         picker.close();
         draggingSlider = null;
         hits.clear();
@@ -274,7 +281,12 @@ public final class Menu {
         hits.clear();
         if (changed) {
             listShownAt = System.currentTimeMillis();
-            search = "";
+            if (view == 0) {
+                search = listSearch;
+            } else {
+                search = "";
+            }
+            searchFocused = false;
             MenuPanel pn = panel();
             if (pn != null) {
                 pn.shown();
@@ -434,6 +446,11 @@ public final class Menu {
 
     /** Call when the menu screen closes. */
     public void close() {
+        search = "";
+        listSearch = "";
+        searchFocused = false;
+        movingWindow = false;
+        resizingWindow = false;
         binding = null;
         editor.mouseReleased();
         editingHud = false;
@@ -486,10 +503,11 @@ public final class Menu {
     private void layout(Platform p) {
         int sw = Math.round(p.screenWidth() / k);
         int sh = Math.round(p.screenHeight() / k);
-        pw = Math.min(sw - 16, clamp(Math.round(sw * 0.74f), 340, 560));
-        ph = Math.min(sh - 16, clamp(Math.round(sh * 0.82f), 220, 340));
-        px = (sw - pw) / 2;
-        py = (sh - ph) / 2;
+        int fitW = sw - 16, fitH = sh - 16;
+        pw = Math.min(fitW, windowW > 0 ? windowW : clamp(Math.round(sw * 0.74f), 340, 560));
+        ph = Math.min(fitH, windowH > 0 ? windowH : clamp(Math.round(sh * 0.82f), 220, 340));
+        px = windowX < 0 ? (sw - pw) / 2 : clamp(windowX, 8, sw - pw - 8);
+        py = windowY < 0 ? (sh - ph) / 2 : clamp(windowY, 8, sh - ph - 8);
         closeX = px + pw - 23;
         closeY = py + 7;
         searchW = clamp(Math.round(pw * 0.27f), 90, 150);
@@ -510,7 +528,7 @@ public final class Menu {
         listY = bodyY;
         listW = px + pw - 12 - listX;
         listH = py + ph - 8 - bodyY;
-        cols = Math.max(2, (listW + TILE_GAP) / (86 + TILE_GAP));
+        cols = Math.max(1, (listW + TILE_GAP) / (86 + TILE_GAP));
         tileW = (listW - TILE_GAP * (cols - 1)) / cols;
         tileH = 76;
     }
@@ -554,9 +572,8 @@ public final class Menu {
         Platform p = pc.platform();
         k = uiScale(p);
         lastMx = screenMx;
-        lastMy = screenMy;
         layout(p);
-        if (draggingSlider != null && p.mouseHeld() == 0) {
+        if ((draggingSlider != null || movingWindow || resizingWindow) && p.mouseHeld() == 0) {
             mouseReleased();   // let go somewhere the menu didn't hear about
         }
         if (draggingSlider != null && !editingHud && screenMx > -500) {
@@ -598,9 +615,10 @@ public final class Menu {
         }
         int a = pc.accent();
 
-        // The window: frosted glass with the accent glowing along its top edge, the falcon faint in the corner
-        d.roundRect(px, py, pw, ph, 9, pc.menuBg(0xF20D1420));
-        d.roundOutline(px, py, pw, ph, 9, 0x66485870);
+        d.shadow(px, py, pw, ph);
+        d.roundRect(px, py, pw, ph, 9, pc.menuBg(0xF5111520));
+        d.roundOutline(px, py, pw, ph, 9, 0x66545D71);
+        d.roundRect(sideX - 3, sideY - 2, sideW + 6, editY + editH - sideY + 5, 5, 0x66101521);
         d.rect(px + 11, py + TITLE_H, pw - 22, 1, 0x40607793);
         d.rect(px + 11, py + TITLE_H, 38, 1, a);
 
@@ -629,7 +647,7 @@ public final class Menu {
 
         // Search (it searches whatever page you're on), and ≡ (only what's on) for the modules
         MenuPanel pn = page == null ? panel() : null;
-        boolean searchable = pn == null || !pn.placeholder().isEmpty();
+        boolean searchable = canSearch(pn);
         if (view == 0) {
             boolean mh = in(mx, my, menuBtnX, tabsY, TABBAR_H, TABBAR_H);
             float mg = sideGlowOf("onlyon", mh || onlyOn, dt);
@@ -641,14 +659,27 @@ public final class Menu {
         if (searchable) {
             boolean searching = !search.isEmpty();
             d.roundRect(searchX, searchY, searchW, TABBAR_H, 8, 0x50000000);
-            d.roundOutline(searchX, searchY, searchW, TABBAR_H, 8, searching ? Theme.withAlpha(a, 0xC0) : 0x22FFFFFF);
-            boolean caret = (now / 500) % 2 == 0;
-            String shown = searching ? search + (caret ? "_" : "") : pn != null ? pn.placeholder()
+            d.roundOutline(searchX, searchY, searchW, TABBAR_H, 8, (searchFocused || searching) ? Theme.withAlpha(a, 0xC0) : 0x22FFFFFF);
+            boolean caret = searchFocused && (now / 500) % 2 == 0;
+            String shown = searching || searchFocused ? search + (caret ? "|" : "") : pn != null ? pn.placeholder()
                     : page != null ? "Search settings..." : "Search modules...";
             MenuIcons.draw(d, "search", searchX + 5, searchY + 4, searching ? a : Theme.FAINT);
+            if (searchFocused) {
+                while (!shown.isEmpty() && d.width(shown) > searchW - 22) {
+                    shown = shown.substring(shown.offsetByCodePoints(0, 1));
+                }
+            }
             d.text(d.trim(shown, searchW - 22), searchX + 17, searchY + 4, searching ? Theme.TEXT : Theme.FAINT, false);
         }
 
+        if (in(mx, my, px + 6, py + 4, Math.max(0, menuBtnX - px - 8), TITLE_H - 9)) {
+            d.rect(px + 11, py + TITLE_H, 38, 1, Theme.TEXT);
+        }
+        int grip = resizingWindow || onResizeGrip(mx, my) ? a : Theme.MUTED;
+        for (int i = 0; i < 3; i++) {
+            d.rect(px + pw - 6 - 3 * i, py + ph - 6, 1, 1, grip);
+            if (i > 0) d.rect(px + pw - 6, py + ph - 6 - 3 * i, 1, 1, grip);
+        }
         drawSidebar(d, mx, my, dt, a);
         boolean editHover = in(mx, my, editX, editY, editW, editH);
         float eg = sideGlowOf("edit", editHover, dt);
@@ -968,8 +999,8 @@ public final class Menu {
         int track = viewH - 4;
         int barH = Math.max(14, track * viewH / (viewH + maxScroll));
         int barY = top + 2 + Math.round((track - barH) * (smoothScroll / maxScroll));
-        d.roundRect(px + pw - 8, top + 2, 3, track, 0x18FFFFFF);
-        d.roundRect(px + pw - 8, barY, 3, barH, active ? a : Theme.withAlpha(a, 0x90));
+        d.roundRect(px + pw - 8, top + 2, 4, track, 0x30FFFFFF);
+        d.roundRect(px + pw - 8, barY, 4, barH, active ? a : Theme.withAlpha(a, 0xB0));
     }
 
     /**
@@ -1944,6 +1975,8 @@ public final class Menu {
         bindingKey = null;
         binding = null;
         page = null;
+        search = view == 0 ? listSearch : "";
+        searchFocused = false;
         draggingSlider = null;
         hits.clear();
         scroll = 0;
@@ -2047,6 +2080,14 @@ public final class Menu {
     // -------------------------------------------------------------- input
 
     /** Returns true if the click was used. button: 0 = left, 1 = right. Screen pixels. */
+    private boolean canSearch(MenuPanel pn) {
+        return page != null || view == 0 || (pn != null && !pn.placeholder().isEmpty());
+    }
+
+    private boolean onResizeGrip(int mx, int my) {
+        return in(mx, my, px + pw - 15, py + ph - 15, 15, 15);
+    }
+
     public boolean mouseClicked(int screenMx, int screenMy, int button) {
         SelfTest.count("click@" + screenMx + "," + screenMy + "/" + button);
         Platform p = pc.platform();
@@ -2060,7 +2101,6 @@ public final class Menu {
         }
         int mx = Math.round(screenMx / k);
         int my = Math.round(screenMy / k);
-        layout(p);
         if (binding != null) {
             boolean onBind = false;
             for (Hit h : hits) {
@@ -2090,6 +2130,22 @@ public final class Menu {
         if (!in(mx, my, px, py, pw, ph) || in(mx, my, closeX, closeY, 16, 16)) {
             // A click outside the window (or on ×) closes it, like any pop-up.
             p.openScreen(p.inWorld() ? Platform.Screen.NONE : Platform.Screen.TITLE);
+            return true;
+        }
+        searchFocused = canSearch(panel()) && in(mx, my, searchX, searchY, searchW, TABBAR_H);
+        if (searchFocused) {
+            typing = null;
+            return true;
+        }
+        resizingWindow = onResizeGrip(mx, my);
+        movingWindow = in(mx, my, px + 6, py + 4, Math.max(0, menuBtnX - px - 8), TITLE_H - 9);
+        if (resizingWindow || movingWindow) {
+            windowX = px;
+            windowY = py;
+            windowW = pw;
+            windowH = ph;
+            dragX = mx - (resizingWindow ? px + pw : px);
+            dragY = my - (resizingWindow ? py + ph : py);
             return true;
         }
         for (Hit h : new ArrayList<Hit>(sideHits)) {
@@ -2240,6 +2296,20 @@ public final class Menu {
     }
 
     public boolean mouseDragged(int screenMx, int screenMy) {
+        if (movingWindow || resizingWindow) {
+            Platform p = pc.platform();
+            int sw = Math.round(p.screenWidth() / k), sh = Math.round(p.screenHeight() / k);
+            int x = Math.round(screenMx / k) - dragX;
+            int y = Math.round(screenMy / k) - dragY;
+            if (resizingWindow) {
+                windowW = clamp(x - px, Math.min(pw, 340), sw - px - 8);
+                windowH = clamp(y - py, Math.min(ph, 200), sh - py - 8);
+            } else {
+                windowX = clamp(x, 8, sw - pw - 8);
+                windowY = clamp(y, 8, sh - ph - 8);
+            }
+            return true;
+        }
         MenuPanel pn = editingHud ? null : panel();
         if (pn instanceof LockerPanel && ((LockerPanel) pn).dragged(Math.round(screenMx / k))) {
             return true;
@@ -2255,6 +2325,11 @@ public final class Menu {
     }
 
     public boolean mouseReleased() {
+        if (movingWindow || resizingWindow) {
+            movingWindow = false;
+            resizingWindow = false;
+            return true;
+        }
         MenuPanel pn = editingHud ? null : panel();
         if (pn instanceof LockerPanel && ((LockerPanel) pn).released(Math.round(lastMx / k))) {
             return true;
@@ -2274,14 +2349,18 @@ public final class Menu {
     }
 
     /** amount: positive = scroll up. */
-    public boolean mouseScrolled(double amount) {
+    public boolean mouseScrolled(double amount, int screenMx, int screenMy) {
+        int mx = Math.round(screenMx / k), my = Math.round(screenMy / k);
         if (editingHud) {
-            return editor.mouseScrolled(amount, lastMx, lastMy);
+            return editor.mouseScrolled(amount, screenMx, screenMy);
         }
-        if (maxSideScroll > 0 && in(Math.round(lastMx / k), Math.round(lastMy / k), sideX, sideY, sideW, sideH)) {
+        if (in(mx, my, sideX, sideY, sideW, sideH)) {
             sideScroll = clamp(sideScroll - (int) Math.round(amount * 24), 0, maxSideScroll);
             sideSlide = -1;
             return true;
+        }
+        if (!in(mx, my, listX, listY, listW + 8, listH)) {
+            return false;
         }
         MenuPanel pn = page == null ? panel() : null;
         if (pn != null) {
@@ -2340,9 +2419,10 @@ public final class Menu {
                 return true;
             }
             if (key == KEY_BACKSPACE && !search.isEmpty()) {
-                search = search.substring(0, search.length() - 1);
+                search = search.substring(0, search.offsetByCodePoints(search.length(), -1));
                 return true;
             }
+            if (key == KEY_BACKSPACE && searchFocused) return true;
             if (key == KEY_ESCAPE || key == KEY_BACKSPACE) {
                 closePage();
                 return true;
@@ -2354,7 +2434,8 @@ public final class Menu {
             return true;
         }
         if (key == KEY_BACKSPACE && !search.isEmpty()) {
-            search = search.substring(0, search.length() - 1);
+            search = search.substring(0, search.offsetByCodePoints(search.length(), -1));
+            if (view == 0) listSearch = search;
             scroll = 0;
             smoothScroll = 0;
             MenuPanel pn = panel();
@@ -2363,7 +2444,7 @@ public final class Menu {
             }
             return true;
         }
-        if (key == KEY_ENTER) {
+        if (key == KEY_ENTER && view == 0 && !search.isEmpty()) {
             List<Module> mods = visible();
             if (mods.size() == 1) {  // search narrowed to one: Enter toggles it
                 mods.get(0).setEnabled(!mods.get(0).enabled());
@@ -2412,9 +2493,11 @@ public final class Menu {
             return true;
         }
         if (view != 0) {
-            choose("cat:all");
+            return false;
         }
         search += c;
+        listSearch = search;
+        searchFocused = true;
         scroll = 0;
         smoothScroll = 0;  // results start at the top straight away
         return true;

@@ -5,6 +5,7 @@ last moments). Here you see them all with thumbnails, watch them, trim them, ren
 them; screenshots from every instance are here too. ffmpeg (which the game records with) is set
 up from this page."""
 
+import hashlib
 import os
 import time
 from pathlib import Path
@@ -21,15 +22,17 @@ from .pages import clear, scroll
 from .theme import Theme, icon_pixmap
 from .widgets import Segmented
 
-CLIPS = paths.DATA / "clips"
-THUMBS = CLIPS / ".thumbs"
+THUMBS = paths.CACHE / "clip-thumbnails"
 VIDEO = (".mp4", ".mkv", ".mov", ".webm")
 
 
 def clip_files():
-    if not CLIPS.is_dir():
-        return []
-    out = [p for p in CLIPS.iterdir() if p.suffix.lower() in VIDEO and p.is_file()]
+    out = []
+    for folder in (paths.CLIPS, paths.DATA / "clips"):
+        try:
+            out.extend(p for p in folder.iterdir() if p.suffix.lower() in VIDEO and p.is_file())
+        except OSError:
+            pass
     return sorted(out, key=lambda p: p.stat().st_mtime, reverse=True)
 
 
@@ -40,14 +43,13 @@ def screenshot_files():
     except Exception:
         insts = []
     for inst in insts:
-        d = inst.game_dir / "screenshots"
-        if d.is_dir():
-            out += [(p, inst.name) for p in d.iterdir() if p.suffix.lower() in (".png", ".jpg") and p.is_file()]
+        out.extend((p, inst.name) for p in paths.screenshot_files(inst.game_dir))
     return sorted(out, key=lambda e: e[0].stat().st_mtime, reverse=True)
 
 
 def thumb_for(video: Path) -> Path:
-    return THUMBS / (video.stem + ".jpg")
+    key = hashlib.sha256(os.fsencode(video)).hexdigest()
+    return THUMBS / (key + ".jpg")
 
 
 def make_thumb(video: Path):
@@ -389,13 +391,12 @@ class ClipsPage(QWidget):
         self.progress = QProgressBar(textVisible=False)
         self.progress.setFixedSize(160, 4)
         self.progress.hide()
-        folder = QPushButton("Open clips folder")
-        folder.clicked.connect(lambda: (CLIPS.mkdir(parents=True, exist_ok=True),
-                                        QDesktopServices.openUrl(QUrl.fromLocalFile(str(CLIPS)))))
+        self.folder = QPushButton("Open clips folder")
+        self.folder.clicked.connect(self.open_capture_folder)
         bar.addWidget(self.info, 1)
         bar.addWidget(self.progress)
         bar.addWidget(self.setup_btn)
-        bar.addWidget(folder)
+        bar.addWidget(self.folder)
         v.addLayout(bar)
         self.body = QVBoxLayout()
         holder = QWidget()
@@ -412,7 +413,21 @@ class ClipsPage(QWidget):
         self.tabs.set(key)
         self.render()
 
+    def open_capture_folder(self):
+        folder = paths.CLIPS if self.tab == "clips" else paths.SCREENSHOT_ROOT
+        try:
+            folder.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            self.say(f"Couldn't open the capture folder: {exc}")
+            return
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(folder)))
+
     def _info(self):
+        self.folder.setText("Open clips folder" if self.tab == "clips" else "Open screenshots folder")
+        if self.tab == "shots":
+            self.setup_btn.hide()
+            self.info.setText("Press F2 to save a screenshot in game.")
+            return
         ff = ffmpeg_tool.find()
         self.setup_btn.setVisible(ff is None)
         size = sum(p.stat().st_size for p in clip_files())

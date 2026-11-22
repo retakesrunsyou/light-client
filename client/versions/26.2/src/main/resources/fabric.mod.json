@@ -2,8 +2,8 @@
 	"schemaVersion": 1,
 	"id": "peregrine-client",
 	"version": "${version}",
-	"name": "Peregrine Client",
-	"description": "Peregrine's in-game menu: press Right Shift for HUD, zoom, toggle sprint and more.",
+	"name": "Light Client",
+	"description": "Light Client's in-game menu: press Right Shift for HUD, zoom, toggle sprint and more.",
 	"authors": ["Peregrine"],
 	"contact": {
 		"homepage": "https://github.com/retakesrunsyou/peregrine-launcher",

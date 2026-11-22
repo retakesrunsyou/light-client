@@ -6,7 +6,7 @@ import net.peregrine.client.core.Platform;
 public final class Fullbright extends Module {
 
     private final net.peregrine.client.core.settings.SliderSetting bright = add(
-            new net.peregrine.client.core.settings.SliderSetting("brightness", "Brightness", 100f, 3000f, 50f, 3000f, "%.0f%%"));
+            new net.peregrine.client.core.settings.SliderSetting("brightness", "Brightness", 0f, 100f, 5f, 100f, "%.0f%%"));
     private final net.peregrine.client.core.settings.BoolSetting dark = add(
             new net.peregrine.client.core.settings.BoolSetting("dark", "Light up pitch-black places too", true));
     private Double saved;
@@ -27,7 +27,7 @@ public final class Fullbright extends Module {
             if (saved == null) {
                 saved = p.gamma();
             }
-            p.setGamma((bright.value / 100.0));
+            p.setGamma(bright.value / 100.0);
         }
     }
 

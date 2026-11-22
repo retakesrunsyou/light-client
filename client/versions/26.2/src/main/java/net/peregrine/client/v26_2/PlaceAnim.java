@@ -25,6 +25,7 @@ public final class PlaceAnim {
 
     static final class Anim {
         final BlockPos pos;
+        final ClientLevel world;
         final long start = System.currentTimeMillis();
         volatile BlockState state;
         ClientLevel level;
@@ -35,8 +36,9 @@ public final class PlaceAnim {
         /** Mesh updates held back while it grows in, done when it's let in. */
         final java.util.List<Runnable> replays = new java.util.ArrayList<>();
 
-        Anim(BlockPos pos) {
+        Anim(BlockPos pos, ClientLevel world) {
             this.pos = pos;
+            this.world = world;
         }
     }
 
@@ -50,8 +52,9 @@ public final class PlaceAnim {
 
     /** You're placing a block here (called before Minecraft puts it in the world). */
     public static void begin(BlockPos pos) {
-        if (Hooks.placeAnimMs > 0 && ANIMS.size() < 24) {
-            ANIMS.put(pos.immutable(), new Anim(pos.immutable()));
+        ClientLevel world = Minecraft.getInstance().level;
+        if (world != null && Hooks.placeAnimMs > 0 && ANIMS.size() < 24) {
+            ANIMS.put(pos.immutable(), new Anim(pos.immutable(), world));
         }
     }
 
@@ -127,6 +130,10 @@ public final class PlaceAnim {
             return;
         }
         a.released = true;
+        if (a.world != Minecraft.getInstance().level) {
+            a.replays.clear();
+            return;
+        }
         releasing = true;
         try {
             if (a.held && a.level != null) {
@@ -148,8 +155,13 @@ public final class PlaceAnim {
         }
         long now = System.currentTimeMillis();
         int ms = Math.max(1, Hooks.placeAnimMs);
+        ClientLevel world = Minecraft.getInstance().level;
         for (Iterator<Anim> it = ANIMS.values().iterator(); it.hasNext(); ) {
             Anim a = it.next();
+            if (a.world != world) {
+                it.remove();
+                continue;
+            }
             long t = now - a.start;
             if (t >= ms || Hooks.placeAnimMs <= 0) {
                 release(a);

@@ -106,7 +106,7 @@ public final class TitleMenu {
     private final int[] card = new int[4];  // the "Jump back in" card: x, y, w, h (w 0 = none)
     private float cardGlow;
     private final Button newsButton = new Button("What's new", "layers", null, false);
-    private int left, logoY, homeWidth, homeBottom;
+    private int left, logoY, homeWidth;
     static final String COPYRIGHT = "Copyright Mojang AB. Do not distribute!";
 
     // ---- the right-hand panel and the Locker
@@ -156,7 +156,7 @@ public final class TitleMenu {
         boolean player = (mm == null || mm.player.value) && ph >= 96 && sw >= 380;
         left = Math.max(12, sw / 15);
         homeWidth = Math.min(182, Math.max(106, sw - 2 * left - (player ? pw + 30 : 0)));
-        boolean recent = pc.lastServerName() != null && p.supportsJoin();
+        boolean recent = pc.lastServerName() != null && p.supportsJoin() && sh >= 180;
         boolean shortScreen = sh < 205;
         int rowHeight = shortScreen ? 14 : 20;
         int headerHeight = shortScreen ? 26 : 36;
@@ -173,7 +173,6 @@ public final class TitleMenu {
             button.place(left, y, homeWidth, rowHeight);
             y += rowHeight + 3;
         }
-        homeBottom = y - 3;
 
         int footerY = Math.max(y + 1, sh - 42);
         int footerWidth = Math.min(homeWidth, (sw - 2 * left - 12) / 2);
@@ -302,14 +301,19 @@ public final class TitleMenu {
         int offset = -Math.round((1f - entrance) * 10);
         home.pushScale(offset, 0, 1f);
         int mouseX = mx - offset;
-        home.roundRect(left - 8, logoY - 5, homeWidth + 16, homeBottom - logoY + 13, 5, 0xD2141922);
-        home.rect(left - 8, logoY + 8, 2, 19, a);
+        int panelY = logoY - 6;
+        int panelH = small[0].y + small[0].h + 4 - panelY;
+        home.shadow(left - 8, panelY, homeWidth + 16, panelH);
+        home.roundRect(left - 8, panelY, homeWidth + 16, panelH, 7, 0xE4111520);
+        home.roundOutline(left - 8, panelY, homeWidth + 16, panelH, 7, 0x55606A7C);
+        home.roundRect(left - 3, logoY, 24, 24, 5, Theme.withAlpha(a, 0x24));
         lightMark(home, left, logoY + 3, a);
         home.textScaled(BRAND, left + 27, logoY + 1, Theme.TEXT, 1.45f, false);
         home.text("Minecraft " + p.minecraftVersion(), left + 28, logoY + 16, Theme.MUTED, false);
 
         if (card[2] > 0) drawCard(home, p, mouseX, my, dt, a);
         for (Button button : buttons) drawAction(home, button, mouseX, my, dt, a);
+        home.rect(left, lockerButton.y - 3, homeWidth, 1, 0x286A768A);
         drawAction(home, lockerButton, mouseX, my, dt, a);
         drawAction(home, newsButton, mouseX, my, dt, a);
         for (Button button : small) button.drawIcon(home, mouseX, my, dt, a);
@@ -340,12 +344,15 @@ public final class TitleMenu {
         button.glow = Glass.ease(button.glow, button.contains(mx, my), dt);
         int x = button.x, y = button.y;
         int bg = button.primary ? Theme.mix(accent, 0xFFFFFFFF, 0.16f * button.glow)
-            : Theme.mix(0x85333740, 0xE2464B52, button.glow);
+            : Theme.mix(0xEA1E2432, 0xF0323B50, button.glow);
         int fg = button.primary ? Theme.onColor(accent) : Theme.TEXT;
         d.roundRect(x, y, button.w, button.h, 4, bg);
         if (button.primary) {
-            d.rect(x + 4, y, button.w - 8, 1, Theme.mix(accent, 0xFFFFFFFF, 0.55f));
+            d.roundOutline(x, y, button.w, button.h, 4, Theme.mix(accent, 0xFFFFFFFF, 0.45f));
             d.text("›", x + button.w - 12, y + (button.h - d.lineHeight()) / 2, fg, false);
+        }
+        if (!button.primary) {
+            d.roundOutline(x, y, button.w, button.h, 4, Theme.withAlpha(accent, Math.round(32 + button.glow * 110)));
         }
         MenuIcons.draw(d, button.icon, x + 6, y + (button.h - 9) / 2, fg);
         d.text(d.trim(button.label, button.w - 35), x + 21, y + (button.h - d.lineHeight()) / 2 + 1, fg, false);

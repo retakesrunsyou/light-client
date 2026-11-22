@@ -20,7 +20,8 @@ import time
 import zipfile
 from pathlib import Path
 
-APP_NAME = "Peregrine Launcher"
+APP_NAME = "Light Client Launcher"
+OLD_APP_NAME = "Peregrine Launcher"
 EXE = "Peregrine.exe"
 AUMID = "Peregrine.Launcher"
 UNINSTALL_KEY = r"Software\Microsoft\Windows\CurrentVersion\Uninstall\Peregrine"
@@ -182,6 +183,8 @@ def install(payload: Path, app_dir: Path, version: str, desktop_icon=True, start
         make_shortcut(links["startup"], exe, "--tray", log=log)
     else:
         _unlink(links["startup"])
+    for link in links.values():
+        _unlink(link.with_name(f"{OLD_APP_NAME}.lnk"))
     register(app_dir, version)
     progress(total, total, "Done")
 
@@ -269,7 +272,7 @@ public static class PeregrineLnk {
   public static void Make(string lnk, string target, string args, string dir, string icon, string aumid) {
     var link = (IShellLinkW)new CShellLink();
     link.SetPath(target); link.SetArguments(args); link.SetWorkingDirectory(dir);
-    link.SetIconLocation(icon, 0); link.SetDescription("Peregrine Launcher");
+    link.SetIconLocation(icon, 0); link.SetDescription("Light Client Launcher");
     var store = (IPropertyStore)link;
     var key = new PropertyKey { fmtid = new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"), pid = 5 };
     var pv = new PropVariant { vt = 31, p = Marshal.StringToCoTaskMemUni(aumid) };
@@ -343,6 +346,7 @@ def uninstall(app_dir: Path, remove_data: bool = False, log=print) -> None:
                     " | Stop-Process -Force")
     for p in shortcut_paths().values():
         _unlink(p)
+        _unlink(p.with_name(f"{OLD_APP_NAME}.lnk"))
     _remove_old_installer(app_dir)
     try:
         import winreg

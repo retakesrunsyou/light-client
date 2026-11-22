@@ -8,6 +8,7 @@
 		"LevelMixin",
 		"MinecraftMixin",
 		"MouseHandlerMixin",
+		"ScreenshotPathMixin",
 		"OptionInstanceAccessor",
 		"WindowTitleMixin"
 	],

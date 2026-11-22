@@ -111,7 +111,8 @@ public final class Clips extends Module {
     }
 
     public static Path clipsDir() {
-        return dataDir().resolve("clips");
+        String configured = System.getProperty("lightclient.clipsDir");
+        return configured == null || configured.isBlank() ? dataDir().resolve("clips") : Paths.get(configured);
     }
 
     @Override

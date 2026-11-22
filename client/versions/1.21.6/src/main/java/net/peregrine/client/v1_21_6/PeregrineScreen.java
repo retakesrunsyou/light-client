@@ -13,7 +13,7 @@ final class PeregrineScreen extends Screen {
     private final Menu menu = Peregrine.get().menu();
 
     PeregrineScreen() {
-        super(Component.literal("Peregrine"));
+        super(Component.literal("Light Client"));
         menu.open();
     }
 
@@ -52,7 +52,7 @@ final class PeregrineScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        return menu.mouseScrolled(scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        return menu.mouseScrolled(scrollY, (int) mouseX, (int) mouseY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override

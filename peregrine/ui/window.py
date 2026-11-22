@@ -430,7 +430,7 @@ class MainWindow(QMainWindow):
         cfg = config.load()
         if not cfg["client_id"]:
             tell(self, "Client ID needed",
-                 "This copy of Peregrine doesn't have Microsoft sign-in set up yet.\n\n"
+                 "This copy of Light Client doesn't have Microsoft sign-in set up yet.\n\n"
                  "Developer: put your approved client ID in CLIENT_ID in peregrine/__init__.py, "
                  "or add it under Settings → Microsoft login.", "warning")
             return
@@ -844,7 +844,7 @@ class MainWindow(QMainWindow):
                 self.say(f"You're up to date ({VERSION})")
             return
         self.pending_update = update
-        self.banner_text.setText(f"Peregrine {update['version']} is ready to install. "
+        self.banner_text.setText(f"{NAME} {update['version']} is ready to install. "
                                  f"You're on {VERSION}.")
         if update["notes"]:
             self.banner_text.setToolTip(update["notes"])
@@ -864,7 +864,7 @@ class MainWindow(QMainWindow):
         task.start()
 
     def update_installed(self, _):
-        tell(self, "Updated", f"Peregrine {self.pending_update['version']} is installed. It will restart now.",
+        tell(self, "Updated", f"{NAME} {self.pending_update['version']} is installed. It will restart now.",
              "success", ok="Restart")
         updater.restart()
 
@@ -898,7 +898,7 @@ def install_crash_handler(app):
         sys.__stderr__.write(text)
         try:
             from .sheet import tell as _tell
-            _tell(None, "Something went wrong", f"{value}\n\nPeregrine kept running. Details were saved to {log}",
+            _tell(None, "Something went wrong", f"{value}\n\nLight Client kept running. Details were saved to {log}",
                   "error")
         except Exception:
             pass

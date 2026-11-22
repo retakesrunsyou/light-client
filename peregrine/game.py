@@ -525,6 +525,8 @@ def build_command(profile: dict, info: dict, java: str, account: dict,
     sync_accent(cfg)
     tuned.append(f"-Dperegrine.config={paths.CLIENT_SETTINGS}")
     tuned.append(f"-Dperegrine.data={paths.DATA}")  # your skin and main menu picture, for the game's Locker
+    tuned.append(f"-Dlightclient.screenshotRoot={paths.screenshot_root(game_dir)}")
+    tuned.append(f"-Dlightclient.clipsDir={paths.CLIPS}")
     try:  # Clips record with ffmpeg
         from . import ffmpeg_tool
         ff = ffmpeg_tool.find()
@@ -602,10 +604,10 @@ def jvm_tuning(cfg: dict, java_major: int) -> list:
     """Memory and garbage-collector settings that cut stutter in Minecraft."""
     from .config import MAX_MEMORY_MB, MIN_MEMORY_MB
     mx = max(MIN_MEMORY_MB, min(MAX_MEMORY_MB, int(cfg["max_memory_mb"])))
-    # The whole heap from the start. A smaller starting heap has to grow while you join a
-    # world (the busiest moment: every chunk arriving at once), and each growth step is a
-    # garbage collection pause: the stutter in the first minute or two of playing.
-    ms = mx if cfg.get("smooth_join", True) else min(int(cfg.get("min_memory_mb") or mx), mx)
+    available = _available_linux_memory_mb()
+    # Leave physical RAM for the desktop, native allocations, and the graphics driver.
+    preload = cfg.get("smooth_join", True) and (available is None or available >= mx + 2048)
+    ms = mx if preload else min(int(cfg.get("min_memory_mb") or 1024), mx)
     gc = cfg.get("gc", "auto")
     common = [
         # A flag one Java version doesn't know must never stop the game from starting.
@@ -625,7 +627,7 @@ def jvm_tuning(cfg: dict, java_major: int) -> list:
     ]
     if not sys.platform == "win32":
         common.append("-XX:+UseTransparentHugePages")  # a Linux kernel feature
-    if cfg.get("smooth_join", True) and ms == mx:
+    if preload:
         # Touch every page of the heap at start-up (a second or so) instead of taking the
         # page faults in game, while chunks pour in.
         common.append("-XX:+AlwaysPreTouch")
@@ -639,6 +641,18 @@ def jvm_tuning(cfg: dict, java_major: int) -> list:
         "-XX:G1HeapRegionSize=16M", "-XX:MaxGCPauseMillis=40",
         "-XX:G1MixedGCCountTarget=4", "-XX:InitiatingHeapOccupancyPercent=15",
     ]
+
+
+def _available_linux_memory_mb() -> int | None:
+    if sys.platform.startswith("linux"):
+        try:
+            with Path("/proc/meminfo").open() as meminfo:
+                for line in meminfo:
+                    if line.startswith("MemAvailable:"):
+                        return int(line.split()[1]) // 1024
+        except (OSError, ValueError):
+            pass
+    return None
 
 
 def _compiler_threads() -> int:

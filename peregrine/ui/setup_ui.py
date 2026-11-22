@@ -531,7 +531,7 @@ class InstallerWindow(Shell):
 
     def __init__(self, version, payload, target=None, desktop=True, startup=False, auto=False, launch_after=True,
                  backend=None):
-        super().__init__("Peregrine Setup")
+        super().__init__("Light Client Setup")
         from .. import winsetup
         from .modern import PillButton
         self.version, self.payload = version, payload
@@ -557,9 +557,9 @@ class InstallerWindow(Shell):
         v.addWidget(lab)
         v.addSpacing(10)
         if have and self.old_version and self.old_version != version:
-            what = f"Updates Peregrine from {self.old_version} to {version}. Your games and settings stay as they are."
+            what = f"Updates Light Client from {self.old_version} to {version}. Your games and settings stay as they are."
         elif have:
-            what = f"Peregrine {version} is already installed. Reinstalling keeps your games and settings."
+            what = f"Light Client {version} is already installed. Reinstalling keeps your games and settings."
         else:
             what = "Fast to launch. Faster to play. Minecraft: Java Edition with the good stuff built in."
         v.addWidget(_sub(what))
@@ -635,7 +635,7 @@ class InstallerWindow(Shell):
         v.addSpacing(6)
         v.addWidget(_title("YOU'RE ALL SET", 30, 3.0))
         v.addSpacing(8)
-        v.addWidget(_sub("Peregrine Launcher is installed. It's in your Start menu"
+        v.addWidget(_sub("Light Client Launcher is installed. It's in your Start menu"
                          + (" and on your desktop." if desktop else ".")))
         self.done_sub = v.itemAt(v.count() - 1).widget()
         v.addStretch(1)
@@ -644,7 +644,7 @@ class InstallerWindow(Shell):
         btns.addStretch()
         close = PillButton("Close", None, "ghost")
         close.clicked.connect(self.close)
-        self.launch_btn = PillButton("Launch Peregrine", "play", "primary", big=True)
+        self.launch_btn = PillButton("Launch Light Client", "play", "primary", big=True)
         self.launch_btn.clicked.connect(self.launch)
         btns.addWidget(close)
         btns.addWidget(self.launch_btn)
@@ -688,7 +688,7 @@ class InstallerWindow(Shell):
         self.where.setText(f"Installs to  {t}   ·")
 
     def pick_folder(self):
-        d = QFileDialog.getExistingDirectory(self, "Install Peregrine in", str(self.target.parent))
+        d = QFileDialog.getExistingDirectory(self, "Install Light Client in", str(self.target.parent))
         if d:
             p = Path(d)
             self.target = p if p.name.lower() == "peregrine" else p / "Peregrine"
@@ -700,7 +700,7 @@ class InstallerWindow(Shell):
         self._pct_timer.start()
         self.show_page("installing")
         desktop, startup = self.opt_desktop.toggle.isChecked(), self.opt_startup.toggle.isChecked()
-        self.done_sub.setText("Peregrine Launcher is installed. It's in your Start menu"
+        self.done_sub.setText("Light Client Launcher is installed. It's in your Start menu"
                               + (" and on your desktop." if desktop else "."))
 
         def work(progress):
@@ -714,7 +714,7 @@ class InstallerWindow(Shell):
     def _finished(self, error):
         if error:
             self._pct_timer.stop()
-            self.err.setText(f"{error}\n\nClose Peregrine if it's open, then try again.")
+            self.err.setText(f"{error}\n\nClose Light Client if it's open, then try again.")
             self.show_page("error")
             QTimer.singleShot(250, self.err_mark.play)
             return
@@ -743,7 +743,7 @@ class InstallerWindow(Shell):
 class UninstallerWindow(Shell):
 
     def __init__(self, app_dir, backend=None):
-        super().__init__("Uninstall Peregrine")
+        super().__init__("Uninstall Light Client")
         from .. import winsetup
         from .modern import PillButton
         self.app_dir = Path(app_dir)
@@ -767,7 +767,7 @@ class UninstallerWindow(Shell):
         row.addWidget(self.opt_data)
         row.addStretch()
         v.addLayout(row)
-        self.warn = _sub("This deletes every world in your Peregrine instances. It can't be undone.", 12, "#ff8a8e")
+        self.warn = _sub("This deletes every world in your Light Client instances. It can't be undone.", 12, "#ff8a8e")
         self.warn.setVisible(False)
         v.addSpacing(6)
         v.addWidget(self.warn)
@@ -793,7 +793,7 @@ class UninstallerWindow(Shell):
         v.addWidget(self.check, 0, Qt.AlignHCenter)
         v.addWidget(_title("PEREGRINE WAS REMOVED", 28, 2.5))
         v.addSpacing(8)
-        self.bye = _sub("Thanks for flying with Peregrine.")
+        self.bye = _sub("Light Client has been removed.")
         v.addWidget(self.bye)
         v.addStretch(1)
         close = PillButton("Close", None, "primary", big=True)
@@ -821,7 +821,7 @@ class UninstallerWindow(Shell):
 
 def _app(argv):
     app = QApplication.instance() or QApplication(argv[:1])
-    app.setApplicationDisplayName("Peregrine")
+    app.setApplicationDisplayName("Light Client")
     from PySide6.QtGui import QIcon, QPixmap
     pm = QPixmap(render_app_icon(256))
     app.setWindowIcon(QIcon(pm))

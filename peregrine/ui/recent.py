@@ -7,7 +7,7 @@ from PySide6.QtCore import QRectF, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QFont, QImage, QLinearGradient, QPainter, QPixmap
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
 
-from .. import config, instances, servers
+from .. import config, instances, paths, servers
 from . import workers
 from .modern import (
     ONLINE, OFFLINE, Chip, CountUp, PillButton, big_title, count_text, fade_in, heavy_font,
@@ -35,11 +35,7 @@ def featured_picture():
 
 def newest_screenshot(inst):
     """The latest screenshot taken in an instance (the page's backdrop), or None."""
-    folder = Path(inst.game_dir) / "screenshots"
-    try:
-        shots = [p for p in folder.iterdir() if p.suffix.lower() in (".png", ".jpg", ".jpeg")]
-    except OSError:
-        return None
+    shots = paths.screenshot_files(inst.game_dir)
     return max(shots, key=lambda p: p.stat().st_mtime) if shots else None
 
 
