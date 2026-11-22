@@ -225,6 +225,7 @@ public final class Peregrine {
         modules.add(new net.peregrine.client.core.modules.ZeroDelay());
         modules.add(new net.peregrine.client.core.modules.BenchmarkRun());
         modules.add(new net.peregrine.client.core.modules.Boost());
+        modules.add(new net.peregrine.client.core.modules.GpuMobs());
         modules.add(new net.peregrine.client.core.modules.AutoReconnect());
         modules.add(new net.peregrine.client.core.modules.Miner());
         modules.add(new net.peregrine.client.core.modules.SkeletonLook());
@@ -279,6 +280,11 @@ public final class Peregrine {
             return java.nio.file.Paths.get(shared);
         }
         return platform.configFile();
+    }
+
+    /** A line in the game's log (latest.log), marked as Light Client's. */
+    public void log(String line) {
+        System.out.println("[Light Client] " + line);
     }
 
     public Menu menu() {
