@@ -244,7 +244,8 @@ class MainWindow(QMainWindow):
         sync_screen_size()
         self.apply_theme()
         self.recent.refresh()
-        self.go("recent")
+        start = config.load().get("start_page", "recent")
+        self.go(start if start in ("recent", "library", "home") else "recent")
         last = self.last_instance()
         if last is not None:
             self.rail.set_sub("library", last.name)

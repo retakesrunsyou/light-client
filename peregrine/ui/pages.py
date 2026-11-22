@@ -773,6 +773,15 @@ class SettingsPage(QWidget):
         seasonal = self._check(cfg, "seasonal")
         seasonal.toggled.connect(lambda _: self.appearance_changed.emit())
         look.row("Seasonal touches", seasonal, "Bats and a harvest moon in October, snow in December.")
+        start = Segmented([("recent", "Home"), ("library", "Library"), ("home", "Instances")],
+                          cfg.get("start_page", "recent") if cfg.get("start_page") in ("recent", "library", "home") else "recent")
+
+        def set_start(key):
+            c = config.load()
+            c["start_page"] = key
+            config.save(c)
+        start.changed.connect(set_start)
+        look.row("Start page", start, "What the launcher opens on.")
         self.body.addWidget(look)
 
         # ---- game
