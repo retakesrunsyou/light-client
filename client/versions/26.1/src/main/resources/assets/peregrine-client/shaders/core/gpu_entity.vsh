@@ -17,8 +17,9 @@ in ivec2 UV1;         // x: which body part
 in vec3 Normal;       // in the body part's own space
 
 // The table, in 16-byte rows (a uniform buffer: the fastest kind to read). Per copy, starting at
-// gl_InstanceID * ModelOffset.y: one row (light, overlay, colour ARGB, unused), then per body part
-// six rows: 3 rows of its 4x4 matrix, then 3 rows of its normal matrix (w unused).
+// gl_InstanceID * ModelOffset.y: one row (light, overlay, colour ARGB, unused), one row with its
+// texture's corners in an atlas (u0 v0 u1 v1), then per body part six rows: 3 rows of its 4x4
+// matrix, then 3 rows of its normal matrix (w unused).
 layout(std140) uniform PartBlock {
     uvec4 lc_part[LC_ROWS];
 };
@@ -61,7 +62,8 @@ void main() {
     uint light = head.x;
     uint overlay = head.y;
     uint argb = head.z;
-    int m = copy + 1 + UV1.x * 6;
+    vec4 sprite = lc_row(copy + 1);   // where its texture is in the atlas (0 0 1 1: the whole texture)
+    int m = copy + 2 + UV1.x * 6;
 
     vec4 p = vec4(Position, 1.0);
     vec3 pos = vec3(dot(lc_row(m), p), dot(lc_row(m + 1), p), dot(lc_row(m + 2), p));
@@ -95,5 +97,5 @@ void main() {
     overlayColor = texelFetch(Sampler1, uvOverlay, 0);
 #endif
 
-    texCoord0 = UV0;
+    texCoord0 = mix(sprite.xy, sprite.zw, UV0);
 }

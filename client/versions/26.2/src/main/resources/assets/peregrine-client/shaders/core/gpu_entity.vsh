@@ -61,7 +61,8 @@ void main() {
     uint light = head.x;
     uint overlay = head.y;
     uint argb = head.z;
-    int m = copy + 1 + UV1.x * 6;
+    vec4 sprite = lc_row(copy + 1);   // its texture's corners in an atlas (0 0 1 1: the whole texture)
+    int m = copy + 2 + UV1.x * 6;
 
     vec4 p = vec4(Position, 1.0);
     vec3 pos = vec3(dot(lc_row(m), p), dot(lc_row(m + 1), p), dot(lc_row(m + 2), p));
@@ -95,5 +96,5 @@ void main() {
     overlayColor = texelFetch(Sampler1, uvOverlay, 0);
 #endif
 
-    texCoord0 = UV0;
+    texCoord0 = mix(sprite.xy, sprite.zw, UV0);
 }

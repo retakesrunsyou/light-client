@@ -80,7 +80,7 @@ public final class GpuEntities {
      * tint), then per body part six rows (3 for where it is, 3 for which way its faces point).
      * Read by the graphics card as whole rows (a texel buffer of 32-bit unsigned numbers).
      */
-    static final int PART_WORDS = 24, HEAD_WORDS = 4;
+    static final int PART_WORDS = 24, HEAD_WORDS = 8;   // head: light, overlay, tint, -, then atlas u0 v0 u1 v1
 
     // ------------------------------------------------------------------ baked shapes
 
@@ -354,7 +354,7 @@ public final class GpuEntities {
         }
         try {
             Model<?> model = submit.model();
-            if (submit.sprite() != null || submit.sheetedDecalPose() != null
+            if (submit.sheetedDecalPose() != null
                     || type.hasBlending() || type.isOutline() || RenderSystem.outputColorTextureOverride != null
                     || (model instanceof net.minecraft.client.model.player.PlayerModel && playersStayNormal())
                     || model instanceof net.minecraft.client.model.player.PlayerCapeModel
@@ -402,6 +402,12 @@ public final class GpuEntities {
             g.words[base] = submit.lightCoords();
             g.words[base + 1] = submit.overlayCoords();
             g.words[base + 2] = submit.tintedColor();
+            // chests, signs, beds and shulker boxes: their texture is a piece of an atlas
+            net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = submit.sprite();
+            g.words[base + 4] = Float.floatToRawIntBits(sprite == null ? 0f : sprite.getU0());
+            g.words[base + 5] = Float.floatToRawIntBits(sprite == null ? 0f : sprite.getV0());
+            g.words[base + 6] = Float.floatToRawIntBits(sprite == null ? 1f : sprite.getU1());
+            g.words[base + 7] = Float.floatToRawIntBits(sprite == null ? 1f : sprite.getV1());
             POSES.last().set(submit.pose());
             pose(b, 0, g.words, base + HEAD_WORDS);
             g.len += stride;

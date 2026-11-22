@@ -76,12 +76,13 @@ public final class GpuEntities {
             .padding(1)
             .build();
     /**
-     * The table, in 16-byte rows: per mob one row (light, hurt flash, tint), then per body part six
+     * The table, in 16-byte rows: per mob one row (light, hurt flash, tint), one row with where its
+     * texture is in a texture atlas (chests, signs, beds, shulker boxes: 0 0 1 1 for mobs), then per body part six
      * rows (3 for where it is, 3 for which way its faces point). It goes to the graphics card as a
      * uniform buffer, the fastest kind for it to read, in chunks of at most BLOCK_ROWS rows (16 KB,
      * the size every graphics card supports).
      */
-    static final int PART_WORDS = 24, HEAD_WORDS = 4, BLOCK_ROWS = 1024, BLOCK_BYTES = BLOCK_ROWS * 16;
+    static final int PART_WORDS = 24, HEAD_WORDS = 8, BLOCK_ROWS = 1024, BLOCK_BYTES = BLOCK_ROWS * 16;
 
     // ------------------------------------------------------------------ baked shapes
 
@@ -166,7 +167,7 @@ public final class GpuEntities {
     static Baked shape(Model<?> model) throws Exception {
         Baked b = new Baked(model);
         collect(b, model.root());
-        if (b.quads == 0 || b.slots == 0 || 1 + 6 * b.slots > BLOCK_ROWS) {
+        if (b.quads == 0 || b.slots == 0 || HEAD_WORDS / 4 + 6 * b.slots > BLOCK_ROWS) {
             return null;
         }
         return b;
@@ -403,7 +404,7 @@ public final class GpuEntities {
         }
         try {
             Model<?> model = submit.model();
-            if (submit.sprite() != null || submit.outlineColor() != 0 || submit.crumblingOverlay() != null
+            if (submit.outlineColor() != 0 || submit.crumblingOverlay() != null
                     || type.hasBlending() || type.isOutline() || RenderSystem.outputColorTextureOverride != null
                     || (model instanceof net.minecraft.client.model.player.PlayerModel && skinLayers() && (buffer == null || meshLookupFailed))
                     || model instanceof net.minecraft.client.model.player.PlayerCapeModel
@@ -442,6 +443,12 @@ public final class GpuEntities {
             g.words[base] = submit.lightCoords();
             g.words[base + 1] = submit.overlayCoords();
             g.words[base + 2] = submit.tintedColor();
+            // chests, signs, beds and shulker boxes: their texture is a piece of an atlas
+            net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = submit.sprite();
+            g.words[base + 4] = Float.floatToRawIntBits(sprite == null ? 0f : sprite.getU0());
+            g.words[base + 5] = Float.floatToRawIntBits(sprite == null ? 0f : sprite.getV0());
+            g.words[base + 6] = Float.floatToRawIntBits(sprite == null ? 1f : sprite.getU1());
+            g.words[base + 7] = Float.floatToRawIntBits(sprite == null ? 1f : sprite.getV1());
             POSES.last().set(submit.pose());
             skip = layered;
             try {

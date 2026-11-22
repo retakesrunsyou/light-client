@@ -10,6 +10,7 @@ NOTES = [
     ("2.2.1", "Lyrics in 3D", "Words can float around you, and zooming no longer enlarges them."),
     ("2.2.1", "Move the chat and scoreboard", "Drag and resize both in Edit HUD."),
     ("2.2.1", "Cleaner wording", "Shorter names and descriptions everywhere."),
+    ("2.2.1", "GPU chests and players", "Chests, signs, beds, shulker boxes and players are drawn on the GPU too (GPU mobs)."),
     ("2.2.0", "Light Client", "New name, logo and main menu."),
     ("2.2.0", "GPU mobs", "Mobs drawn on the graphics card for more FPS (experimental)."),
     ("2.2.0", "Faster with lots of items", "Far items, XP, item frames and displays are skipped."),
