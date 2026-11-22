@@ -157,6 +157,7 @@ public final class Menu {
     /** Call when the menu screen opens. */
     public void open() {
         openedAt = System.currentTimeMillis();
+        windowX = windowY = -1;   // always opens in the middle (a size you dragged it to is kept)
         listShownAt = openedAt;
         binding = null;
         lastFrame = 0;
@@ -504,8 +505,8 @@ public final class Menu {
         int sw = Math.round(p.screenWidth() / k);
         int sh = Math.round(p.screenHeight() / k);
         int fitW = sw - 16, fitH = sh - 16;
-        pw = Math.min(fitW, windowW > 0 ? windowW : clamp(Math.round(sw * 0.74f), 340, 560));
-        ph = Math.min(fitH, windowH > 0 ? windowH : clamp(Math.round(sh * 0.82f), 220, 340));
+        pw = Math.min(fitW, windowW > 0 ? windowW : clamp(Math.round(sw * 0.62f), 330, 480));
+        ph = Math.min(fitH, windowH > 0 ? windowH : clamp(Math.round(sh * 0.70f), 210, 300));
         px = windowX < 0 ? (sw - pw) / 2 : clamp(windowX, 8, sw - pw - 8);
         py = windowY < 0 ? (sh - ph) / 2 : clamp(windowY, 8, sh - ph - 8);
         closeX = px + pw - 23;

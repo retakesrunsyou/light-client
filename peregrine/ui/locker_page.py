@@ -600,7 +600,8 @@ class LockerPage(QWidget):
         v = QVBoxLayout(self)
         v.setContentsMargins(56, 30, 56, 20)
         v.setSpacing(16)
-        head = QHBoxLayout()
+        from .modern import ResponsiveRow
+        head = ResponsiveRow()
         col = QVBoxLayout()
         col.setSpacing(10)
         col.addWidget(big_title("Locker"))

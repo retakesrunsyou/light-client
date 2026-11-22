@@ -6,7 +6,7 @@ import sys
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication, QFrame, QHBoxLayout, QLabel, QMainWindow,
-    QPlainTextEdit, QProgressBar, QPushButton, QStackedWidget, QVBoxLayout, QWidget,
+    QPlainTextEdit, QProgressBar, QPushButton, QScrollArea, QStackedWidget, QVBoxLayout, QWidget,
 )
 
 from .. import NAME, UPDATE_REPO, VERSION, auth, avatars, config, discord, instances, paths, performance, updater
@@ -174,8 +174,21 @@ class MainWindow(QMainWindow):
                       "settings": self.settings, "accounts": self.accounts, "friends": self.friends,
                       "profiles": self.profiles, "locker": self.locker, "clips": self.clips,
                       "browse": self.market, "news": self.news}
-        for page in self.pages.values():
-            self.stack.addWidget(page)
+        # Each page sits in a see-through scroll area: in a small window it scrolls instead of
+        # squashing its parts on top of each other (it only shows a scroll bar when it has to).
+        self.holders = {}
+        for key, page in self.pages.items():
+            holder = QScrollArea()
+            holder.setWidgetResizable(True)
+            holder.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)   # pages fit the width themselves
+            holder.setFrameShape(QFrame.NoFrame)
+            holder.setObjectName("pageHolder")
+            holder.setStyleSheet("QScrollArea#pageHolder { background: transparent; border: none; }")
+            holder.viewport().setAutoFillBackground(False)
+            holder.setWidget(page)
+            page.setAutoFillBackground(False)
+            self.holders[key] = holder
+            self.stack.addWidget(holder)
         main.addWidget(self.stack, 1)
 
         self.recent.join.connect(self.join_server)
@@ -251,7 +264,7 @@ class MainWindow(QMainWindow):
         page = self.pages[key]
         changed = self.page != key
         self.page = key
-        self.stack.setCurrentWidget(page)
+        self.stack.setCurrentWidget(self.holders.get(key, page))
         if changed:
             if key == "home":
                 self.home.animate_in()  # its cards animate themselves
@@ -766,7 +779,7 @@ class MainWindow(QMainWindow):
             instances.RUNNING.discard(str(self.game_inst.folder))
             self.home.set_state(self.game_inst.folder, "")
             # Show what Play and installs added (Peregrine Client, Fabric API, mods).
-            if self.stack.currentWidget() is self.content and self.content.inst is not None \
+            if self.page == "content" and self.content.inst is not None \
                     and self.content.inst.folder == self.game_inst.folder:
                 self.content.refresh()
         if self.isHidden() or self.isMinimized():

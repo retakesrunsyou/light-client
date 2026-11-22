@@ -6,7 +6,7 @@ from PySide6.QtCore import (
     QVariantAnimation, Signal,
 )
 from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPainterPath, QPen, QPixmap
-from PySide6.QtWidgets import (
+from PySide6.QtWidgets import (QBoxLayout,
     QAbstractButton, QFrame, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QToolButton, QVBoxLayout, QWidget,
 )
 
@@ -728,3 +728,29 @@ def fade_in(widget: QWidget, ms: int = 260, rise: int = 14, delay: int = 0):
         except RuntimeError:
             pass
     QTimer.singleShot(delay, go)
+
+
+class ResponsiveRow(QBoxLayout):
+    """A page header row: title on the left, tabs or buttons on the right when there's room,
+    and the right side drops under the title when the window is too narrow for both."""
+
+    def __init__(self, *a):
+        super().__init__(QBoxLayout.LeftToRight, *a)
+
+    def _needed(self) -> int:
+        w = 0
+        for i in range(self.count()):
+            it = self.itemAt(i)
+            if it.spacerItem() is None:
+                w += it.sizeHint().width()
+        return w + self.spacing() * max(0, self.count() - 1) + 24
+
+    def setGeometry(self, rect):
+        want = QBoxLayout.TopToBottom if rect.width() < self._needed() else QBoxLayout.LeftToRight
+        if self.direction() != want:
+            self.setDirection(want)
+            for i in range(self.count()):   # stacked: everything to the left edge
+                it = self.itemAt(i)
+                if it.widget() is not None:
+                    it.setAlignment(Qt.AlignLeft if want == QBoxLayout.TopToBottom else Qt.AlignBottom)
+        super().setGeometry(rect)

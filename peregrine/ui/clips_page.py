@@ -372,7 +372,8 @@ class ClipsPage(QWidget):
         v = QVBoxLayout(self)
         v.setContentsMargins(56, 30, 56, 20)
         v.setSpacing(14)
-        head = QHBoxLayout()
+        from .modern import ResponsiveRow
+        head = ResponsiveRow()
         col = QVBoxLayout()
         col.setSpacing(10)
         col.addWidget(big_title("Clips"))

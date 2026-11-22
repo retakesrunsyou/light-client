@@ -194,7 +194,8 @@ class LibraryPage(QWidget):
         v.addLayout(head)
         v.addSpacing(22)
 
-        body = QHBoxLayout()
+        from .modern import ResponsiveRow
+        body = ResponsiveRow()   # side by side, or the mods under the details in a narrow window
         body.setSpacing(18)
         left = QVBoxLayout()
         left.setSpacing(14)
@@ -226,6 +227,7 @@ class LibraryPage(QWidget):
         lw = QWidget()
         lw.setLayout(left)
         lw.setFixedWidth(300)
+        self.mods_min = 260
         body.addWidget(lw)
 
         self.mods_card = QFrame(objectName="card")
@@ -248,6 +250,8 @@ class LibraryPage(QWidget):
         self.list.setContentsMargins(0, 0, 4, 0)
         self.list.setSpacing(8)
         m.addWidget(scroll(self.list_body), 1)
+        self.mods_card.setMinimumWidth(260)
+        self.mods_card.setMinimumHeight(220)
         body.addWidget(self.mods_card, 1)
         v.addLayout(body, 1)
 

@@ -80,8 +80,8 @@ def icon_button(name: str, tip: str, color: str = None) -> QPushButton:
 
 def page_header(title: str, sub: str = "", back=None, chip: str = None) -> QHBoxLayout:
     """A page's top: a small chip ('● HOME'), a big heavy title and a line under it."""
-    from .modern import big_title
-    row = QHBoxLayout()
+    from .modern import big_title, ResponsiveRow
+    row = ResponsiveRow()
     if back:
         b = icon_button("back", "Back", Theme.p["text"])
         b.setIconSize(QSize(22, 22))

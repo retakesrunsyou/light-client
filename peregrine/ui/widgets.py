@@ -77,6 +77,7 @@ class Segmented(QWidget):
     def __init__(self, options: list, current: str = None, parent=None):
         super().__init__(parent)
         self.setObjectName("segmented")
+        self.setAttribute(Qt.WA_StyledBackground, True)   # its own backing, so the sky doesn't show through
         h = QHBoxLayout(self)
         h.setContentsMargins(3, 3, 3, 3)
         h.setSpacing(2)
