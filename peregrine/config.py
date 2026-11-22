@@ -21,7 +21,7 @@ DEFAULTS = {
     "featured_name": "BunnyMC",
     "look_1_1": True,         # set once settings have seen the 1.1 look (see load)
     "rail_open": True,        # the side panel
-    "seasonal": True,         # bats in October, snow in December
+    "seasonal": True,         # holiday themes in the launcher's background, by the date
     "animations": True,       # the animated night sky behind the launcher
     # Game window
     "window_mode": "screen",  # screen = fill this screen, size = width x height, default = Minecraft's

@@ -15,7 +15,8 @@ import net.peregrine.client.core.settings.ChoiceSetting;
 import net.peregrine.client.core.settings.SliderSetting;
 
 /**
- * Custom sky: replaces the night sky with one of Peregrine's animated skies. The pictures are
+ * Custom sky: replaces the night sky with one of Light Client's skies, and Minecraft's square sun
+ * and moon with real-looking ones. The pictures are
  * loaded straight from Peregrine's own files (copied once to Peregrine's folder), not through
  * Minecraft's resources, so no resource pack can replace or break them.
  */
@@ -26,6 +27,7 @@ public final class CustomSky extends Module {
     public final SliderSetting speed = add(new SliderSetting("speed", "Animation speed", 10f, 300f, 5f, 50f, "%.0f%%"));
     public final BoolSetting turning = add(new BoolSetting("turning", "Stars turn with the time of day (off: the sky stays still)", false));
     public final BoolSetting moon = add(new BoolSetting("moon", "Realistic moon (in its real phase)", true));
+    public final BoolSetting sun = add(new BoolSetting("sun", "Realistic sun by day", true));
     public final BoolSetting clouds = add(new BoolSetting("clouds", "Night clouds drifting low in the sky", true));
     public final BoolSetting daytime = add(new BoolSetting("daytime", "Show it faintly during the day too", false));
 
@@ -33,7 +35,7 @@ public final class CustomSky extends Module {
     private int preloaded;
 
     public CustomSky() {
-        super("custom_sky", "Custom sky", "Animated skies: Milky Way, northern lights, meteor shower, black hole, shooting stars",
+        super("custom_sky", "Custom sky", "Real-looking stars, sun and moon, with Milky Way, northern lights, meteor shower, black hole or shooting stars",
                 Category.VISUALS, false);
     }
 
@@ -52,6 +54,7 @@ public final class CustomSky extends Module {
         Skies.brightness = brightness.value / 100f;
         Skies.speed = speed.value / 100f;
         Skies.moon = moon.value;
+        Skies.sun = sun.value;
         Skies.clouds = clouds.value;
         Skies.daytime = daytime.value;
         Skies.turning = turning.value;

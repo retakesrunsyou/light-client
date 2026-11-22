@@ -49,6 +49,11 @@ public final class SkyDraw {
         return t;
     }
 
+    /** Whether the custom sky is drawing (so Minecraft's own sun, moon and stars can be skipped). */
+    public static boolean active() {
+        return !broken && Skies.sky >= 0;
+    }
+
     public static void draw() {
         if (broken || Skies.sky < 0) {
             return;
@@ -64,7 +69,7 @@ public final class SkyDraw {
                 return;
             }
             if (buffers == null) {
-                buffers = MultiBufferSource.immediate(new ByteBufferBuilder(1 << 19));
+                buffers = MultiBufferSource.immediate(new ByteBufferBuilder(1 << 20));
             }
             PoseStack.Pose pose = new PoseStack().last();
             RenderType current = null;

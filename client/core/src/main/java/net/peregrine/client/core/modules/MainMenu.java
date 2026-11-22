@@ -14,6 +14,7 @@ public final class MainMenu extends Module {
     public static final int CUSTOM = 4;
 
     public final ChoiceSetting background = add(new ChoiceSetting("background", "Background", 0, BACKGROUNDS));
+    public final ChoiceSetting holiday = add(new ChoiceSetting("holiday", "Holiday theme", 0, net.peregrine.client.core.Holidays.CHOICES));
     public final BoolSetting player = add(new BoolSetting("player", "Show your player", true));
     // Your picture: its size (1 = just fills the screen) and where its middle is (0..1 of the screen).
     // Set by dragging it around in the Locker's picture editor.
@@ -25,6 +26,11 @@ public final class MainMenu extends Module {
             .withText(v -> Math.round(v * 100) + "%"));
     public final BoolSetting drift = add(new BoolSetting("drift", "Picture drifts slowly", true));
     public final SliderSetting dim = add(new SliderSetting("dim", "Darken the picture", 0f, 80f, 5f, 0f, "%.0f%%"));
+
+    /** The holiday theme showing today (see Holidays). */
+    public int holidayTheme() {
+        return net.peregrine.client.core.Holidays.pick(holiday.index, java.time.LocalDate.now());
+    }
 
     public MainMenu() {
         super("main_menu", "Light Client main menu", "Replaces Minecraft's title screen with Light Client's",

@@ -29,6 +29,7 @@ public final class ServerIcons {
 
     private static final Map<String, int[]> ICONS = new HashMap<String, int[]>();
     private static final Map<String, Boolean> ASKED = new HashMap<String, Boolean>();
+    private static final Map<String, java.nio.file.Path> FILES = new HashMap<String, java.nio.file.Path>();
 
     private ServerIcons() {
     }
@@ -46,6 +47,7 @@ public final class ServerIcons {
             icon = grid(gameIcon);
             if (icon != null) {
                 ICONS.put(address, icon);
+                keep(address, gameIcon);
                 return icon;
             }
         }
@@ -59,6 +61,7 @@ public final class ServerIcons {
                     if (g != null) {
                         synchronized (ServerIcons.class) {
                             ICONS.put(a, g);
+                            keep(a, png);
                         }
                     }
                 }
@@ -67,6 +70,29 @@ public final class ServerIcons {
             t.start();
         }
         return null;
+    }
+
+    /**
+     * The server's own icon as a PNG file (the full 64 x 64 picture), once it's known; null before.
+     * Asks for it like get() does.
+     */
+    public static synchronized java.nio.file.Path file(String address, byte[] gameIcon) {
+        if (address == null) {
+            return null;
+        }
+        get(address, gameIcon);
+        return FILES.get(address);
+    }
+
+    private static void keep(String address, byte[] png) {
+        try {
+            java.io.File f = new java.io.File(System.getProperty("java.io.tmpdir"),
+                    "lightclient-server-" + Integer.toHexString(address.toLowerCase().hashCode()) + ".png");
+            java.nio.file.Files.write(f.toPath(), png);
+            FILES.put(address, f.toPath());
+        } catch (Throwable ignored) {
+            // the colour grid still works
+        }
     }
 
     /** A PNG shrunk to CELLS x CELLS (each cell the average of its pixels). */

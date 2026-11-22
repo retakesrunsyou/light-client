@@ -134,6 +134,7 @@ public final class TitleMenu {
 
     // ---- backgrounds
     final BackgroundEditor editor = new BackgroundEditor(this);
+    private final Holidays.Scene holidayScene = new Holidays.Scene(46);
     private float adjustGlow;
     private String customId;
     private long customStamp = -1;
@@ -245,6 +246,7 @@ public final class TitleMenu {
         float ed = editor.openness();  // the picture editor hides the menu while it's open
 
         drawBackground(base, sw, sh, now);
+        int holiday = mm == null ? Holidays.NONE : mm.holidayTheme();
 
         // A vignette: the world darkens towards the edges and the bottom, so the middle glows
         float shade = 1f - ed;
@@ -259,6 +261,9 @@ public final class TitleMenu {
                 }
             }
             Glass.vignette(base, sw, sh, Math.round(0x86 * (1f - e) * shade));
+        }
+        if (holiday != Holidays.NONE && ed < 0.999f) {
+            holidayScene.render(ed > 0.001f ? new FadeDraw(base, 1f - ed) : base, holiday, 0, 0, sw, sh, dt);
         }
         Draw editorLayer = base;
         if (ed > 0.999f) {
@@ -297,6 +302,9 @@ public final class TitleMenu {
 
         if (e < 0.98f) {
             Draw vd = e > 0.01f ? new FadeDraw(base, 1f - e) : base;
+            if (holiday != Holidays.NONE) {
+                Holidays.greetingChip(vd, holiday, sw / 2, holiday == Holidays.CHRISTMAS ? 16 : 6);
+            }
             String ver = versionLine(p);
             vd.text(ver, sw - 6 - vd.width(ver), sh - 20, Theme.FAINT, true);
             vd.text(COPYRIGHT, sw - 6 - vd.width(COPYRIGHT), sh - 10, Theme.FAINT, true);

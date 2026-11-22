@@ -31,6 +31,7 @@ public final class NowPlaying {
         public final long length, position;
         public final boolean playing;
         final long at = System.currentTimeMillis();
+        String bus = "";   // Linux: which player it came from (for the play, pause and skip buttons)
 
         public Track(String title, String artist, String app, String art, long length, long position, boolean playing) {
             this.title = title == null ? "" : title;
@@ -85,6 +86,67 @@ public final class NowPlaying {
         cover = art;
     }
 
+    private static final Object WAKE = new Object();
+
+    /**
+     * Presses a media key for the player that's playing: "previous", "toggle" (play / pause) or
+     * "next". Runs in the background; the track updates a moment later.
+     */
+    public static void control(final String action) {
+        final Track t = current;
+        if (t == null || fixed) {
+            return;
+        }
+        if (action.equals("toggle")) {   // show it at once; the next poll confirms
+            Track flipped = new Track(t.title, t.artist, t.app, t.art, t.length, t.positionNow(), !t.playing);
+            flipped.bus = t.bus;
+            current = flipped;
+        }
+        Thread th = new Thread(() -> {
+            String os = System.getProperty("os.name", "").toLowerCase();
+            try {
+                if (os.contains("win")) {
+                    java.nio.file.Files.write(commandFile(), action.getBytes(StandardCharsets.UTF_8));
+                } else if (os.contains("mac")) {
+                    String app = t.app.equals("Music") ? "Music" : "Spotify";
+                    String verb = action.equals("next") ? "next track" : action.equals("previous") ? "previous track" : "playpause";
+                    run(3000, "osascript", "-e", "tell application \"" + app + "\" to " + verb);
+                } else if (!t.bus.isEmpty()) {
+                    String m = action.equals("next") ? "Next" : action.equals("previous") ? "Previous" : "PlayPause";
+                    run(3000, "dbus-send", "--session", "--type=method_call", "--dest=" + t.bus, "/org/mpris/MediaPlayer2",
+                            "org.mpris.MediaPlayer2.Player." + m);
+                }
+                Thread.sleep(250);
+            } catch (Exception ignored) {
+                // nothing playing any more, or no media controls here
+            }
+            synchronized (WAKE) {
+                WAKE.notifyAll();
+            }
+        }, "Light Client media key");
+        th.setDaemon(true);
+        th.start();
+    }
+
+    /** Windows: where a button press is left for the media watcher to pick up (it checks ten times a second). */
+    static java.nio.file.Path commandFile() {
+        return new File(System.getProperty("java.io.tmpdir"), "lightclient-media-" + ProcessHandle.current().pid() + ".txt").toPath();
+    }
+
+    // ------------------------------------------------------------ sharp cover art
+
+    private static volatile java.nio.file.Path coverPath;
+    private static volatile int coverVersion;
+
+    /** The cover art as a square PNG (up to 160 px), and a number that changes when it does. */
+    public static java.nio.file.Path coverFile() {
+        return coverPath;
+    }
+
+    public static int coverVersion() {
+        return coverVersion;
+    }
+
     private static synchronized void start() {
         if (worker != null && worker.isAlive()) {
             return;
@@ -108,16 +170,22 @@ public final class NowPlaying {
                     coverKey = t.key();
                     cover = loadArt(t.art);
                 } else if (t == null || t.art.isEmpty()) {
+                    if (!coverKey.isEmpty()) {
+                        coverPath = null;
+                        coverVersion++;
+                    }
                     coverKey = "";
                     cover = null;
                 }
             } catch (Exception e) {
                 current = null;
             }
-            try {
-                Thread.sleep(1500);
-            } catch (InterruptedException e) {
-                return;
+            synchronized (WAKE) {
+                try {
+                    WAKE.wait(1500);   // or sooner, right after a button is pressed
+                } catch (InterruptedException e) {
+                    return;
+                }
             }
         }
         stopWindows();
@@ -270,7 +338,9 @@ public final class NowPlaying {
         if (title == null || "Stopped".equals(status)) {
             return null;
         }
-        return new Track(title, artist, appName(bus, url), art, length, position, "Playing".equals(status));
+        Track t = new Track(title, artist, appName(bus, url), art, length, position, "Playing".equals(status));
+        t.bus = bus;
+        return t;
     }
 
     // ------------------------------------------------------------ Windows (media session, via PowerShell)
@@ -287,7 +357,7 @@ public final class NowPlaying {
             + "$TStream=[Windows.Storage.Streams.IRandomAccessStreamWithContentType,Windows.Storage.Streams,ContentType=WindowsRuntime];"
             + "$TInput=[Windows.Storage.Streams.IInputStream,Windows.Storage.Streams,ContentType=WindowsRuntime];"
             + "$asStream=[IO.WindowsRuntimeStreamExtensions].GetMethod('AsStreamForRead',[type[]]@($TInput));"
-            + "$manager=Await ($TManager::RequestAsync()) $TManager;$lastKey='';$coverFile=[IO.Path]::Combine($env:TEMP,'peregrine-cover.img');"
+            + "$manager=Await ($TManager::RequestAsync()) $TManager;$lastKey='';$coverFile=[IO.Path]::Combine($env:TEMP,'peregrine-cover.img');$cmdFile='@CMD@';"
             + "while($true){$session=$manager.GetCurrentSession();"
             + "if($session){$info=Await ($session.TryGetMediaPropertiesAsync()) $TProps;$timeline=$session.GetTimelineProperties();$playback=$session.GetPlaybackInfo();"
             + "$songKey=$info.Title+'|'+$info.Artist;"
@@ -298,13 +368,18 @@ public final class NowPlaying {
             + "pos=[long]$timeline.Position.TotalMilliseconds;at=[long]([DateTimeOffset]::Now-$timeline.LastUpdatedTime).TotalMilliseconds;"
             + "playing=($playback.PlaybackStatus -eq 4);art=$coverFile;key=$coverKey};"
             + "[Console]::Out.WriteLine(($out|ConvertTo-Json -Compress))}else{[Console]::Out.WriteLine('{}')};"
-            + "[Console]::Out.Flush();Start-Sleep -Milliseconds 1200}";
+            + "[Console]::Out.Flush();"
+            // a button pressed in the pause menu: Java leaves "next", "previous" or "toggle" in a file
+            + "for($wi=0;$wi -lt 12;$wi++){if(Test-Path $cmdFile){$cmd=Get-Content $cmdFile -Raw;Remove-Item $cmdFile;"
+            + "if($session){if($cmd -match 'next'){Await ($session.TrySkipNextAsync()) ([bool])|Out-Null}"
+            + "elseif($cmd -match 'previous'){Await ($session.TrySkipPreviousAsync()) ([bool])|Out-Null}"
+            + "else{Await ($session.TryTogglePlayPauseAsync()) ([bool])|Out-Null}};break};Start-Sleep -Milliseconds 100}}";
     private static BufferedReader windowsOut;
 
     private static Track windows() throws Exception {
         if (windows == null || !windows.isAlive()) {
             windows = new ProcessBuilder("powershell", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
-                    "-Command", PS).redirectErrorStream(true).start();
+                    "-Command", PS.replace("@CMD@", commandFile().toString().replace("'", "''"))).redirectErrorStream(true).start();
             windowsOut = new BufferedReader(new InputStreamReader(windows.getInputStream(), StandardCharsets.UTF_8));
         }
         String line = null;
@@ -404,9 +479,34 @@ public final class NowPlaying {
             } else {
                 return null;
             }
-            return img == null ? null : downscale(img, ART);
+            if (img == null) {
+                return null;
+            }
+            saveSharp(img);
+            return downscale(img, ART);
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    /** Keeps a smooth square copy of the cover (the middle of it) for the pause menu to show. */
+    static void saveSharp(BufferedImage img) {
+        try {
+            int w = img.getWidth(), h = img.getHeight(), side = Math.min(w, h), n = Math.min(160, side);
+            BufferedImage out = new BufferedImage(n, n, BufferedImage.TYPE_INT_ARGB);
+            java.awt.Graphics2D g = out.createGraphics();
+            g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING, java.awt.RenderingHints.VALUE_RENDER_QUALITY);
+            g.drawImage(img, 0, 0, n, n, (w - side) / 2, (h - side) / 2, (w - side) / 2 + side, (h - side) / 2 + side, null);
+            g.dispose();
+            File f = new File(System.getProperty("java.io.tmpdir"), "lightclient-cover-" + ProcessHandle.current().pid() + ".png");
+            File tmp = new File(f.getPath() + ".tmp");
+            ImageIO.write(out, "png", tmp);
+            java.nio.file.Files.move(tmp.toPath(), f.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            coverPath = f.toPath();
+            coverVersion++;
+        } catch (Throwable ignored) {
+            // the small colour grid still works
         }
     }
 

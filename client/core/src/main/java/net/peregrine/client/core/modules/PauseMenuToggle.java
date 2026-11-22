@@ -2,6 +2,7 @@ package net.peregrine.client.core.modules;
 
 import net.peregrine.client.core.Module;
 import net.peregrine.client.core.settings.ActionSetting;
+import net.peregrine.client.core.settings.BoolSetting;
 import net.peregrine.client.core.settings.TextSetting;
 
 /** On/off switch for Peregrine's pause menu; the menu itself is PauseMenu. Drag its buttons to rearrange them. */
@@ -13,6 +14,8 @@ public final class PauseMenuToggle extends Module {
             DEFAULT_ORDER));
     public final ActionSetting resetOrder = add(new ActionSetting("reset_order", "Button order", () -> "Reset",
             () -> order.value = DEFAULT_ORDER));
+
+    public final BoolSetting music = add(new BoolSetting("music", "Show the song playing, with play, pause and skip", true));
 
     public PauseMenuToggle() {
         super("pause_menu", "Light Client pause menu", "Replaces Minecraft's pause menu with Light Client's. Drag its buttons to rearrange them",

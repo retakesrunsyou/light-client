@@ -5,13 +5,16 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Peregrine's custom skies: the Milky Way, northern lights, a meteor shower, a black hole and
- * shooting stars. Each sky is built here, every frame, as a short list of textured four-sided
- * pieces on the sky dome (about a thousand at most, like Minecraft's own stars), already
- * animated: the stars turn with the time of day, the aurora's curtains ripple, meteors fly,
- * the black hole's disk swirls. A version adapter only has to draw the list, in order, with the
- * camera at the centre, after Minecraft's sky and before the world. No shaders, no per-pixel
- * work: it costs about what vanilla's stars do.
+ * Light Client's custom skies: the Milky Way, northern lights, a meteor shower, a black hole and
+ * shooting stars, with a real sun by day and a detailed moon in its phase. Each sky is a short list
+ * of textured four-sided pieces on the sky dome, already animated: the aurora's curtains ripple,
+ * meteors fly, the black hole's disk swirls. A version adapter only has to draw the list, in order,
+ * with the camera at the centre, after Minecraft's sky and before the world.
+ *
+ * Kept cheap: the parts that don't move between frames (the dark dome, the Milky Way and about a
+ * thousand stars, each a tiny point of light where a real-looking star would be) are built once and
+ * only rebuilt when the sky turns, at most once a game tick; each frame just fades them. Pictures
+ * are sized for what they cover on screen, never full-sky photos.
  */
 public final class Skies {
 
@@ -21,6 +24,7 @@ public final class Skies {
         public final float[] xyz = new float[12];
         public final float[] uv = new float[8];
         public int argb;
+        int base;   // the colour at full strength, for pieces that are kept between frames
 
         Quad(String texture) {
             this.texture = texture;
@@ -41,6 +45,7 @@ public final class Skies {
     public static volatile float speed = 1f;
     public static volatile boolean daytime;         // also show it during the day (faded)
     public static volatile boolean moon = true;     // a detailed moon, in its real phase
+    public static volatile boolean sun = true;      // a real sun by day (Minecraft's square one is hidden)
     public static volatile boolean clouds = true;   // thin night clouds drifting low in the sky
     public static volatile boolean turning;         // the stars turn with the time of day (off: they stay put)
     public static volatile int moonPhase;           // 0 full .. 4 new .. 7, from the world's day
@@ -72,7 +77,7 @@ public final class Skies {
     }
 
     /** Every picture a sky uses, to load ahead of time. */
-    public static final String[] TEXTURES = {"white.png", "horizon.png", "stars.png", "star.png", "milkyway.png",
+    public static final String[] TEXTURES = {"white.png", "horizon.png", "star.png", "point.png", "sun.png", "sunglow.png", "milkyway.png",
         "aurora.png", "meteor.png", "train.png", "blackhole.png", "clouds.png", "moonglow.png",
         "moon_0.png", "moon_1.png", "moon_2.png", "moon_3.png", "moon_4.png", "moon_5.png", "moon_6.png", "moon_7.png"};
 
@@ -81,7 +86,17 @@ public final class Skies {
     private static final List<Quad> pool = new ArrayList<Quad>();
     private static int used;
 
+    /** The pieces kept between frames, and what they were built for. */
+    private static final List<Quad> fixed = new ArrayList<Quad>();
+    private static String fixedKey = "";
+    private static boolean toFixed;
+
     private static Quad quad(String tex) {
+        if (toFixed) {
+            Quad q = new Quad(tex);
+            fixed.add(q);
+            return q;
+        }
         Quad q;
         if (used < pool.size()) {
             q = pool.get(used);
@@ -123,55 +138,87 @@ public final class Skies {
     public static List<Quad> build(long ms, long worldTime) {
         used = 0;
         int which = sky;
-        float vis = which < 0 ? 0f : visibility(worldTime) * Math.max(0f, Math.min(2f, brightness));
-        vis *= 1f - Math.max(0f, Math.min(1f, weather));
         List<Quad> out = new ArrayList<Quad>();
-        if (vis <= 0.004f) {
+        if (which < 0) {
             return out;
         }
+        float clear = 1f - Math.max(0f, Math.min(1f, weather));
+        float night = visibility(worldTime);
+        float vis = night * Math.max(0f, Math.min(2f, brightness)) * clear;
         double secs = ms / 1000.0 * Math.max(0.05f, speed);
         // the real sky for someone at 40° north: it turns once a Minecraft day, and starts each
         // night two hours further on, so different constellations come round over the nights
         Sky f = new Sky(worldTime, day);
         now = f;
 
-        // a dark, slightly blue dome over Minecraft's own sky
-        int zen = which == 3 ? 0x020208 : which == 1 ? 0x020611 : 0x02040B;
-        int hor = which == 3 ? 0x0C0A1A : which == 1 ? 0x07182A : 0x0A1226;
-        dome(out, zen, hor, vis);
-        // airglow: the faint green light of the upper air, low all round
-        glowRing(tex("horizon.png"), Math.toRadians(-6), Math.toRadians(24), argb(vis * (which == 1 ? 0.5f : 0.38f), which == 1 ? 0x1E5A3A : 0x173322));
-        // the Milky Way, then the stars over it, where they really are
-        celestial(f, tex("milkyway.png"), vis * (which == 0 ? 1f : 0.8f));
-        celestial(f, tex("stars.png"), vis);
-        twinkles(f, vis, secs);
+        if (vis > 0.004f) {
+            String key = which + "|" + (turning ? worldTime + "|" + day : "still") + "|" + (loader != null);
+            if (!key.equals(fixedKey)) {
+                fixed.clear();
+                toFixed = true;
+                try {
+                    // a dark, slightly blue dome over Minecraft's own sky
+                    int zen = which == 3 ? 0x020208 : which == 1 ? 0x020611 : 0x02040B;
+                    int hor = which == 3 ? 0x0C0A1A : which == 1 ? 0x07182A : 0x0A1226;
+                    dome(out, zen, hor, 1f);
+                    // airglow: the faint green light of the upper air, low all round
+                    glowRing(tex("horizon.png"), Math.toRadians(-6), Math.toRadians(24), argb(which == 1 ? 0.5f : 0.38f, which == 1 ? 0x1E5A3A : 0x173322));
+                    // the Milky Way, then the stars over it, where they are in the real sky
+                    celestial(f, tex("milkyway.png"), which == 0 ? 1f : 0.8f);
+                    stars(f);
+                } finally {
+                    toFixed = false;
+                }
+                for (Quad q : fixed) {
+                    q.base = q.argb;
+                }
+                fixedKey = key;
+            }
+            for (Quad q : fixed) {
+                q.argb = fade(q.base, vis);
+                out.add(q);
+            }
+            twinkles(f, vis, secs);
+        }
+        if (sun) {
+            sun(worldTime, clear);
+        }
         if (moon && which != 3) {
-            moon(vis, worldTime);
+            // the moon shows whenever it's up, more strongly as the sky darkens
+            moon(clear * (0.55f + 0.45f * night) * Math.max(0.6f, Math.min(1.4f, brightness)), worldTime);
         }
-        switch (which) {
-            case 1:
-                aurora(out, vis, secs);
-                break;
-            case 2:
-                meteors(vis, ms, true);
-                break;
-            case 3:
-                blackHole(vis, secs);
-                break;
-            case 4:
-            case 0:
-                meteors(vis, ms, false);
-                break;
-            default:
-                break;
-        }
-        if (clouds) {
-            clouds(vis, secs, which);
+        if (vis > 0.004f) {
+            switch (which) {
+                case 1:
+                    aurora(out, vis, secs);
+                    break;
+                case 2:
+                    meteors(vis, ms, true);
+                    break;
+                case 3:
+                    blackHole(vis, secs);
+                    break;
+                case 4:
+                case 0:
+                    meteors(vis, ms, false);
+                    break;
+                default:
+                    break;
+            }
+            if (clouds) {
+                clouds(vis, secs, which);
+            }
         }
         for (int i = 0; i < used; i++) {
             out.add(pool.get(i));
         }
         return out;
+    }
+
+    /** A colour with its alpha scaled by k. */
+    private static int fade(int argb, float k) {
+        int a = Math.round((argb >>> 24) * Math.max(0f, Math.min(1f, k)));
+        return (a << 24) | (argb & 0xFFFFFF);
     }
 
     // ------------------------------------------------------------------ geometry helpers
@@ -321,15 +368,92 @@ public final class Skies {
         double t = (worldTime % 24000L + 24000L) % 24000L;
         double phi = (t - 12000) / 24000.0 * Math.PI * 2;      // 0 east at dusk, up at midnight
         double[] d = norm(new double[] {Math.cos(phi), Math.sin(phi), 0.18});
-        if (d[1] < -0.08) {
+        if (d[1] < -0.08 || vis <= 0.004f) {
             return;
         }
+        vis *= smooth((float) ((d[1] + 0.08) / 0.12));   // sinks behind the horizon gently
         int ph = Math.floorMod(moonPhase, 8);
         float lit = (float) (0.5 + 0.5 * Math.cos(ph / 8.0 * Math.PI * 2));   // 1 full .. 0 new
         double size = Math.toRadians(6.5);
         // a soft halo, brighter the fuller it is
         billboard(quad(tex("moonglow.png")), d, size * 4.5, 0, argb(vis * 0.35f * (0.15f + 0.85f * lit), 0xC8D6FF));
         billboard(quad(tex("moon_" + ph + ".png")), d, size, Math.PI, argb(vis, 0xFFFFFF));
+    }
+
+    private static float smooth(float x) {
+        x = Math.max(0f, Math.min(1f, x));
+        return x * x * (3 - 2 * x);
+    }
+
+    /**
+     * The Sun where Minecraft has it (up in the east at dawn, overhead at noon): a bright disc,
+     * warmer and dimmer as it nears the horizon, in a wide soft glow. Hidden by rain.
+     */
+    private static void sun(long worldTime, float clear) {
+        double t = (worldTime % 24000L + 24000L) % 24000L;
+        double phi = t / 24000.0 * Math.PI * 2;                // 0 east at dawn, up at noon
+        double[] d = norm(new double[] {Math.cos(phi), Math.sin(phi), -0.12});
+        if (d[1] < -0.1 || clear <= 0.01f) {
+            return;
+        }
+        float up = smooth((float) ((d[1] + 0.1) / 0.16));
+        float low = (float) Math.pow(1 - Math.max(0, Math.min(1, d[1] / 0.45)), 2.2);   // 1 at the horizon
+        int disc = mix(0xFFFFFF, 0xFFB068, low);
+        int glow = mix(0xFFF4DC, 0xFF9A4A, low);
+        float a = up * clear;
+        double size = Math.toRadians(7.5);
+        billboard(quad(tex("sunglow.png")), d, size * 9, 0, argb(a * (0.38f + 0.22f * low), glow));
+        billboard(quad(tex("sunglow.png")), d, size * 3.2, 0, argb(a * 0.55f, glow));
+        billboard(quad(tex("sun.png")), d, size, 0, argb(a * (1f - 0.15f * low), disc));
+    }
+
+    // ------------------------------------------------------------------ the stars
+    // About a thousand stars, made up once but laid out like the real sky's: crowded along the
+    // Milky Way, many faint ones and few bright ones, in the colours real stars have (blue-white
+    // to orange). Each is a small soft point; they dim and redden near the horizon. The brightest
+    // real ones (BRIGHT, below) are drawn on top and twinkle.
+
+    static final int STAR_COUNT = 1000;
+    /** ra, dec (radians), magnitude, colour per star. */
+    private static final int[] STAR_COLORS = {0xCFDDFF, 0xDDE6FF, 0xF2F4FF, 0xF2F4FF, 0xFFF6EA, 0xFFF1DE, 0xFFE4C6, 0xFFD6B0, 0xFFC79C};
+    static final double[][] STARS = makeStars();
+
+    static double[][] makeStars() {
+        Random r = new Random(0x5EED5L);
+        double[][] out = new double[STAR_COUNT][];
+        // the north pole of the galaxy (RA 192.86°, Dec 27.13°): stars crowd near the plane at right angles to it
+        double gra = Math.toRadians(192.859), gdec = Math.toRadians(27.128);
+        int n = 0;
+        while (n < STAR_COUNT) {
+            double ra = r.nextDouble() * Math.PI * 2;
+            double dec = Math.asin(r.nextDouble() * 2 - 1);
+            double sinB = Math.sin(dec) * Math.sin(gdec) + Math.cos(dec) * Math.cos(gdec) * Math.cos(ra - gra);
+            double b = Math.toDegrees(Math.asin(sinB));
+            if (r.nextDouble() > 0.32 + 0.68 * Math.exp(-(b * b) / (2 * 16.0 * 16.0))) {
+                continue;
+            }
+            // many more faint stars than bright ones (about 2.8x more per magnitude)
+            double lo = 2.3, hi = 5.8, k = 0.45;
+            double mag = lo + Math.log10(1 + r.nextDouble() * (Math.pow(10, k * (hi - lo)) - 1)) / k;
+            out[n++] = new double[] {ra, dec, mag, STAR_COLORS[r.nextInt(STAR_COLORS.length)]};
+        }
+        return out;
+    }
+
+    private static void stars(Sky f) {
+        String tex = tex("point.png");
+        for (double[] s : STARS) {
+            double[] d = f.local(s[0], s[1]);
+            if (d[1] < -0.03) {
+                continue;
+            }
+            double flux = Math.pow(10, -0.4 * (s[2] - 2.3));          // 1 for the brightest here
+            float air = smooth((float) ((d[1] + 0.03) / 0.30));        // fainter through thick air near the horizon
+            float a = (float) Math.min(1, 0.30 + 0.75 * Math.sqrt(flux)) * (0.35f + 0.65f * air);
+            double size = Math.toRadians(0.34 + 0.40 * Math.pow(flux, 0.35));
+            int col = mix((int) s[3], 0xFFD2A8, (1 - air) * 0.5f);
+            billboard(quad(tex), d, size, 0, argb(a, col));
+        }
     }
 
     /** Thin clouds low round the sky, drifting slowly; they pass in front of everything else. */
@@ -354,7 +478,7 @@ public final class Skies {
 
     /** A picture of the whole sky (right ascension across, declination down) on a sphere, where the real sky is. */
     private static void celestial(Sky f, String tex, float vis) {
-        int segs = 48, rows = 24;
+        int segs = 36, rows = 18;
         for (int r = 0; r < rows; r++) {
             double d0 = Math.toRadians(90 - 180.0 * r / rows), d1 = Math.toRadians(90 - 180.0 * (r + 1) / rows);
             float v0 = r / (float) rows, v1 = (r + 1) / (float) rows;
@@ -453,7 +577,7 @@ public final class Skies {
             double ph = i * 12.9898;
             float tw = (float) (1 - amp * (0.5 + 0.5 * Math.sin(secs * (5 + i % 7) + ph)) * (0.6 + 0.4 * Math.sin(secs * 13.1 + ph * 2)));
             float a = (float) Math.min(1, 0.25 + 0.35 * Math.pow(flux, 0.5)) * tw;
-            double size = Math.toRadians(0.6 + 0.9 * Math.pow(Math.min(flux, 12), 0.35));
+            double size = Math.toRadians(0.5 + 0.75 * Math.pow(Math.min(flux, 12), 0.35));
             billboard(quad(tex("star.png")), d, size, 0, argb(vis * a, (int) s[3]));
         }
     }
