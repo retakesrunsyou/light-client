@@ -19,7 +19,14 @@ public final class Boost extends Module {
     static final String[] SCALE = {"100% (sharpest)", "85%", "75%", "66%", "50% (fastest)"};
     static final float[] SCALE_VALUES = {1f, 0.85f, 0.75f, 0.66f, 0.5f};
 
-    public final ChoiceSetting resolution = add(new ChoiceSetting("world_scale", "World resolution (big FPS gain on weaker graphics)", 0, SCALE));
+    public final ChoiceSetting resolution = add(new ChoiceSetting("world_scale", "World resolution (big FPS gain on weaker graphics)", 0, SCALE) {
+        @Override
+        public boolean visible() {   // only where the version can draw the world smaller
+            net.peregrine.client.core.Platform p = net.peregrine.client.core.Peregrine.get() == null ? null
+                    : net.peregrine.client.core.Peregrine.get().platform();
+            return p == null || p.supports("boost_world_scale");
+        }
+    });
     public final ChoiceSetting background = add(new ChoiceSetting("background", "When the game isn't the window you're using", 2, BACKGROUND));
     public final SliderSetting particles = add(new SliderSetting("particles", "Most particles at once", 500f, 16000f, 500f, 4000f, "%.0f")
             .withText(v -> v >= 16000 ? "No limit" : String.valueOf(Math.round(v))));
