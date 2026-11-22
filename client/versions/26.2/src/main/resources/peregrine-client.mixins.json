@@ -8,6 +8,7 @@
 		"GuiScreenMixin",
 		"MouseHandlerMixin",
 		"ScreenshotPathMixin",
+		"ScreenshotFolderMixin",
 		"OptionInstanceAccessor",
 		"WindowTitleMixin"
 	],
