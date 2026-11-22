@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class BoostFpsOldMixin {
     @Inject(method = "getFramerateLimit", at = @At("RETURN"), cancellable = true, require = 0)
     private void peregrine$background(CallbackInfoReturnable<Integer> cir) {
-        Integer cap = BoostFpsMixin.peregrine$cap(cir.getReturnValue());
+        Integer cap = net.peregrine.client.v1_21_2.BoostCap.cap(cir.getReturnValue());
         if (cap != null) {
             cir.setReturnValue(cap);
         }
