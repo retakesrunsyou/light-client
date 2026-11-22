@@ -168,16 +168,8 @@ class MainWindow(QMainWindow):
         news.setContentsMargins(32, 20, 32, 20)
         news.setSpacing(14)
         news.addWidget(big_title("What's new"))
-        for headline, detail in (
-            ("Light Client", "A new starting screen with direct access to play, recent servers, settings and Locker."),
-            ("Right Shift", "Open the refreshed in-game menu for modules, cosmetics and the release notes."),
-            ("Performance presets", "Use Right Shift → Modules → Performance to choose how Stable FPS responds to dips."),
-        ):
-            news.addWidget(QLabel(headline, objectName="sectionTitle"))
-            description = QLabel(detail, objectName="muted")
-            description.setWordWrap(True)
-            news.addWidget(description)
-        news.addStretch()
+        from .whats_new import notes_widget
+        news.addWidget(notes_widget(), 1)
         self.pages = {"recent": self.recent, "library": self.library, "home": self.home, "content": self.content,
                       "settings": self.settings, "accounts": self.accounts, "friends": self.friends,
                       "profiles": self.profiles, "locker": self.locker, "clips": self.clips,
@@ -1010,6 +1002,10 @@ def main():
         pass  # started with the computer: wait in the tray
     else:
         win.show()
+        if "--smoke" not in sys.argv:
+            from PySide6.QtCore import QTimer
+            from . import whats_new
+            QTimer.singleShot(1200, lambda: whats_new.show_if_new(win))
     if "--smoke" in sys.argv:
         # Packaged-build check: start, draw a few frames, and quit cleanly.
         from PySide6.QtCore import QTimer

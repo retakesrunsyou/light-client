@@ -906,6 +906,9 @@ class SettingsPage(QWidget):
         if not UPDATE_REPO:
             check_now.setToolTip("Set UPDATE_REPO in peregrine/__init__.py to turn updates on.")
         check_now.clicked.connect(self.check_updates.emit)
+        news_btn = QPushButton("What's new")
+        news_btn.clicked.connect(lambda: __import__("peregrine.ui.whats_new", fromlist=["x"]).WhatsNewDialog(self.window()).open())
+        updates.row("What changed in this version", news_btn)
         updates.row("Look for a new version", check_now)
         self.body.addWidget(updates)
         self.body.addStretch()

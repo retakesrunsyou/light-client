@@ -762,7 +762,7 @@ class LockerPage(QWidget):
                     c.clicked.connect(self.pick_picture)
                     bcards.append(c)
                     continue
-                c = BackgroundCard(name, "Minecraft" if i == 0 else ("Yours" if i == locker.CUSTOM else "Peregrine"), path)
+                c = BackgroundCard(name, "Minecraft" if i == 0 else ("Yours" if i == locker.CUSTOM else "Light Client"), path)
                 c.worn = i == current
                 c.key = ("bg", i)
                 c.clicked.connect(lambda i=i: self.set_background(i))
@@ -779,7 +779,7 @@ class LockerPage(QWidget):
                 if i == locker.CUSTOM_CAPE:
                     continue
                 path = locker.cape_asset(i)
-                c = CapeCard(name, "Moving" if locker.cape_frames(i) else "Peregrine",
+                c = CapeCard(name, "Moving" if locker.cape_frames(i) else "Light Client",
                              QImage(str(path)) if path else None, locker.cape_frames(i))
                 c.worn = i == worn
                 c.key = ("pcape", i)

@@ -549,7 +549,7 @@ class InstallerWindow(Shell):
         self.logos.append(self.logo)
         v.addWidget(self.logo, 0, Qt.AlignHCenter)
         v.addSpacing(2)
-        v.addWidget(_title("PEREGRINE"))
+        v.addWidget(_title("LIGHT CLIENT"))
         lab = QLabel("LAUNCHER")
         lab.setFont(_font(13, QFont.ExtraBold, 7.0))
         lab.setAlignment(Qt.AlignCenter)
@@ -756,7 +756,7 @@ class UninstallerWindow(Shell):
         mark = CheckMark("#e5676b", "trash")
         mark.t = 1.0
         v.addWidget(mark, 0, Qt.AlignHCenter)
-        v.addWidget(_title("UNINSTALL PEREGRINE?", 28, 2.5))
+        v.addWidget(_title("UNINSTALL LIGHT CLIENT?", 28, 2.5))
         v.addSpacing(8)
         v.addWidget(_sub("Removes the launcher, its shortcuts and its entry in Apps. "
                          "Your instances, worlds and settings stay unless you switch on the option below."))
@@ -791,7 +791,7 @@ class UninstallerWindow(Shell):
         v.addStretch(1)
         self.check = CheckMark()
         v.addWidget(self.check, 0, Qt.AlignHCenter)
-        v.addWidget(_title("PEREGRINE WAS REMOVED", 28, 2.5))
+        v.addWidget(_title("LIGHT CLIENT WAS REMOVED", 28, 2.5))
         v.addSpacing(8)
         self.bye = _sub("Light Client has been removed.")
         v.addWidget(self.bye)

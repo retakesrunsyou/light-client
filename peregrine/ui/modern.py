@@ -360,7 +360,7 @@ class Rail(QFrame):
         brand.setContentsMargins(8, 0, 0, 0)
         brand.setSpacing(10)
         brand.addWidget(logo)
-        self.brand = QLabel("PEREGRINE", objectName="railBrand")
+        self.brand = QLabel("LIGHT CLIENT", objectName="railBrand")
         brand.addWidget(self.brand)
         brand.addStretch(1)
         self.collapse = QToolButton(objectName="iconBtn")

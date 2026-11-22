@@ -208,7 +208,7 @@ def stylesheet() -> str:
     QPushButton#ghostSmall, QPushButton#chipBtn {{ background: {rgba(p['raised'], 0.55 if dark else 0.9)};
         color: {p['text']}; border: 1px solid {edge_hi}; border-radius: 9px; padding: 6px 12px; font-size: 13px; }}
     QPushButton#ghostSmall:hover, QPushButton#chipBtn:hover {{ border-color: {rgba(a, 0.6)}; }}
-    #railBrand {{ font-size: 17px; font-weight: 800; letter-spacing: 1px; }}
+    #railBrand {{ font-size: 15px; font-weight: 800; letter-spacing: 0.5px; }}
     #railLine {{ background: {glass_edge}; border: none; }}
     #railAccount {{ background: transparent; border: none; }}
     #railName {{ font-size: 13px; font-weight: 700; }}
