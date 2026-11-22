@@ -13,7 +13,7 @@ public abstract class WorldTextMixin {
 
     @Inject(method = "renderBlockOutline", at = @At("RETURN"), require = 0)
     private void peregrine$worldText(net.minecraft.client.renderer.MultiBufferSource.BufferSource buffers, PoseStack pose, boolean translucent,
-                                     net.minecraft.client.renderer.state.level.LevelRenderState state, CallbackInfo ci) {
+                                     net.minecraft.client.renderer.state.LevelRenderState state, CallbackInfo ci) {
         if (translucent) {
             net.minecraft.world.phys.Vec3 c = state.cameraRenderState.pos;
             WorldTextDraw.drawInto(pose, buffers, c.x, c.y, c.z);
