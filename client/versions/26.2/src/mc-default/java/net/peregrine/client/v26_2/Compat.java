@@ -20,4 +20,7 @@ public final class Compat {
     public static void rotateY(com.mojang.blaze3d.vertex.PoseStack pose, float degrees) {
         pose.mulPose(com.mojang.math.Axis.YP.rotationDegrees(degrees));
     }
+
+    /** Whether GPU mobs work on this version. */
+    public static final boolean GPU_MOBS = true;
 }

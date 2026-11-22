@@ -151,7 +151,7 @@ final class GamePlatform implements Platform {
 
     @Override
     public boolean supports(String moduleId) {
-        if (moduleId.equals("custom_sky") || moduleId.equals("gpu_mobs") || moduleId.equals("knives") || moduleId.equals("viewmodel_fx") || moduleId.equals("zero_delay") || moduleId.equals("benchmark") || moduleId.equals("boost_world_scale") || moduleId.equals("auto_reconnect") || moduleId.equals("area_miner") || moduleId.equals("skeletons") || moduleId.equals("pickaxe_look") || moduleId.equals("frame_gen") || moduleId.equals("click_sounds") || moduleId.equals("hd_look") || moduleId.equals("clips") || moduleId.equals("menu_3d") || moduleId.equals("smooth_join") || moduleId.equals("chat") || moduleId.equals("clean_overlays")) {
+        if (moduleId.equals("custom_sky") || (moduleId.equals("gpu_mobs") && !Compat.GPU_MOBS) || moduleId.equals("knives") || moduleId.equals("viewmodel_fx") || moduleId.equals("zero_delay") || moduleId.equals("benchmark") || moduleId.equals("boost_world_scale") || moduleId.equals("auto_reconnect") || moduleId.equals("area_miner") || moduleId.equals("skeletons") || moduleId.equals("pickaxe_look") || moduleId.equals("frame_gen") || moduleId.equals("click_sounds") || moduleId.equals("hd_look") || moduleId.equals("clips") || moduleId.equals("menu_3d") || moduleId.equals("smooth_join") || moduleId.equals("chat") || moduleId.equals("clean_overlays")) {
             return false;  // these are on 26.1 for now (beta)
         }
         return true;
@@ -925,6 +925,11 @@ final class GamePlatform implements Platform {
     }
 
     // ---- flight boost, inventory HUD, packs from the menu
+
+    @Override
+    public boolean localWorld() {
+        return mc().hasSingleplayerServer();
+    }
 
     @Override
     public int gameMode() {
