@@ -115,6 +115,10 @@ public final class Hooks {
     // ---- Scoreboard (sidebar) size, 1 = Minecraft's
     public static volatile float scoreboardScale = 1f;
 
+    // ---- Text drawn in 3D in the world (3D lyrics): the adapter says it can, the core fills the list
+    public static volatile boolean canDrawWorldText;
+    public static volatile WorldText[] worldTexts = new WorldText[0];
+
     // ---- Moving the scoreboard and the chat (HUD editor). Set by the core each frame;
     // the version adapter moves Minecraft's own drawing there (and says it can).
     public static volatile boolean canMoveScoreboard, canMoveChat;

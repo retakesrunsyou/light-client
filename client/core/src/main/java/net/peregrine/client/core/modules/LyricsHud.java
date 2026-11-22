@@ -27,13 +27,10 @@ import net.peregrine.client.core.settings.SliderSetting;
  */
 public final class LyricsHud extends HudModule {
 
-    static final int SCREEN = 0, WORLD = 1, BOTH = 2;
-    static final int FOLLOW = 0, STAY = 1, AROUND = 2;
     static final int SWEEP = 0, WORDS = 1, WHOLE = 2;
     static final int CENTER = 0, LEFT = 1, RIGHT = 2;
     static final int SLIDE = 0, FADE = 1, NONE = 2;
 
-    public final ChoiceSetting where = add(new ChoiceSetting("where", "Show", SCREEN, "Screen", "World (3D)", "Both"));
     public final SliderSetting lines = add(new SliderSetting("lines", "Lines", 1f, 7f, 1f, 3f, "%.0f"));
     public final ChoiceSetting fillStyle = add(new ChoiceSetting("fill_style", "Fill style", SWEEP,
             "Smooth", "Word by word", "Whole line"));
@@ -51,16 +48,6 @@ public final class LyricsHud extends HudModule {
     public final SliderSetting timing = add(new SliderSetting("timing", "Timing offset", -3000f, 3000f, 50f, 0f, "%+.0f ms"));
     public final BoolSetting untimed = add(new BoolSetting("untimed", "Use untimed lyrics", true));
     public final BoolSetting hideMissing = add(new BoolSetting("hide_missing", "Hide without lyrics", false));
-    // in the world
-    public final ChoiceSetting place = add(new ChoiceSetting("place", "3D mode", FOLLOW, "Follow view",
-            "Fixed in place", "Float around you"));
-    public final SliderSetting distance = add(new SliderSetting("distance", "Distance", 2f, 16f, 0.5f, 6f, "%.1f blocks"));
-    public final SliderSetting height = add(new SliderSetting("height", "Height", -2f, 4f, 0.25f, 0.75f, "%+.2f blocks"));
-    public final SliderSetting worldSize = add(new SliderSetting("world_size", "World size", 0.5f, 4f, 0.1f, 1.6f, "%.1fx"));
-    public final SliderSetting depth = add(new SliderSetting("depth", "3D depth", 0f, 8f, 1f, 4f, "%.0f"));
-    public final SliderSetting spread = add(new SliderSetting("spread", "Word spread", 30f, 200f, 5f, 90f, "%.0f°"));
-    public final SliderSetting drift = add(new SliderSetting("drift", "Word drift", 0f, 1f, 0.05f, 0.4f, "%.2f"));
-    public final BoolSetting zoomProof = add(new BoolSetting("zoom_proof", "Ignore zoom", true));
 
     /** Placeholder lines for placing it (Edit HUD) when nothing's playing: not from any song. */
     private static final String[] SAMPLE = {"Lyrics show up here", "line by line as the song plays",
@@ -77,10 +64,6 @@ public final class LyricsHud extends HudModule {
                 false, 0.5f, 0.82f);
     }
 
-    @Override
-    public boolean supportsWorldRender() {
-        return true;
-    }
 
     // ---- what to show
 
@@ -186,7 +169,7 @@ public final class LyricsHud extends HudModule {
     // ---- on screen
 
     private boolean onScreen() {
-        return where.index != WORLD;
+        return true;   // in the world: the World Lyrics module
     }
 
     @Override
@@ -412,245 +395,5 @@ public final class LyricsHud extends HudModule {
             int c = lit >= 1 ? Theme.withAlpha(sungColor(), Math.round(255 * pulse)) : Theme.withAlpha(unsung.value(), 0x50 + Math.round(lit * 0x60));
             d.roundRect(sx + i * (r + gap), cy - r / 2, r, r, 2, c);
         }
-    }
-
-    // ---- in the world
-
-    /**
-     * Where a point in the world is on screen, as if you weren't zoomed in (when that's on):
-     * zoom narrows the view, which would blow the words up; this puts them back.
-     */
-    private float[] project(Platform p, double x, double y, double z) {
-        float[] s = p.project(x, y, z);
-        if (s == null || !zoomProof.value) {
-            return s;
-        }
-        Module m = Peregrine.get().module("zoom");
-        double zoom = m instanceof Zoom ? ((Zoom) m).current() : 1.0;
-        if (zoom <= 1.001) {
-            return s;
-        }
-        double base = Math.toRadians(p.fovSetting()) / 2.0;
-        float r = (float) (Math.tan(base) / Math.tan(base / zoom));
-        float cx = p.screenWidth() / 2f, cy = p.screenHeight() / 2f;
-        return new float[] {cx + (s[0] - cx) / r, cy + (s[1] - cy) / r, s[2]};   // size goes by distance, which zoom doesn't change
-    }
-
-    @Override
-    public void renderWorld(Draw d, Platform p) {
-        if (where.index == SCREEN || !p.inWorld()) {
-            return;
-        }
-        View v = view(p);
-        if (v.text == null) {
-            return;
-        }
-        if (place.index == AROUND) {
-            renderAround(d, p, v);
-            return;
-        }
-        double eye = p.y() + 1.62;
-        double yaw = Math.toRadians(p.yaw());
-        double tx = p.x() - Math.sin(yaw) * distance.value;
-        double tz = p.z() + Math.cos(yaw) * distance.value;
-        double ty = eye + height.value;
-        String song = v.title;
-        if (place.index == STAY) {
-            if (!anchored || !song.equals(anchorFor)) {   // set where the song started
-                ax = tx;
-                ay = ty;
-                az = tz;
-                anchored = true;
-                anchorFor = song;
-            }
-        } else {
-            if (!anchored) {
-                ax = tx;
-                ay = ty;
-                az = tz;
-                anchored = true;
-            }
-            double k = 0.12;   // eases after your view, so turning doesn't throw the words around
-            ax += (tx - ax) * k;
-            ay += (ty - ay) * k;
-            az += (tz - az) * k;
-        }
-        float[] s = project(p, ax, ay, az);
-        if (s == null || s[2] <= 0.1f) {
-            return;
-        }
-        float scale = (float) Math.max(0.3, Math.min(6.0, worldSize.value * 6.0 / s[2]));
-        int lh = d.lineHeight() + 2;
-        int layers = Math.round(depth.value);
-        int n = v.text.length;
-        float top = s[1] - n * lh * scale / 2f;
-        for (int k = 0; k < n; k++) {
-            String line = v.text[k];
-            boolean cur = k == v.cur;
-            if (cur && v.breakProgress >= 0 && breaks.value) {
-                line = v.breakProgress < 0.34f ? "•" : v.breakProgress < 0.67f ? "• •" : "• • •";
-            }
-            if (line == null || line.isEmpty()) {
-                continue;
-            }
-            float ls = cur ? scale * emphasis.value : scale * 0.8f;
-            int lw = d.width(line);
-            int bx = Math.round(s[0] - lw * ls / 2f), by = Math.round(top + k * lh * scale);
-            d.pushScale(bx, by, ls);
-            int face = cur ? sungColor() : Theme.withAlpha(unsung.value(), k < v.cur ? 0x70 : 0xA0);
-            float progress = cur && v.breakProgress < 0 && fillStyle.index != WHOLE ? Math.min(1f, v.sung / Math.max(1, line.length())) : -1;
-            extruded(d, line, layers, face, progress, lw, lh);
-            d.popScale();
-        }
-    }
-
-    private double aroundYaw = Double.NaN;
-    private String lastAroundLine = "";
-    private long aroundChangedAt;
-    private String previousLine = "";
-
-    /**
-     * Words float around you: the line being sung is spread word by word on an arc in front of
-     * you, each word drifting a little on its own; the line before floats up and fades, the
-     * next one waits below. The arc turns after you slowly, so you can look around at it.
-     */
-    private void renderAround(Draw d, Platform p, View v) {
-        double eye = p.y() + 1.62 + height.value;
-        double yaw = Math.toRadians(p.yaw());
-        if (Double.isNaN(aroundYaw)) {
-            aroundYaw = yaw;
-        }
-        double diff = Math.atan2(Math.sin(yaw - aroundYaw), Math.cos(yaw - aroundYaw));
-        aroundYaw += diff * 0.04;   // follows your view lazily
-        String line = v.text[v.cur];
-        if (v.breakProgress >= 0) {
-            line = "";
-        }
-        if (!line.equals(lastAroundLine)) {
-            previousLine = lastAroundLine;
-            lastAroundLine = line;
-            aroundChangedAt = System.currentTimeMillis();
-        }
-        float age = Math.min(1f, (System.currentTimeMillis() - aroundChangedAt) / 700f);
-        long t = System.currentTimeMillis();
-        int layers = Math.round(depth.value);
-        // the line before: rises and fades away
-        if (age < 1f && !previousLine.isEmpty()) {
-            arc(d, p, previousLine, eye + 0.6 + age * 0.8, previousLine.length(), Math.round(0xC0 * (1f - age)), 0.85f, t, layers, false);
-        }
-        if (v.breakProgress >= 0 && breaks.value) {
-            String dots = v.breakProgress < 0.34f ? "•" : v.breakProgress < 0.67f ? "• •" : "• • •";
-            arc(d, p, dots, eye, 0, 0xFF, 1f, t, layers, false);
-        } else if (!line.isEmpty()) {
-            float rise = 1f - Math.min(1f, age * 1.6f);
-            float sungChars = fillStyle.index == WHOLE ? line.length() : v.sung;
-            arc(d, p, line, eye - rise * 0.5, sungChars, Math.round(0xFF * Math.min(1f, age * 2f + 0.2f)), emphasis.value, t, layers, true);
-        }
-        // the next line: small and dim below
-        if (v.cur + 1 < v.text.length && !v.text[v.cur + 1].isEmpty()) {
-            arc(d, p, v.text[v.cur + 1], eye - 0.75, 0, 0x70, 0.75f, t, 0, false);
-        }
-    }
-
-    /**
-     * One line, word by word on the arc around you at height y; words up to sungChars lit.
-     * Words are spaced by their real width, so they never overlap; a line wider than the
-     * spread setting goes onto a second row.
-     */
-    private void arc(Draw d, Platform p, String line, double y, float sungChars, int alpha, float size, long t,
-                     int layers, boolean current) {
-        double r = distance.value;
-        int lh = d.lineHeight() + 2;
-        // how many blocks one pixel of text is at this distance (the same scale the words are drawn at)
-        double f = 1.0 / Math.tan(Math.toRadians(p.fovSetting()) / 2.0);
-        double blocksPerPx = worldSize.value * 6.0 / (p.screenHeight() / 2.0 * f) * size;
-        double gap = d.width(" ") * 1.6 * blocksPerPx;
-        double maxAngle = Math.toRadians(spread.value);
-        // lay the words out in rows no wider than the spread
-        String[] words = line.split(" ");
-        List<int[]> rows = new ArrayList<int[]>();   // {first word, last word + 1}
-        double rowW = 0;
-        int first = 0;
-        for (int i = 0; i < words.length; i++) {
-            double ww = d.width(words[i]) * blocksPerPx;
-            if (i > first && (rowW + gap + ww) / r > maxAngle) {
-                rows.add(new int[] {first, i});
-                first = i;
-                rowW = ww;
-            } else {
-                rowW += (i > first ? gap : 0) + ww;
-            }
-        }
-        rows.add(new int[] {first, words.length});
-        double rowH = lh * blocksPerPx * 1.15;
-        int at = 0, wi = 0;
-        for (int ri = 0; ri < rows.size(); ri++) {
-            int[] row = rows.get(ri);
-            double total = 0;
-            for (int i = row[0]; i < row[1]; i++) {
-                total += d.width(words[i]) * blocksPerPx + (i > row[0] ? gap : 0);
-            }
-            double ry = y - (ri - (rows.size() - 1) / 2.0) * rowH;
-            double pos = -total / 2;
-            for (int i = row[0]; i < row[1]; i++, wi++) {
-                String w = words[i];
-                double ww = d.width(w) * blocksPerPx;
-                double a = aroundYaw + (pos + ww / 2) / r;   // left to right as you look at it
-                pos += ww + gap;
-                if (w.isEmpty()) {
-                    at++;
-                    continue;
-                }
-                float wob = drift.value;
-                double bob = Math.sin(t / 900.0 + wi * 1.7) * 0.12 * wob;
-                double push = Math.cos(t / 1300.0 + wi * 2.3) * 0.25 * wob;   // nearer and further
-                double wx = p.x() - Math.sin(a) * (r + push);
-                double wz = p.z() + Math.cos(a) * (r + push);
-                float[] s = project(p, wx, ry + bob, wz);
-                if (s != null && s[2] > 0.1f) {
-                    float scale = (float) Math.max(0.3, Math.min(6.0, worldSize.value * 6.0 / s[2])) * size;
-                    int pw = d.width(w);
-                    int bx = Math.round(s[0] - pw * scale / 2f), by = Math.round(s[1] - lh * scale / 2f);
-                    d.pushScale(bx, by, scale);
-                    float lit = Math.max(0, Math.min(1, (sungChars - at) / (float) w.length()));
-                    if (!current) {
-                        extruded(d, w, layers, Theme.withAlpha(unsung.value(), alpha), -1, pw, lh);
-                    } else if (fillStyle.index == WORDS) {
-                        extruded(d, w, layers, Theme.withAlpha(lit > 0 ? sungColor() : unsung.value(), alpha), -1, pw, lh);
-                    } else {
-                        extruded(d, w, layers, Theme.withAlpha(sungColor(), alpha), lit, pw, lh);
-                    }
-                    d.popScale();
-                }
-                at += w.length() + 1;
-            }
-        }
-    }
-
-    /**
-     * Text with depth: darker copies stepped down and to the right behind it (cheap: a few draws
-     * of one line, no 3D models), then the face. With a fill, the face is sung up to progress.
-     */
-    private void extruded(Draw d, String line, int layers, int face, float progress, int lw, int lh) {
-        for (int i = layers; i >= 1; i--) {
-            float dark = 0.28f + 0.32f * (1f - i / (float) Math.max(1, layers));
-            d.text(line, i, i, shade(face, dark), false);
-        }
-        if (progress < 0) {
-            d.text(line, 0, 0, face, false);
-            return;
-        }
-        d.text(line, 0, 0, unsung.value(), false);
-        int cut = Math.round(lw * progress);
-        if (cut > 0) {
-            d.clip(0, -1, cut, lh + 1);
-            d.text(line, 0, 0, face, false);
-            d.unclip();
-        }
-    }
-
-    private static int shade(int argb, float f) {
-        int a = argb >>> 24, r = (argb >> 16) & 255, g = (argb >> 8) & 255, b = argb & 255;
-        return (a << 24) | (Math.round(r * f) << 16) | (Math.round(g * f) << 8) | Math.round(b * f);
     }
 }

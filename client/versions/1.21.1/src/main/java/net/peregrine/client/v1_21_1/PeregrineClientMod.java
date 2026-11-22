@@ -23,6 +23,7 @@ public final class PeregrineClientMod implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         Peregrine.init(new GamePlatform());
+        net.peregrine.client.core.Hooks.canDrawWorldText = true;   // WorldTextDraw
 
         menuKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
                 "key.peregrine.menu", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_SHIFT,
@@ -68,6 +69,7 @@ public final class PeregrineClientMod implements ClientModInitializer {
                 OreOutlines.draw(ctx.matrixStack(), ctx.consumers(), ctx.camera());
                 net.minecraft.world.phys.Vec3 pc = ctx.camera().getPosition();
                 PlaceAnim.draw(ctx.matrixStack(), ctx.consumers(), pc.x, pc.y, pc.z);
+                WorldTextDraw.drawInto(ctx.matrixStack(), ctx.consumers(), pc.x, pc.y, pc.z);   // World Lyrics
             }
         });
 

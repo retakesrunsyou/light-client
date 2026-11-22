@@ -3,6 +3,7 @@
 	"package": "net.peregrine.client.v1_21_6.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
+		"WorldTextMixin",
 		"AntiLeakSeedMixin",
 		"BadgeNameMixin",
 		"BetterF3Mixin",

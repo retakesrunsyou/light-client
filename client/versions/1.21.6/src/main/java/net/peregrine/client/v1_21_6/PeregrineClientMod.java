@@ -22,6 +22,7 @@ public final class PeregrineClientMod implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         Peregrine.init(new GamePlatform());
+        net.peregrine.client.core.Hooks.canDrawWorldText = true;   // WorldTextDraw
 
         menuKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
                 "key.peregrine.menu", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_SHIFT,

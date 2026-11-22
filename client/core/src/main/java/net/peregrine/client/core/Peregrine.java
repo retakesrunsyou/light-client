@@ -114,6 +114,7 @@ public final class Peregrine {
         modules.add(new MemoryHud());
         modules.add(new PieChart());
         modules.add(new LyricsHud());
+        modules.add(new net.peregrine.client.core.modules.WorldLyrics());
         modules.add(new LightEngine());
         modules.add(new Saturation());
         modules.add(new FoodHud());

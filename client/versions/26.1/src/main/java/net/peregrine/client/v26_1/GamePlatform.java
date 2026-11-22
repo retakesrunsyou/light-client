@@ -981,6 +981,11 @@ final class GamePlatform implements Platform {
     }
 
     @Override
+    public float worldTextWidth(String text, int font) {
+        return WorldTextDraw.width(text, font);
+    }
+
+    @Override
     public float fovSetting() {
         return mc().options.fov().get().floatValue();
     }

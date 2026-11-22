@@ -25,6 +25,7 @@ public final class PeregrineClientMod implements ClientModInitializer {
         Peregrine.init(new GamePlatform());
         net.peregrine.client.core.Hooks.canMoveScoreboard = true;   // ScoreboardMixin, ChatMoveMixin
         net.peregrine.client.core.Hooks.canMoveChat = true;
+        net.peregrine.client.core.Hooks.canDrawWorldText = true;   // WorldTextMixin
 
         menuKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "key.peregrine.menu", InputConstants.Type.KEYSYM, InputConstants.KEY_RSHIFT,

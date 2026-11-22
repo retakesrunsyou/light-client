@@ -484,6 +484,11 @@ public interface Platform {
         return null;
     }
 
+    /** How wide text is in font pixels, in one of the WorldText fonts. */
+    default float worldTextWidth(String text, int font) {
+        return text.length() * 6f;
+    }
+
     /** The field of view chosen in the game's options (degrees), before zoom or sprinting change it. */
     default float fovSetting() {
         return 70f;
