@@ -71,8 +71,10 @@ public final class GpuMobs extends Module {
 
     static final String[] MOBS = {"cow", "pig", "sheep", "chicken", "villager", "zombie"};
     static final int COLS = 20, ROWS = 15;
-    static final long PHASE_MS = 8_000, SETTLE_MS = 2_000;
-    static final int PHASES = 6;     // off, on, off, on, off, on: each setting gets the same luck
+    static final long PHASE_MS = 6_000, SETTLE_MS = 1_500;
+    static final int PHASES = 8;
+    /** off, on, on, off, off, on, on, off: anything that drifts over the minute (a laptop warming up) hits both alike. */
+    static final boolean[] ORDER = {false, true, true, false, false, true, true, false};
 
     private int testState;        // 0 off, 1 spawning, 2 measuring, 3 cleaning up
     private boolean testOn;
@@ -153,7 +155,7 @@ public final class GpuMobs extends Module {
     }
 
     private void startPhase(long now) {
-        testOn = phase % 2 == 1;     // off, on, off, on, off, on
+        testOn = ORDER[phase];
         phaseStart = now;
         measuring = false;
         synchronized (frames) {
@@ -227,7 +229,7 @@ public final class GpuMobs extends Module {
         int[] cnt = new int[2];
         for (int i = 0; i < PHASES; i++) {
             if (results[i] != null && results[i][2] > 0) {
-                int k = i % 2;
+                int k = ORDER[i] ? 1 : 0;
                 sum[k] += results[i][0];
                 sum[2 + k] += results[i][3];
                 cnt[k]++;

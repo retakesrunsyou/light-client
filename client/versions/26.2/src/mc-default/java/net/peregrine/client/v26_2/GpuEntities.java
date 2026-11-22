@@ -458,6 +458,19 @@ public final class GpuEntities {
     // ------------------------------------------------------------------ drawing
 
     private static final GpuBuffer[] TABLES = new GpuBuffer[3];
+    private static ByteBuffer staging;
+
+    /** One reused native buffer for the table (grown when needed). */
+    private static ByteBuffer staging(int bytes) {
+        if (staging == null || staging.capacity() < bytes) {
+            if (staging != null) {
+                MemoryUtil.memFree(staging);
+            }
+            staging = MemoryUtil.memAlloc(Math.max(1 << 18, Integer.highestOneBit(bytes) << 1)).order(ByteOrder.LITTLE_ENDIAN);
+        }
+        staging.clear();
+        return staging;
+    }
     private static int tableAt;
     private static long lastLog;
 
@@ -497,9 +510,9 @@ public final class GpuEntities {
                         GpuBuffer.USAGE_UNIFORM_TEXEL_BUFFER | GpuBuffer.USAGE_COPY_DST, size);
                 TABLES[slot] = table;
             }
-            ByteBuffer data = MemoryUtil.memAlloc((int) bytes).order(ByteOrder.LITTLE_ENDIAN);
+            ByteBuffer data = staging((int) bytes);
             int draws = 0;
-            try {
+            {
                 for (Look look : FRAME.values()) {
                     for (Group g : look.groups.values()) {
                         if (g.count > 0) {
@@ -513,8 +526,6 @@ public final class GpuEntities {
                 for (Map.Entry<RenderType, Look> e : FRAME.entrySet()) {
                     draws += draw(enc, e.getKey(), e.getValue(), table);
                 }
-            } finally {
-                MemoryUtil.memFree(data);
             }
             report(frameCopies, draws);
         } catch (Throwable t) {
