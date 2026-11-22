@@ -94,8 +94,8 @@ public final class GpuMobs extends Module {
             finishTest(p, "stopped");
             return;
         }
-        if (!p.localWorld() || p.gameMode() != 1) {
-            Peregrine.get().log("GPU mobs test: open a creative singleplayer world (with cheats on) first");
+        if (!p.inWorld()) {
+            Peregrine.get().log("GPU mobs test: join a world first");
             return;
         }
         enabledBefore = enabled();

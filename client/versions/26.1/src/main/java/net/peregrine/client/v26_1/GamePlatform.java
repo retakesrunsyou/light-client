@@ -1049,6 +1049,11 @@ final class GamePlatform implements Platform {
     // ---- flight boost, inventory HUD, packs from the menu
 
     @Override
+    public boolean localWorld() {
+        return mc().hasSingleplayerServer();
+    }
+
+    @Override
     public int gameMode() {
         if (mc().gameMode == null || player() == null) {
             return -1;

@@ -422,7 +422,6 @@ public final class GpuEntities {
     private static final GpuBuffer[] TABLES = new GpuBuffer[3];
     private static int tableAt;
     private static long lastLog;
-    private static int statFrames, statCopies, statDraws;
 
     /** After the game's solid models: draw everything taken this frame. */
     public static void flush() {
@@ -580,22 +579,25 @@ public final class GpuEntities {
         return live.size();
     }
 
+    private static int peakCopies, peakDraws;
+
     private static void report(int copies, int draws) {
-        statFrames++;
-        statCopies += copies;
-        statDraws += draws;
-        GpuMobs.instances = copies;
-        GpuMobs.draws = draws;
+        // the solid pass can run more than once a frame: keep the biggest of the last few seconds
+        peakCopies = Math.max(peakCopies, copies);
+        peakDraws = Math.max(peakDraws, draws);
+        if (copies > 0) {
+            GpuMobs.instances = copies;
+            GpuMobs.draws = draws;
+        }
         GpuMobs.models = BAKED.size();
         GpuMobs.passedBack = passedBack;
         passedBack = 0;
         long now = System.currentTimeMillis();
-        if (now - lastLog > 10_000 && statFrames > 0 && GpuMobs.on) {
+        if (now - lastLog > 10_000 && GpuMobs.on) {
             lastLog = now;
-            System.out.println("[Light Client] GPU mobs: about " + statCopies / statFrames + " mobs a frame in "
-                    + statDraws / statFrames + " draws; " + BAKED.size() + " shapes on the graphics card; "
-                    + (int) (statFrames / 10.0) + " FPS");
-            statFrames = statCopies = statDraws = 0;
+            System.out.println("[Light Client] GPU mobs: up to " + peakCopies + " mobs in " + peakDraws + " draws; "
+                    + BAKED.size() + " shapes on the graphics card; " + net.minecraft.client.Minecraft.getInstance().getFps() + " FPS");
+            peakCopies = peakDraws = 0;
         }
     }
 
