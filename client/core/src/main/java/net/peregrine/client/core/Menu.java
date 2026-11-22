@@ -665,8 +665,8 @@ public final class Menu {
             d.roundRect(searchX, searchY, searchW, TABBAR_H, 8, 0x50000000);
             d.roundOutline(searchX, searchY, searchW, TABBAR_H, 8, (searchFocused || searching) ? Theme.withAlpha(a, 0xC0) : 0x22FFFFFF);
             boolean caret = searchFocused && (now / 500) % 2 == 0;
-            String shown = searching || searchFocused ? search + (caret ? "|" : "") : worldPanel() ? "Click to search"
-                    : pn != null ? pn.placeholder() : page != null ? "Search settings..." : "Search modules...";
+            String shown = searching || searchFocused ? search + (caret ? "|" : "")
+                    : pn != null ? pn.placeholder() : page != null ? "Click to search settings" : "Click to search modules";
             MenuIcons.draw(d, "search", searchX + 5, searchY + 4, searching ? a : Theme.FAINT);
             if (searchFocused) {
                 while (!shown.isEmpty() && d.width(shown) > searchW - 22) {
@@ -2568,8 +2568,8 @@ public final class Menu {
             }
             return true;  // every other key just types (via charTyped)
         }
-        if (searchFocused && worldPanel() && (key == KEY_ESCAPE || key == KEY_ENTER)) {
-            searchFocused = false;   // done searching: keys walk again
+        if (searchFocused && (key == KEY_ESCAPE || (key == KEY_ENTER && (page != null || view != 0 || search.isEmpty())))) {
+            searchFocused = false;   // done searching: keys go back to the game
             return true;
         }
         if (binding != null) {
@@ -2637,15 +2637,6 @@ public final class Menu {
         return searchFocused || typing != null || bindingKey != null || binding != null;
     }
 
-    /**
-     * The menu is a panel in the world you walk around with: typing doesn't search until you
-     * click the search bar, so walking (W A S D), jumping and the rest never type into it.
-     */
-    private boolean worldPanel() {
-        net.peregrine.client.core.modules.Menu3D m = net.peregrine.client.core.modules.Menu3D.get();
-        return m != null && m.mode.index == net.peregrine.client.core.modules.Menu3D.WORLD && pc.platform().supports("menu_3d");
-    }
-
     public boolean charTyped(char c) {
         if (System.currentTimeMillis() - boundAt < 250) {
             boundAt = 0;
@@ -2662,7 +2653,7 @@ public final class Menu {
         if (editingHud || Character.isISOControl(c) || search.length() >= 24) {
             return false;
         }
-        boolean free = !worldPanel() || searchFocused;   // in the world: only once the search bar is clicked
+        boolean free = searchFocused;   // typing only searches once the search bar is clicked
         if (search.isEmpty() && c == ' ') {
             return free;
         }
