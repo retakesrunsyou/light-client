@@ -24,6 +24,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.systems.ScissorState;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 import net.minecraft.client.model.Model;
@@ -331,15 +332,72 @@ public final class GpuEntities {
     public static volatile boolean inLevel;
     private static Boolean skinLayers;
 
-    /** 3D Skin Layers draws players' outer skin through the normal path: players stay there when it's installed. */
-    private static boolean playersStayNormal() {
+    private static boolean skinLayers() {
         if (skinLayers == null) {
             skinLayers = net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("skinlayers3d");
         }
         return skinLayers;
     }
 
+    private static java.lang.reflect.Method meshOf;
+    private static boolean meshLookupFailed;
+
+    /** 3D Skin Layers puts its 3D outer skin on some of a player's parts this frame: which ones. */
+    private static boolean[] layered(Baked b) {
+        if (meshLookupFailed) {
+            return null;
+        }
+        try {
+            if (meshOf == null) {
+                meshOf = Class.forName("dev.tr7zw.skinlayers.accessor.ModelPartInjector").getMethod("getInjectedMesh");
+            }
+            boolean[] out = null;
+            for (int i = 0; i < b.parts.size(); i++) {
+                if (meshOf.invoke(b.parts.get(i)) != null) {
+                    if (out == null) {
+                        out = new boolean[b.parts.size()];
+                    }
+                    out[i] = true;
+                }
+            }
+            return out;
+        } catch (Throwable t) {
+            meshLookupFailed = true;   // a 3D Skin Layers we don't know: players stay on the normal path
+            return null;
+        }
+    }
+
+    private static final PoseStack LAYER_POSE = new PoseStack();
+
+    /**
+     * Just the 3D Skin Layers parts, the usual way (their 3D skin is drawn by that mod): every
+     * other part's own cubes are skipped for this one draw (the graphics card has those).
+     */
+    private static void drawLayers(Model<?> model, Baked b, boolean[] layered, SubmitNodeStorage.ModelSubmit<?> submit,
+                                   VertexConsumer buffer) {
+        boolean[] was = new boolean[b.parts.size()];
+        for (int i = 0; i < was.length; i++) {
+            ModelPart part = b.parts.get(i);
+            was[i] = part.skipDraw;
+            if (!layered[i]) {
+                part.skipDraw = true;
+            }
+        }
+        try {
+            LAYER_POSE.last().set(submit.pose());
+            model.root().render(LAYER_POSE, buffer, submit.lightCoords(), submit.overlayCoords(), submit.tintedColor());
+        } finally {
+            for (int i = 0; i < was.length; i++) {
+                b.parts.get(i).skipDraw = was[i];
+            }
+        }
+    }
+
     public static boolean take(SubmitNodeStorage.ModelSubmit<?> submit, RenderType type) {
+        return take(submit, type, null);
+    }
+
+    public static boolean take(SubmitNodeStorage.ModelSubmit<?> submit, RenderType type, VertexConsumer buffer) {
         if (!GpuMobs.on || !GpuMobs.broken.isEmpty() || !inLevel) {
             return false;
         }
@@ -347,7 +405,7 @@ public final class GpuEntities {
             Model<?> model = submit.model();
             if (submit.sprite() != null || submit.outlineColor() != 0 || submit.crumblingOverlay() != null
                     || type.hasBlending() || type.isOutline() || RenderSystem.outputColorTextureOverride != null
-                    || (model instanceof net.minecraft.client.model.player.PlayerModel && playersStayNormal())
+                    || (model instanceof net.minecraft.client.model.player.PlayerModel && skinLayers() && (buffer == null || meshLookupFailed))
                     || model instanceof net.minecraft.client.model.player.PlayerCapeModel
                     || UNSUPPORTED.containsKey(model) || shaderPackOn()) {
                 passedBack++;
@@ -370,6 +428,8 @@ public final class GpuEntities {
             @SuppressWarnings({"unchecked", "rawtypes"})
             Model<Object> m = (Model) model;
             m.setupAnim(submit.state());
+            // with 3D Skin Layers, its 3D skin parts are drawn the usual way and the rest here
+            boolean[] layered = model instanceof net.minecraft.client.model.player.PlayerModel && skinLayers() ? layered(b) : null;
             Group g = FRAME.computeIfAbsent(type, k -> new LinkedHashMap<Baked, Group>()).get(b);
             if (g == null) {
                 g = new Group(b);
@@ -383,7 +443,15 @@ public final class GpuEntities {
             g.words[base + 1] = submit.overlayCoords();
             g.words[base + 2] = submit.tintedColor();
             POSES.last().set(submit.pose());
-            pose(b, 0, g.words, base + HEAD_WORDS);
+            skip = layered;
+            try {
+                pose(b, 0, g.words, base + HEAD_WORDS);
+            } finally {
+                skip = null;
+            }
+            if (layered != null) {
+                drawLayers(model, b, layered, submit, buffer);
+            }
             g.len += stride;
             g.count++;
             frameCopies++;
@@ -400,6 +468,9 @@ public final class GpuEntities {
         pose(b, 0, out, at);
     }
 
+    /** Parts left to the usual path for this pose (3D Skin Layers' parts), or null. */
+    private static boolean[] skip;
+
     private static void pose(Baked b, int index, int[] out, int at) {
         ModelPart part = b.parts.get(index);
         int[] kids = b.kids.get(index);
@@ -409,7 +480,7 @@ public final class GpuEntities {
         }
         POSES.pushPose();
         part.translateAndRotate(POSES);
-        if (s >= 0 && !part.skipDraw) {
+        if (s >= 0 && !part.skipDraw && (skip == null || !skip[index])) {
             PoseStack.Pose pose = POSES.last();
             Matrix4f m = pose.pose();
             Matrix3f n = pose.normal();

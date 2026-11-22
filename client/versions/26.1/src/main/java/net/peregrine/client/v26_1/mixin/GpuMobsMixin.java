@@ -22,7 +22,7 @@ public abstract class GpuMobsMixin {
     @Inject(method = "renderModel", at = @At("HEAD"), cancellable = true, require = 0)
     private void peregrine$gpuMob(SubmitNodeStorage.ModelSubmit<?> submit, RenderType type, VertexConsumer buffer,
                                   OutlineBufferSource outlines, MultiBufferSource.BufferSource crumbling, CallbackInfo ci) {
-        if (GpuEntities.take(submit, type)) {
+        if (GpuEntities.take(submit, type, buffer)) {
             ci.cancel();
         }
     }

@@ -19,8 +19,8 @@ import net.peregrine.client.core.settings.ActionSetting;
  * all the cows (say) are drawn in one go. The version adapter does the drawing (GpuEntities in
  * the 26.1 adapter); this module holds the switch, what it did last, and a before / after test.
  *
- * Left to the normal path: see-through layers, glowing outlines, players (so 3D skin layers
- * work), and everything while an Iris shader pack is on. If anything goes wrong it switches
+ * Left to the normal path: see-through layers, glowing outlines, capes, 3D Skin Layers' 3D
+ * skin parts (the rest of the player is drawn here), and everything while an Iris shader pack is on. If anything goes wrong it switches
  * itself off and the game carries on as normal.
  */
 public final class GpuMobs extends Module {
