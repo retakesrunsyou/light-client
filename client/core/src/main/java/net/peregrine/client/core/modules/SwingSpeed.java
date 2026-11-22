@@ -11,7 +11,7 @@ public final class SwingSpeed extends Module {
     private final SliderSetting speed = add(new SliderSetting("speed", "Swing speed", 25f, 300f, 5f, 60f, "%.0f%%"));
 
     public SwingSpeed() {
-        super("swing_speed", "Swing speed", "Speed up or slow down your swing animation (only on your screen)",
+        super("swing_speed", "Swing speed", "Swing animation speed",
                 Category.VISUALS, false);
     }
 

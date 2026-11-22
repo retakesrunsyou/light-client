@@ -8,10 +8,10 @@ import net.peregrine.client.core.settings.BoolSetting;
 /** Shows your own name tag in third person, with the Peregrine logo in front of it. */
 public final class OwnNameTag extends Module {
 
-    private final BoolSetting logo = add(new BoolSetting("logo", "Light Client logo before your name", true));
+    private final BoolSetting logo = add(new BoolSetting("logo", "Show logo", true));
 
     public OwnNameTag() {
-        super("own_nametag", "Your name tag", "See your own name tag in third person, with the Light Client logo",
+        super("own_nametag", "Your name tag", "Your own name tag in third person",
                 Category.VISUALS, false);
     }
 

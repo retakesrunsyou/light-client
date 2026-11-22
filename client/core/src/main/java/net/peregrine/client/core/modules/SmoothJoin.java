@@ -11,8 +11,7 @@ public final class SmoothJoin extends Module {
 
     public SmoothJoin() {
         super("smooth_join", "Smooth join",
-                "After you join, a loading screen stays up until the world around you is built (a few seconds at most), "
-                        + "so the first rush of chunks doesn't stutter while you play",
+                "Holds the loading screen until chunks are ready",
                 Category.PERFORMANCE, true);
     }
 }

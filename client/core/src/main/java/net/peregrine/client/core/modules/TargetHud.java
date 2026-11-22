@@ -7,7 +7,7 @@ import net.peregrine.client.core.Theme;
 public final class TargetHud extends LineHud {
 
     public TargetHud() {
-        super("target", "Target info", "Name, health and distance of the mob or player you're aiming at",
+        super("target", "Target info", "Info on what you're aiming at",
                 "Target", 0.5f, 0.62f);
     }
 

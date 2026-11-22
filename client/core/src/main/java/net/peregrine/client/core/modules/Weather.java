@@ -14,7 +14,7 @@ public final class Weather extends Module {
 
     public Weather() {
         // (keeps the old "Clear weather" id, so it stays on for players who had it on)
-        super("clear_weather", "Weather", "Clear skies, rain or a storm, only on your screen (the world isn't changed)",
+        super("clear_weather", "Weather", "Client-side weather",
                 Category.VISUALS, false);
     }
 

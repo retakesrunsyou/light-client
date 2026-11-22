@@ -30,7 +30,7 @@ public final class KeystrokesHud extends HudModule {
     private float dt;
 
     public KeystrokesHud() {
-        super("keystrokes", "Keystrokes", "Shows WASD, mouse buttons and jump as you press them",
+        super("keystrokes", "Keystrokes", "WASD, mouse and jump keys",
                 false, 0f, 1f);
     }
 

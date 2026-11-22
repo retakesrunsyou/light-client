@@ -55,7 +55,7 @@ public final class LightEngine extends Module {
 
     public LightEngine() {
         super("light_engine", "Light Engine",
-                "Takes over the game's render settings and Light Client's FPS features for a preset. Off puts yours back",
+                "One-click FPS presets",
                 Category.PERFORMANCE, false);
     }
 

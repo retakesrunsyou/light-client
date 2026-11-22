@@ -33,34 +33,34 @@ public final class LyricsHud extends HudModule {
     static final int CENTER = 0, LEFT = 1, RIGHT = 2;
     static final int SLIDE = 0, FADE = 1, NONE = 2;
 
-    public final ChoiceSetting where = add(new ChoiceSetting("where", "Show", SCREEN, "On screen", "In the world (3D)", "Both"));
-    public final SliderSetting lines = add(new SliderSetting("lines", "Lines shown", 1f, 7f, 1f, 3f, "%.0f"));
-    public final ChoiceSetting fillStyle = add(new ChoiceSetting("fill_style", "Fill as it's sung", SWEEP,
-            "Smooth sweep", "Word by word", "Whole line at once"));
-    public final ChoiceSetting align = add(new ChoiceSetting("align", "Line up", CENTER, "Centre", "Left", "Right"));
-    public final SliderSetting emphasis = add(new SliderSetting("emphasis", "Size of the line being sung", 1f, 1.6f, 0.05f, 1.15f, "%.2fx"));
-    public final ChoiceSetting transition = add(new ChoiceSetting("transition", "Next line", SLIDE, "Slides up", "Fades in", "Just appears"));
-    public final BoolSetting glow = add(new BoolSetting("glow", "Glow on the line being sung", true));
+    public final ChoiceSetting where = add(new ChoiceSetting("where", "Show", SCREEN, "Screen", "World (3D)", "Both"));
+    public final SliderSetting lines = add(new SliderSetting("lines", "Lines", 1f, 7f, 1f, 3f, "%.0f"));
+    public final ChoiceSetting fillStyle = add(new ChoiceSetting("fill_style", "Fill style", SWEEP,
+            "Smooth", "Word by word", "Whole line"));
+    public final ChoiceSetting align = add(new ChoiceSetting("align", "Alignment", CENTER, "Center", "Left", "Right"));
+    public final SliderSetting emphasis = add(new SliderSetting("emphasis", "Current line size", 1f, 1.6f, 0.05f, 1.15f, "%.2fx"));
+    public final ChoiceSetting transition = add(new ChoiceSetting("transition", "Line transition", SLIDE, "Slide", "Fade", "None"));
+    public final BoolSetting glow = add(new BoolSetting("glow", "Glow", true));
     public final BoolSetting shadow = add(new BoolSetting("shadow", "Text shadow", true));
-    public final BoolSetting breaks = add(new BoolSetting("breaks", "Dots counting down in breaks", true));
-    public final BoolSetting songName = add(new BoolSetting("song", "Song name above", false));
-    public final BoolSetting bar = add(new BoolSetting("bar", "Song progress bar", false));
-    public final ColorSetting sung = add(new ColorSetting("sung", "Sung colour", -1, false));
-    public final ColorSetting unsung = add(new ColorSetting("unsung", "Coming up colour", 0xFFFFFFFF, false));
-    public final SliderSetting width = add(new SliderSetting("width", "Width on screen", 120f, 420f, 10f, 240f, "%.0f px"));
-    public final SliderSetting timing = add(new SliderSetting("timing", "Timing (if the words are early or late)", -3000f, 3000f, 50f, 0f, "%+.0f ms"));
-    public final BoolSetting untimed = add(new BoolSetting("untimed", "Use untimed lyrics when there's no timing (estimated)", true));
-    public final BoolSetting hideMissing = add(new BoolSetting("hide_missing", "Hide when there are no lyrics", false));
+    public final BoolSetting breaks = add(new BoolSetting("breaks", "Break countdown", true));
+    public final BoolSetting songName = add(new BoolSetting("song", "Show song name", false));
+    public final BoolSetting bar = add(new BoolSetting("bar", "Progress bar", false));
+    public final ColorSetting sung = add(new ColorSetting("sung", "Sung color", -1, false));
+    public final ColorSetting unsung = add(new ColorSetting("unsung", "Upcoming color", 0xFFFFFFFF, false));
+    public final SliderSetting width = add(new SliderSetting("width", "Width", 120f, 420f, 10f, 240f, "%.0f px"));
+    public final SliderSetting timing = add(new SliderSetting("timing", "Timing offset", -3000f, 3000f, 50f, 0f, "%+.0f ms"));
+    public final BoolSetting untimed = add(new BoolSetting("untimed", "Use untimed lyrics", true));
+    public final BoolSetting hideMissing = add(new BoolSetting("hide_missing", "Hide without lyrics", false));
     // in the world
-    public final ChoiceSetting place = add(new ChoiceSetting("place", "In the world", FOLLOW, "Follows your view",
-            "Stays where the song started", "Words float around you"));
+    public final ChoiceSetting place = add(new ChoiceSetting("place", "3D mode", FOLLOW, "Follow view",
+            "Fixed in place", "Float around you"));
     public final SliderSetting distance = add(new SliderSetting("distance", "Distance", 2f, 16f, 0.5f, 6f, "%.1f blocks"));
     public final SliderSetting height = add(new SliderSetting("height", "Height", -2f, 4f, 0.25f, 0.75f, "%+.2f blocks"));
-    public final SliderSetting worldSize = add(new SliderSetting("world_size", "Size in the world", 0.5f, 4f, 0.1f, 1.6f, "%.1fx"));
+    public final SliderSetting worldSize = add(new SliderSetting("world_size", "World size", 0.5f, 4f, 0.1f, 1.6f, "%.1fx"));
     public final SliderSetting depth = add(new SliderSetting("depth", "3D depth", 0f, 8f, 1f, 4f, "%.0f"));
-    public final SliderSetting spread = add(new SliderSetting("spread", "How wide the words spread (floating)", 30f, 200f, 5f, 90f, "%.0f°"));
-    public final SliderSetting drift = add(new SliderSetting("drift", "How much the words drift (floating)", 0f, 1f, 0.05f, 0.4f, "%.2f"));
-    public final BoolSetting zoomProof = add(new BoolSetting("zoom_proof", "Zooming in doesn't make the lyrics bigger", true));
+    public final SliderSetting spread = add(new SliderSetting("spread", "Word spread", 30f, 200f, 5f, 90f, "%.0f°"));
+    public final SliderSetting drift = add(new SliderSetting("drift", "Word drift", 0f, 1f, 0.05f, 0.4f, "%.2f"));
+    public final BoolSetting zoomProof = add(new BoolSetting("zoom_proof", "Ignore zoom", true));
 
     /** Placeholder lines for placing it (Edit HUD) when nothing's playing: not from any song. */
     private static final String[] SAMPLE = {"Lyrics show up here", "line by line as the song plays",
@@ -73,7 +73,7 @@ public final class LyricsHud extends HudModule {
     private int lastLine = Integer.MIN_VALUE;
 
     public LyricsHud() {
-        super("lyrics", "Lyrics", "Words to the song you're playing, in time with it: on screen or in 3D in the world",
+        super("lyrics", "Lyrics", "Synced lyrics for the song you're playing",
                 false, 0.5f, 0.82f);
     }
 

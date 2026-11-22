@@ -121,7 +121,7 @@ final class LibraryPanel extends MenuPanel {
             top += banner(d, x, top, w, "Restart the game to load your mod changes", a);
         }
         if (kind == Library.Kind.SHADERS && !Library.irisPresent()) {
-            top += banner(d, x, top, w, "Shaders need Iris: get it in Mods > Browse, then restart", a);
+            top += banner(d, x, top, w, "Shaders need Iris (Mods > Browse)", a);
         }
         if (shaderNote != null) {
             top += banner(d, x, top, w, shaderNote, Theme.BAD);
@@ -133,7 +133,7 @@ final class LibraryPanel extends MenuPanel {
                     ? "No " + kind.label.toLowerCase(Locale.ROOT) + " yet" : "Nothing matches";
             d.text(none, x + (w - d.width(none)) / 2, listTop + listH / 2 - 10, Theme.MUTED, false);
             if (filter.isEmpty() && Library.scanned(kind)) {
-                String hint = "Find some in Browse, or drop files in the folder";
+                String hint = "Get some in Browse or drop files in the folder";
                 d.text(hint, x + (w - d.width(hint)) / 2, listTop + listH / 2 + 2, Theme.FAINT, false);
             }
             return;
@@ -273,7 +273,7 @@ final class LibraryPanel extends MenuPanel {
                 top += banner(d, x, top, w, "Restart the game to load new mods", a);
             }
         } else if (kind == Library.Kind.SHADERS && !Library.irisPresent()) {
-            top += banner(d, x, top, w, "Shaders need Iris: get it in Mods > Browse, then restart", a);
+            top += banner(d, x, top, w, "Shaders need Iris (Mods > Browse)", a);
         }
         int listTop = top, listH = y + h - top;
         List<Library.Result> rs;

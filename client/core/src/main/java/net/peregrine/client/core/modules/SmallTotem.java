@@ -15,7 +15,7 @@ public final class SmallTotem extends Module {
     private final SliderSetting pop = add(new SliderSetting("pop", "Totem pop animation", 10f, 100f, 5f, 40f, "%.0f%%"));
 
     public SmallTotem() {
-        super("small_totem", "Small totem", "A smaller totem in your hand, and a smaller one when it pops",
+        super("small_totem", "Small totem", "Smaller totem",
                 Category.VISUALS, false);
     }
 

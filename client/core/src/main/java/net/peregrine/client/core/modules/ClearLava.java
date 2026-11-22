@@ -8,7 +8,7 @@ import net.peregrine.client.core.Platform;
 public final class ClearLava extends Module {
 
     public ClearLava() {
-        super("clear_lava", "Clear lava", "See where you're going in lava", Category.VISUALS, false);
+        super("clear_lava", "Clear lava", "See through lava", Category.VISUALS, false);
     }
 
     @Override

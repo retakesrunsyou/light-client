@@ -7,29 +7,24 @@ from .theme import Theme
 
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
-    ("2.2.0", "Light Client", "A new name, a new logo, and a new main menu in game."),
-    ("2.2.0", "Faster with lots of items", "Dropped items, XP, item frames (and their maps) and display entities far away "
-                                           "aren't drawn: a new Performance boost setting. Each Light Engine preset now tunes "
-                                           "every boost setting too, and switching it off puts yours back."),
-    ("2.2.0", "Light Engine", "One switch in the Right Shift menu's Performance page sets the best FPS settings for "
-                              "Potato, Balanced, Max FPS or Quality. Switching it off puts your own settings back."),
-    ("2.2.0", "Saturation", "Make the whole world more vivid, or greyer."),
-    ("2.2.0", "Lyrics", "Words to the song you're playing, in time with it, on screen or floating in 3D in the world. "
-                        "The line being sung is larger and fills in smoothly or word by word, long lines wrap, "
-                        "breaks count down with dots, and more songs are found (untimed lyrics are spread over the song)."),
-    ("2.2.0", "Dropdown menus", "Settings with a few options open a list to pick from, instead of clicking through them."),
-    ("2.2.0", "Holiday themes", "Christmas, New Year, Valentine's, Easter, Halloween and Thanksgiving recolour the "
-                                "launcher and the game's menus, with snow, fireworks, falling hearts or real autumn leaves. "
-                                "Each starts on the 1st of its month; pick one or turn them off."),
-    ("2.2.0", "Music in the pause menu", "The song playing with its cover art, and back, play / pause and skip buttons."),
-    ("2.2.0", "New skies", "Real-looking stars, a real sun and a detailed moon, and much lighter on FPS."),
-    ("2.2.0", "Server icons", "The Server HUD item and the pause menu show the server's real icon, sharp at any size."),
-    ("2.2.0", "A cleaner launcher", "Blocky buttons like Minecraft's, a calm still background, a simpler "
-                                    "New instance screen, and pages that fit any window size."),
-    ("2.2.0", "Faster game start", "The FPS pack now includes ModernFix, so the game opens and reloads much faster."),
-    ("2.2.0", "Santa hat and bunny slippers", "Add them to any skin from the Locker."),
-    ("2.2.0", "Screenshots and clips", "Saved in your Pictures and Videos folders, in a Light Client folder, "
-                                       "on Windows and Linux."),
+    ("2.2.1", "Lyrics in 3D", "Words can float around you, and zooming no longer enlarges them."),
+    ("2.2.1", "Move the chat and scoreboard", "Drag and resize both in Edit HUD."),
+    ("2.2.1", "Cleaner wording", "Shorter names and descriptions everywhere."),
+    ("2.2.0", "Light Client", "New name, logo and main menu."),
+    ("2.2.0", "GPU mobs", "Mobs drawn on the graphics card for more FPS (experimental)."),
+    ("2.2.0", "Faster with lots of items", "Far items, XP, item frames and displays are skipped."),
+    ("2.2.0", "Light Engine", "One-click FPS presets: Potato, Balanced, Max FPS, Quality."),
+    ("2.2.0", "Saturation", "Make the world more vivid or greyer."),
+    ("2.2.0", "Lyrics", "Synced lyrics on screen or in 3D, with word-by-word fill."),
+    ("2.2.0", "Dropdown menus", "Pick options from a list."),
+    ("2.2.0", "Holiday themes", "Seasonal colors with snow, fireworks, hearts or leaves."),
+    ("2.2.0", "Music in the pause menu", "Current song with cover art and controls."),
+    ("2.2.0", "New skies", "Realistic stars, sun and moon, lighter on FPS."),
+    ("2.2.0", "Server icons", "Real server icons in the HUD and pause menu."),
+    ("2.2.0", "Cleaner launcher", "Minecraft-style buttons and a still background."),
+    ("2.2.0", "Faster game start", "ModernFix added to the FPS pack."),
+    ("2.2.0", "Santa hat and bunny slippers", "In the Locker."),
+    ("2.2.0", "Screenshots and clips", "Saved to Pictures and Videos."),
     ("2.1.3", "Pie chart", "Minecraft's own profiler pie chart as a HUD item you can move and size."),
     ("2.1.3", "Sliders", "Dragging a slider follows your mouse again."),
     ("2.1.2", "Sharper shared capes", "Other players see your cape twice as sharp, with every frame."),

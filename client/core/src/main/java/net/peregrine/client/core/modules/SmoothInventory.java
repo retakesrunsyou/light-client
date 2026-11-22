@@ -12,13 +12,13 @@ public final class SmoothInventory extends Module {
     private final BoolSetting animate = add(new BoolSetting("animate", "Open and close animation", true));
     private final SliderSetting speed = add(new SliderSetting("ms", "Animation length", 60f, 300f, 10f, 140f, "%.0f ms"));
     private final BoolSetting glide = add(new BoolSetting("glide", "Slot highlight glides", true));
-    private final BoolSetting fly = add(new BoolSetting("fly", "Moved items fly to their slot", true));
+    private final BoolSetting fly = add(new BoolSetting("fly", "Items fly to slot", true));
     private final BoolSetting clear = add(new BoolSetting("clear", "See-through inventory", false));
     private final SliderSetting opacity = add(new SliderSetting("opacity", "See-through darkness", 0f, 100f, 5f, 45f, "%.0f%%"));
 
     public SmoothInventory() {
         super("smooth_inventory", "Smooth inventory",
-                "Inventories open smoothly, the highlight glides, items fly to their slot; optional see-through look",
+                "Smooth inventory animations",
                 Category.VISUALS, true);
     }
 

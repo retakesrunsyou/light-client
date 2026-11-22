@@ -13,7 +13,7 @@ public final class QuickCommands extends Module {
     private long lastSent;
 
     public QuickCommands() {
-        super("quick_commands", "Quick commands", "Keys that send a command or message, like /home or /spawn",
+        super("quick_commands", "Quick commands", "Keys that send commands",
                 Category.UTILITY, false);
         String[] examples = {"/home", "/spawn", "/tpa", "gg"};
         for (int i = 0; i < 4; i++) {

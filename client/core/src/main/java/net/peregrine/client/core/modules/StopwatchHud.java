@@ -10,7 +10,7 @@ public final class StopwatchHud extends LineHud {
     private long elapsed;   // time banked from earlier runs
 
     public StopwatchHud() {
-        super("stopwatch", "Stopwatch", "Time anything; start and stop it from the gear", "Timer", 1f, 0.54f);
+        super("stopwatch", "Stopwatch", "Stopwatch", "Timer", 1f, 0.54f);
         add(new ActionSetting("start", "Stopwatch", () -> started != 0 ? "Stop" : "Start", () -> {
             if (started != 0) {
                 elapsed += System.currentTimeMillis() - started;

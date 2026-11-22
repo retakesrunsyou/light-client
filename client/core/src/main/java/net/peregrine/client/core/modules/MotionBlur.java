@@ -11,7 +11,7 @@ public final class MotionBlur extends Module {
     private final SliderSetting strength = add(new SliderSetting("strength", "Strength", 5f, 90f, 5f, 50f, "%.0f%%"));
 
     public MotionBlur() {
-        super("motion_blur", "Motion blur", "A soft trail when you turn and move (off by default)",
+        super("motion_blur", "Motion blur", "Motion blur",
                 Category.VISUALS, false);
     }
 

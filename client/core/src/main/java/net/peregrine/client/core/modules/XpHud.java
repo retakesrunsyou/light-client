@@ -5,7 +5,7 @@ import net.peregrine.client.core.Platform;
 public final class XpHud extends LineHud {
 
     public XpHud() {
-        super("xp", "Experience", "Your level and how far to the next one", "Level", 1f, 0.80f);
+        super("xp", "Experience", "Level and progress", "Level", 1f, 0.80f);
     }
 
     @Override

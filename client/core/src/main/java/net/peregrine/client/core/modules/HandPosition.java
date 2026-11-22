@@ -12,7 +12,7 @@ public final class HandPosition extends Module {
     private final SliderSetting[] off = new SliderSetting[5];
 
     public HandPosition() {
-        super("hand_position", "Hand position", "Move, turn and resize the items in your hands",
+        super("hand_position", "Hand position", "Move, rotate and scale your hands",
                 Category.VISUALS, false);
         String[] what = {"left / right", "down / up", "back / forward", "size", "turn"};
         for (int h = 0; h < 2; h++) {

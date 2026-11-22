@@ -21,7 +21,7 @@ public final class StableFps extends Module {
 
     private final ChoiceSetting target = add(new ChoiceSetting("target", "Keep FPS above", 1,
             "30", "60", "90", "120", "144", "240"));
-    private final BoolSetting distance = add(new BoolSetting("distance", "Lower render distance if needed", true));
+    private final BoolSetting distance = add(new BoolSetting("distance", "Lower render distance", true));
     private final SliderSetting floor = add(new SliderSetting("floor", "Lowest render distance", 2f, 16f, 1f, 6f, "%.0f chunks"));
 
     private int level;          // 0 = your settings; each step lowers one more thing
@@ -34,7 +34,7 @@ public final class StableFps extends Module {
 
     public StableFps() {
         super("stable_fps", "Stable FPS",
-                "Eases off particles, entity and render distance when FPS dips, and back when it's smooth",
+                "Lowers settings when FPS drops",
                 Category.PERFORMANCE, true);
     }
 

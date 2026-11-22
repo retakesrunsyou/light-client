@@ -5,7 +5,7 @@ import net.peregrine.client.core.Platform;
 public final class DayHud extends LineHud {
 
     public DayHud() {
-        super("day", "World clock", "The in-game day and time", "Day", 1f, 0.07f);
+        super("day", "World clock", "In-game day and time", "Day", 1f, 0.07f);
     }
 
     /** Minecraft ticks (0 = 6:00) to a 24-hour clock. */

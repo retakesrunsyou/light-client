@@ -12,7 +12,7 @@ public final class HidePlants extends Module {
     private int applied;
 
     public HidePlants() {
-        super("hide_plants", "Hide plants", "Hide grass, flowers, leaf litter, seagrass or kelp (only on your screen)",
+        super("hide_plants", "Hide plants", "Hide grass, flowers and kelp",
                 Category.PERFORMANCE, false);
         boolean[] def = {true, false, true, false, false};
         for (int i = 0; i < kinds.length; i++) {

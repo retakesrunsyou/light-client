@@ -18,7 +18,7 @@ public final class PickaxeLook extends Module {
     private static volatile PickaxeLook instance;
 
     public PickaxeLook() {
-        super("pickaxe_look", "Pickaxe look", "Your pickaxe drawn as a glowing star wand or a peppermint candy axe",
+        super("pickaxe_look", "Pickaxe look", "Star wand or candy axe pickaxe",
                 Category.VISUALS, false);
         instance = this;
     }

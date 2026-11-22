@@ -17,7 +17,7 @@ public final class Freelook extends Module {
     private int savedCamera = -1;
 
     public Freelook() {
-        super("freelook", "Freelook", "Hold Left Alt to look around you without turning (change the key in Controls)",
+        super("freelook", "Freelook", "Look around without turning",
                 Category.UTILITY, false);
     }
 

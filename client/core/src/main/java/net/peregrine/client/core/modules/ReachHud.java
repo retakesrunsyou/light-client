@@ -11,7 +11,7 @@ public final class ReachHud extends LineHud {
     private long lastAt;
 
     public ReachHud() {
-        super("reach", "Reach display", "How far away you were when you last hit something", "Reach", 0f, 0.80f);
+        super("reach", "Reach display", "Distance of your last hit", "Reach", 0f, 0.80f);
     }
 
     /** Called by the core on each attack. */

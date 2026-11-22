@@ -15,10 +15,10 @@ public final class OreOutline extends Module {
 
     private final BoolSetting[] types = new BoolSetting[Hooks.ORE_TYPES.length];
     private final SliderSetting range = add(new SliderSetting("range", "Range", 4f, 24f, 1f, 14f, "%.0f blocks"));
-    private final SliderSetting width = add(new SliderSetting("width", "Thickness (1.21.11 and newer)", 1f, 6f, 0.5f, 2.5f, "%.1fx"));
+    private final SliderSetting width = add(new SliderSetting("width", "Thickness", 1f, 6f, 0.5f, 2.5f, "%.1fx"));
 
     public OreOutline() {
-        super("ore_outline", "Ore outline", "A colored outline around each vein of ore you can see",
+        super("ore_outline", "Ore outline", "Outlines visible ore veins",
                 Category.VISUALS, false);
         boolean[] defaults = {true, true, true, true, true, true, true, false, true, true};
         for (int i = 0; i < types.length; i++) {

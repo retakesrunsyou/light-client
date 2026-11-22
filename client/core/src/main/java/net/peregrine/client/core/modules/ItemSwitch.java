@@ -15,7 +15,7 @@ public final class ItemSwitch extends Module {
     private final ChoiceSetting mode = add(new ChoiceSetting("mode", "Animation", 0, MODES));
 
     public ItemSwitch() {
-        super("item_switch", "Item switch", "A smoother, quicker or snappier hand when you change items",
+        super("item_switch", "Item switch", "Item switch animation speed",
                 Category.VISUALS, false);
     }
 

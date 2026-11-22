@@ -23,7 +23,7 @@ public final class StretchedView extends Module {
     private final BoolSetting hud = add(new BoolSetting("hud", "Stretch the HUD too", false));
 
     public StretchedView() {
-        super("stretched", "Stretched resolution", "Play like a stretched 4:3 resolution: everything drawn wider",
+        super("stretched", "Stretched resolution", "Stretched 4:3 look",
                 Category.VISUALS, false);
     }
 

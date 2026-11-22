@@ -14,7 +14,7 @@ public final class ScreenText extends Module {
     private final BoolSetting hideTitle = add(new BoolSetting("hide_title", "Hide titles", false));
 
     public ScreenText() {
-        super("screen_text", "Titles", "Resize, move or hide the big titles in the middle of the screen",
+        super("screen_text", "Titles", "Resize, move or hide titles",
                 Category.VISUALS, false);
     }
 

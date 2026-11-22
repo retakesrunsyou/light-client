@@ -20,7 +20,7 @@ public final class HitColor extends Module {
     private int applied = -1;
 
     public HitColor() {
-        super("hit_color", "Hit color", "Change the red flash when mobs and players get hit, and the crit sparks", Category.VISUALS, false);
+        super("hit_color", "Hit color", "Hit flash and crit particle color", Category.VISUALS, false);
     }
 
     /** The overlay color as ARGB (alpha = how strongly it tints). */

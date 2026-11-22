@@ -27,8 +27,7 @@ public final class Menu3D extends Module {
     private static volatile Menu3D instance;
 
     public Menu3D() {
-        super("menu_3d", "3D menu", "Light Client's menus and the pause menu in 3D: a panel that tilts toward your mouse, or stays in the "
-                + "world while you walk and look around. Alt + drag moves it, Ctrl + scroll resizes it", Category.VISUALS, false);
+        super("menu_3d", "3D menu", "Menus as a 3D panel", Category.VISUALS, false);
         instance = this;
     }
 

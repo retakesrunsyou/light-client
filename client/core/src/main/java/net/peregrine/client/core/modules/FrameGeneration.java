@@ -18,8 +18,7 @@ public final class FrameGeneration extends Module {
     private static volatile FrameGeneration instance;
 
     public FrameGeneration() {
-        super("frame_gen", "Frame generation", "Shows 2x to 4x your frames: the frames in between are your last one turned to where "
-                + "you're looking. Smoother turning; fast flicks can blur. Beta, restart the game after switching it",
+        super("frame_gen", "Frame generation", "Generated in-between frames (beta, restart needed)",
                 Category.PERFORMANCE, false);
         instance = this;
     }

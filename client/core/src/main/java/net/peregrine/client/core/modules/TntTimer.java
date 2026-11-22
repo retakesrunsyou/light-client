@@ -13,7 +13,7 @@ public final class TntTimer extends Module {
     private final SliderSetting range = add(new SliderSetting("range", "Show within", 8f, 64f, 4f, 32f, "%.0f blocks"));
 
     public TntTimer() {
-        super("tnt_timer", "TNT countdown", "A timer over lit TNT counting down to the blast", Category.VISUALS, false);
+        super("tnt_timer", "TNT countdown", "TNT fuse timer", Category.VISUALS, false);
     }
 
     @Override

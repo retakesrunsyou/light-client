@@ -14,7 +14,7 @@ public final class ProfileHud extends HudModule {
     private final BoolSetting ping = add(new BoolSetting("ping", "Show ping", true));
 
     public ProfileHud() {
-        super("profile", "Profile", "Your head and name, with your ping", false, 0f, 0.09f);
+        super("profile", "Profile", "Your head, name and ping", false, 0f, 0.09f);
     }
 
     private String name(Platform p) {

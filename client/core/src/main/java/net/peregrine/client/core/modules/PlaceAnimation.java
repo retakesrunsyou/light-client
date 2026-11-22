@@ -14,7 +14,7 @@ public final class PlaceAnimation extends Module {
     private final ChoiceSetting speed = add(new ChoiceSetting("speed", "Speed", 1, SPEEDS));
 
     public PlaceAnimation() {
-        super("place_animation", "Block place animation", "Blocks you place grow into place from the middle",
+        super("place_animation", "Block place animation", "Placed blocks grow in",
                 Category.VISUALS, true);
     }
 

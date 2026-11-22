@@ -13,7 +13,7 @@ public final class ActionBar extends Module {
     private final BoolSetting hide = add(new BoolSetting("hide_action", "Hide it", false));
 
     public ActionBar() {
-        super("action_bar", "Action bar", "Resize or hide the text just above your hotbar", Category.VISUALS, false);
+        super("action_bar", "Action bar", "Resize or hide the action bar text", Category.VISUALS, false);
     }
 
     private void apply() {

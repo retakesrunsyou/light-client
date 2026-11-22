@@ -9,10 +9,10 @@ import net.peregrine.client.core.settings.BoolSetting;
 public final class StaticSky extends Module {
 
     private final BoolSetting clouds = add(new BoolSetting("clouds", "Clouds stop drifting", true));
-    private final BoolSetting sky = add(new BoolSetting("sky", "Sun, moon and stars stop moving", true));
+    private final BoolSetting sky = add(new BoolSetting("sky", "Freeze sun, moon and stars", true));
 
     public StaticSky() {
-        super("static_sky", "Static sky", "Clouds, sun, moon and stars stay still (only on your screen)",
+        super("static_sky", "Static sky", "Frozen clouds, sun and moon",
                 Category.VISUALS, false);
     }
 

@@ -17,7 +17,7 @@ public final class ChatTweaks extends Module {
 
     private final BoolSetting times = add(new BoolSetting("timestamps", "Time in front of messages", true));
     private final ChoiceSetting clock = add(new ChoiceSetting("clock", "Clock", 0, "12-hour", "24-hour", "With seconds"));
-    private final BoolSetting stack = add(new BoolSetting("stack", "Repeated messages shown once, with a count", true));
+    private final BoolSetting stack = add(new BoolSetting("stack", "Stack repeated messages", true));
     private final SliderSetting background = add(new SliderSetting("background", "Chat background", 0f, 100f, 5f, 50f, "%.0f%%"));
 
     private String last;
@@ -26,7 +26,7 @@ public final class ChatTweaks extends Module {
     private float appliedBg = -1;
 
     public ChatTweaks() {
-        super("chat", "Chat", "Timestamps, repeated messages stacked into one with a count, and the chat's background",
+        super("chat", "Chat", "Timestamps, stacked spam and chat background",
                 Category.UTILITY, false);
     }
 

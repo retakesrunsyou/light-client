@@ -22,7 +22,7 @@ public final class CooldownsHud extends HudModule {
     private final Map<String, long[]> seen = new HashMap<String, long[]>();
 
     public CooldownsHud() {
-        super("cooldowns", "Cooldowns", "Ender pearl, chorus fruit, wind charge and other item cooldowns",
+        super("cooldowns", "Cooldowns", "Pearl, chorus and wind charge cooldowns",
                 false, 0.5f, 0.62f);
     }
 

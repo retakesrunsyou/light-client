@@ -16,7 +16,7 @@ public final class ServerHud extends HudModule {
     private final BoolSetting divider = add(new BoolSetting("divider", "Line between icon and name", true));
 
     public ServerHud() {
-        super("server", "Server", "The server you're on: its icon and name (hidden in singleplayer)", false, 0f, 0.315f);
+        super("server", "Server", "Server icon and name", false, 0f, 0.315f);
     }
 
     private static String nameOf(Platform p) {

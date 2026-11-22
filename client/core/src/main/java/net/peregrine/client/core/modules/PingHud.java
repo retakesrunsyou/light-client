@@ -5,7 +5,7 @@ import net.peregrine.client.core.Platform;
 public final class PingHud extends LineHud {
 
     public PingHud() {
-        super("ping", "Ping", "Your connection delay to the server (hidden in singleplayer)", "Ping", 0f, 0.245f);
+        super("ping", "Ping", "Ping to the server", "Ping", 0f, 0.245f);
     }
 
     @Override

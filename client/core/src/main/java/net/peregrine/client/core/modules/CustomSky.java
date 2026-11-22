@@ -25,17 +25,17 @@ public final class CustomSky extends Module {
     public final ChoiceSetting sky = add(new ChoiceSetting("sky", "Sky", 0, Skies.NAMES));
     public final SliderSetting brightness = add(new SliderSetting("brightness", "Brightness", 30f, 150f, 5f, 100f, "%.0f%%"));
     public final SliderSetting speed = add(new SliderSetting("speed", "Animation speed", 10f, 300f, 5f, 50f, "%.0f%%"));
-    public final BoolSetting turning = add(new BoolSetting("turning", "Stars turn with the time of day (off: the sky stays still)", false));
-    public final BoolSetting moon = add(new BoolSetting("moon", "Realistic moon (in its real phase)", true));
+    public final BoolSetting turning = add(new BoolSetting("turning", "Rotate with time", false));
+    public final BoolSetting moon = add(new BoolSetting("moon", "Realistic moon", true));
     public final BoolSetting sun = add(new BoolSetting("sun", "Realistic sun by day", true));
-    public final BoolSetting clouds = add(new BoolSetting("clouds", "Night clouds drifting low in the sky", true));
-    public final BoolSetting daytime = add(new BoolSetting("daytime", "Show it faintly during the day too", false));
+    public final BoolSetting clouds = add(new BoolSetting("clouds", "Night clouds", true));
+    public final BoolSetting daytime = add(new BoolSetting("daytime", "Show during day", false));
 
     private final Map<String, String> loaded = new HashMap<String, String>();
     private int preloaded;
 
     public CustomSky() {
-        super("custom_sky", "Custom sky", "Real-looking stars, sun and moon, with Milky Way, northern lights, meteor shower, black hole or shooting stars",
+        super("custom_sky", "Custom sky", "Stars, sun, moon and sky effects",
                 Category.VISUALS, false);
     }
 

@@ -17,7 +17,7 @@ public final class ScoreboardSize extends HudModule {
     private static final String[] SAMPLE = {"Scoreboard", "Kills: 4", "Coins: 1,250", "Team: Red", "play.example.net"};
 
     public ScoreboardSize() {
-        super("scoreboard", "Scoreboard", "Move and resize the server's sidebar scoreboard (Edit HUD)", false, 1f, 0.5f);
+        super("scoreboard", "Scoreboard", "Move and resize the scoreboard", false, 1f, 0.5f);
         scale = 1f;
     }
 

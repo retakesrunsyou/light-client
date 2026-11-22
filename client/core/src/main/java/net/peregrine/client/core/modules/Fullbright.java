@@ -12,7 +12,7 @@ public final class Fullbright extends Module {
     private Double saved;
 
     public Fullbright() {
-        super("fullbright", "Fullbright", "See clearly in caves and at night", Category.UTILITY, false);
+        super("fullbright", "Fullbright", "Full brightness everywhere", Category.UTILITY, false);
     }
 
     @Override

@@ -13,14 +13,14 @@ import net.peregrine.client.core.settings.SliderSetting;
 public final class SchematicHud extends HudModule {
 
     static final int W = 150;
-    private final BoolSetting hint = add(new BoolSetting("hint", "Show the block to place where you look", true));
-    public final BoolSetting ghosts = add(new BoolSetting("ghosts", "See-through ghost blocks where blocks are missing", true));
+    private final BoolSetting hint = add(new BoolSetting("hint", "Show next block", true));
+    public final BoolSetting ghosts = add(new BoolSetting("ghosts", "Ghost blocks", true));
     public final SliderSetting ghostOpacity = add(new SliderSetting("ghost_opacity", "Ghost block opacity", 15f, 85f, 5f, 45f, "%.0f%%"));
     private String[] looking;
     private long lookedAt;
 
     public SchematicHud() {
-        super("schematic", "Schematic", "How much of your schematic is built, and what goes where you look", true, 0.5f, 0.86f);
+        super("schematic", "Schematic", "Schematic build progress", true, 0.5f, 0.86f);
     }
 
     @Override

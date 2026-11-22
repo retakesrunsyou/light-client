@@ -26,7 +26,7 @@ public final class VoiceHud extends HudModule {
     private final BoolSetting onlyTalking = add(new BoolSetting("only_talking", "Only show who's talking", false));
 
     public VoiceHud() {
-        super("voice", "Voice chat", "Talk with friends in a party, on any server; shows who's talking", true, 0.01f, 0.30f);
+        super("voice", "Voice chat", "Party voice chat", true, 0.01f, 0.30f);
         talkKey.key = 86;  // V
     }
 

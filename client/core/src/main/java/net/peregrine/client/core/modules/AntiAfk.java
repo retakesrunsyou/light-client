@@ -27,7 +27,7 @@ public final class AntiAfk extends Module {
     private float expectedYaw, expectedPitch;  // where our own turns left the view
 
     public AntiAfk() {
-        super("anti_afk", "Anti-AFK", "After you're idle, jump, swing and look around now and then so you aren't kicked",
+        super("anti_afk", "Anti-AFK", "Moves now and then so you don't get kicked",
                 Category.UTILITY, false);
     }
 

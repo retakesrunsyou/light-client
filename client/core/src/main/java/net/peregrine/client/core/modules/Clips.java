@@ -44,15 +44,15 @@ public final class Clips extends Module {
     public final ActionSetting save10m = add(new ActionSetting("save_10m", "Save the last 10 minutes", () -> "Save", () -> saveClip(600)));
     public final ActionSetting save30m = add(new ActionSetting("save_30m", "Save the last 30 minutes", () -> "Save", () -> saveClip(1800)));
     public final ActionSetting save1h = add(new ActionSetting("save_1h", "Save the last hour", () -> "Save", () -> saveClip(3600)));
-    public final ActionSetting saveDay = add(new ActionSetting("save_day", "Save the whole day (24 hours)", () -> "Save", () -> saveClip(86400)));
-    public final ActionSetting saveAll = add(new ActionSetting("save_all", "Save everything since the game started", () -> "Save", () -> saveClip(-1)));
+    public final ActionSetting saveDay = add(new ActionSetting("save_day", "Save last 24 hours", () -> "Save", () -> saveClip(86400)));
+    public final ActionSetting saveAll = add(new ActionSetting("save_all", "Save whole session", () -> "Save", () -> saveClip(-1)));
     public final ChoiceSetting resolution = add(new ChoiceSetting("resolution", "Resolution", 0, "720p", "1080p", "Your window size"));
     public final ChoiceSetting frameRate = add(new ChoiceSetting("fps", "Frame rate", 0, "30 FPS", "60 FPS"));
     public final ChoiceSetting quality = add(new ChoiceSetting("quality", "Quality", 1, "Smaller files", "Balanced", "Best"));
     public final BoolSetting sound = add(new BoolSetting("sound", "Record the game's sound", true));
     public final BoolSetting mic = add(new BoolSetting("mic", "Record your microphone", true));
     public final BoolSetting onDeath = add(new BoolSetting("on_death", "Clip by itself when you die", true));
-    public final BoolSetting onKill = add(new BoolSetting("on_kill", "Clip by itself when you get a kill", false));
+    public final BoolSetting onKill = add(new BoolSetting("on_kill", "Clip on kill", false));
     public final ChoiceSetting autoLength = add(new ChoiceSetting("auto_length", "Clips made by themselves are", 0,
             "30 seconds", "1 minute", "2 minutes"));
     public final BoolSetting notify = add(new BoolSetting("notify", "Show when a clip is saved", true));
@@ -72,8 +72,7 @@ public final class Clips extends Module {
     private boolean sessionCleared;
 
     public Clips() {
-        super("clips", "Clips", "Always-on replay buffer like Medal: the clip key saves the last 30 seconds up to an hour, the "
-                + "whole day or the whole session, with your HUD and chat. Auto clips on deaths and kills", Category.UTILITY, false);
+        super("clips", "Clips", "Replay buffer: save the last moments with a key", Category.UTILITY, false);
         clipKey.key = 297;   // F8
         instance = this;
     }

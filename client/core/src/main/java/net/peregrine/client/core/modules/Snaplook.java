@@ -12,7 +12,7 @@ public final class Snaplook extends Module {
     private int saved;
 
     public Snaplook() {
-        super("snaplook", "Snaplook", "Hold a key to look behind you, let go to look ahead again", Category.UTILITY, false);
+        super("snaplook", "Snaplook", "Hold to look behind you", Category.UTILITY, false);
     }
 
     @Override

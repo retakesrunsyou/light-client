@@ -8,7 +8,7 @@ import net.peregrine.client.core.Platform;
 public final class ClearWater extends Module {
 
     public ClearWater() {
-        super("clear_water", "Clear water", "See far and clearly under water: no fog, no blue overlay", Category.VISUALS, false);
+        super("clear_water", "Clear water", "No water fog or tint", Category.VISUALS, false);
     }
 
     @Override

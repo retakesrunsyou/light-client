@@ -27,7 +27,7 @@ public final class ChatSize extends HudModule {
             "[Server] Welcome back!"};
 
     public ChatSize() {
-        super("chat_size", "Chat", "Move and resize the chat (Edit HUD), its text size, width and height", false, 0f, 0.93f);
+        super("chat_size", "Chat position", "Move and resize the chat", false, 0f, 0.93f);
         scale = 1f;
     }
 

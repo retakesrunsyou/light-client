@@ -13,7 +13,7 @@ import net.peregrine.client.core.Theme;
 public final class PacksHud extends HudModule {
 
     public PacksHud() {
-        super("packs", "Resource packs", "Which resource packs are on, in order", false, 1f, 0.75f);
+        super("packs", "Resource packs", "Active resource packs", false, 1f, 0.75f);
     }
 
     private static final int MAX_LINES = 6;

@@ -25,17 +25,17 @@ public final class PieChart extends HudModule {
     private static volatile long shownAt;
 
     public final TextSetting section = add(new TextSetting("section", "Part shown", "root", 300, "root"));
-    public final BoolSetting keys = add(new BoolSetting("keys", "Number keys: 1-9 go into a part, 0 goes back", true));
+    public final BoolSetting keys = add(new BoolSetting("keys", "Number key navigation", true));
     public final SliderSetting size = add(new SliderSetting("radius", "Chart size", 16f, 80f, 2f, 36f, "%.0f px"));
     public final SliderSetting parts = add(new SliderSetting("parts", "Parts listed", 3f, 16f, 1f, 10f, "%.0f"));
     public final BoolSetting legend = add(new BoolSetting("legend", "List of parts", true));
-    public final BoolSetting whole = add(new BoolSetting("whole", "Also show each part's share of the whole frame", false));
+    public final BoolSetting whole = add(new BoolSetting("whole", "Show share of frame", false));
 
     private long firstAsked;
 
     public PieChart() {
         super("pie_chart", "Pie chart",
-                "Minecraft's own profiler pie chart (like F3's), anywhere on screen. Some servers don't allow it",
+                "Profiler pie chart",
                 false, 1f, 0.55f);
     }
 

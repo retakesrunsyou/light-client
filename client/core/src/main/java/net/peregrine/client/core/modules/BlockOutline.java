@@ -23,7 +23,7 @@ public final class BlockOutline extends Module {
     private final SliderSetting width = add(new SliderSetting("width", "Thickness", 1f, 6f, 0.5f, 1.5f, "%.1fx"));
 
     public BlockOutline() {
-        super("block_outline", "Block outline", "A rainbow (or any color), slightly thicker box around the block you're looking at",
+        super("block_outline", "Block outline", "Custom color and width for the block outline",
                 Category.VISUALS, true);
     }
 

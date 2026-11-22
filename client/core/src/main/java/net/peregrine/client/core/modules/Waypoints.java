@@ -46,14 +46,14 @@ public final class Waypoints extends Module {
 
     private final TextSetting name = add(new TextSetting("name", "Name for the next one", "", 24, "Home"));
     private final ColorSetting color = add(new ColorSetting("color", "Its color", COLORS[0], false, COLORS));
-    private final ActionSetting addHere = add(new ActionSetting("add", "Add a waypoint where you stand", () -> "Add",
+    private final ActionSetting addHere = add(new ActionSetting("add", "Add waypoint here", () -> "Add",
             this::addHere));
-    private final KeySetting quickKey = add(new KeySetting("key", "Key to add one where you stand"));
+    private final KeySetting quickKey = add(new KeySetting("key", "Add waypoint key"));
     private final ActionSetting removeClosest = add(new ActionSetting("remove", "Remove the closest one", () -> "Remove",
             this::removeClosest));
     private final BoolSetting deaths = add(new BoolSetting("deaths", "Mark where you die", true));
     private final BoolSetting distance = add(new BoolSetting("distance", "Show the distance", true));
-    private final BoolSetting edges = add(new BoolSetting("edges", "Keep them at the screen edge when off to the side", true));
+    private final BoolSetting edges = add(new BoolSetting("edges", "Pin to screen edge", true));
     private final SliderSetting size = add(new SliderSetting("size", "Label size", 50f, 150f, 5f, 75f, "%.0f%%"));
     private final ActionSetting clear = add(new ActionSetting("clear", "Remove all in this world", () -> "Clear",
             this::clearWorld));
@@ -63,7 +63,7 @@ public final class Waypoints extends Module {
     private double lastX, lastY, lastZ;
 
     public Waypoints() {
-        super("waypoints", "Waypoints", "Save spots and see them over the world with their distance",
+        super("waypoints", "Waypoints", "Waypoints with distance",
                 Category.UTILITY, false);
     }
 

@@ -10,7 +10,7 @@ import net.peregrine.client.core.settings.ActionSetting;
 /** Benchmark: a one-minute flight round where you stand that measures your FPS, lows and stutters. */
 public final class BenchmarkRun extends Module {
 
-    public final ActionSetting run = add(new ActionSetting("run", "One-minute test (the camera flies, you stay put)",
+    public final ActionSetting run = add(new ActionSetting("run", "Run 1-minute test",
             () -> Benchmark.INSTANCE.running() ? "Stop" : "Start", () -> {
                 Benchmark b = Benchmark.INSTANCE;
                 if (b.running()) {
@@ -22,7 +22,7 @@ public final class BenchmarkRun extends Module {
             }));
 
     public BenchmarkRun() {
-        super("benchmark", "Benchmark", "Measures your FPS, 1% lows and stutters on the same flight every time, to compare settings",
+        super("benchmark", "Benchmark", "Repeatable FPS test flight",
                 Category.PERFORMANCE, true);
     }
 

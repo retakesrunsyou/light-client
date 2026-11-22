@@ -16,7 +16,7 @@ public final class ClockHud extends HudModule {
             new net.peregrine.client.core.settings.BoolSetting("24h", "24-hour clock", false));
 
     public ClockHud() {
-        super("clock", "Clock", "The real-world time", false, 1f, 0f);
+        super("clock", "Clock", "Real time", false, 1f, 0f);
     }
 
     private String value() {

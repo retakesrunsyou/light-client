@@ -15,7 +15,7 @@ public final class NickHider extends Module {
     private final TextSetting nick = add(new TextSetting("nick", "Show my name as", "Player", 16, "Player"));
 
     public NickHider() {
-        super("nick_hider", "Nick hider", "Your name shows as something else on your screen (for recording)",
+        super("nick_hider", "Nick hider", "Shows a different name on your screen",
                 Category.UTILITY, false);
     }
 

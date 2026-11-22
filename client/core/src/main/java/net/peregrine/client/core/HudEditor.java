@@ -208,7 +208,7 @@ final class HudEditor {
             long age = System.currentTimeMillis() - openedAt;
             if (age < 7000) {
                 float t = age < 5500 ? 1f : 1f - (age - 5500) / 1500f;
-                String tip = "Drag to move  ·  corner or scroll to resize  ·  right-click for style  ·  Esc when done";
+                String tip = "Drag to move  ·  Scroll to resize  ·  Right-click for style  ·  Esc to finish";
                 int tw = d.width(tip) + 14;
                 int ty = modsY + modsH + 8;
                 d.roundRect((usw - tw) / 2, ty, tw, 13, 6, Theme.withAlpha(0xFF0B0D11, Math.round(0xB0 * t)));
@@ -235,7 +235,7 @@ final class HudEditor {
         int sw = ui(p.screenWidth());
         int sh = ui(p.screenHeight());
         String line1 = "Join a world to arrange your HUD";
-        String line2 = "Your HUD items appear here once you're playing.";
+        String line2 = "HUD items show up in game";
         int w = Math.max(d.width(line1), d.width(line2)) + 36;
         int h = 72;
         int x = (sw - w) / 2;

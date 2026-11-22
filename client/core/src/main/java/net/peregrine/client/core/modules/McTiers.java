@@ -43,7 +43,7 @@ public final class McTiers extends Module {
     private static Thread worker;
 
     public McTiers() {
-        super("mc_tiers", "MC Tiers", "Players' PvP tiers from mctiers.com next to their names", Category.UTILITY, false);
+        super("mc_tiers", "MC Tiers", "PvP tiers next to names", Category.UTILITY, false);
         instance = this;
     }
 

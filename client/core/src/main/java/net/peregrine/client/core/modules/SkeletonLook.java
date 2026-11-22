@@ -12,13 +12,13 @@ import net.peregrine.client.core.skeleton.Skeleton;
  */
 public final class SkeletonLook extends Module {
 
-    public final BoolSetting yourArm = add(new BoolSetting("your_arm", "Your first-person arm as bone", true));
+    public final BoolSetting yourArm = add(new BoolSetting("your_arm", "Skeleton arm", true));
     public final BoolSetting armor = add(new BoolSetting("armor", "Show armor on skeletons", false));
 
     private static volatile SkeletonLook instance;
 
     public SkeletonLook() {
-        super("skeletons", "Skeleton look", "Every player drawn as a realistic 3D human skeleton (only on your screen)",
+        super("skeletons", "Skeleton look", "Players as skeletons (only for you)",
                 Category.VISUALS, false);
         instance = this;
     }

@@ -8,7 +8,7 @@ import net.peregrine.client.core.Platform;
 public final class NetherCoordsHud extends HudModule {
 
     public NetherCoordsHud() {
-        super("nether_coords", "Nether coordinates", "Matching Nether or Overworld spot, for building portals",
+        super("nether_coords", "Nether coordinates", "Matching Nether/Overworld coords",
                 false, 0f, 0.66f);
     }
 

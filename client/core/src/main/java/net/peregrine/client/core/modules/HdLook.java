@@ -18,8 +18,7 @@ public final class HdLook extends Module {
     private static volatile HdLook instance;
 
     public HdLook() {
-        super("hd_look", "HD look", "A crisper, sharper picture like a 4K screen: smart sharpening that leaves edges clean, "
-                + "local clarity and vibrance", Category.VISUALS, false);
+        super("hd_look", "HD look", "Sharper, clearer image", Category.VISUALS, false);
         instance = this;
     }
 

@@ -13,7 +13,7 @@ public final class TabList extends Module {
     private final BoolSetting ping = add(new BoolSetting("ping", "Ping as numbers", true));
 
     public TabList() {
-        super("tab_list", "Compact tab list", "A smaller player list (Tab) with ping as numbers", Category.VISUALS, false);
+        super("tab_list", "Compact tab list", "Compact tab list with ping numbers", Category.VISUALS, false);
     }
 
     private void apply() {

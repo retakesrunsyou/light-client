@@ -23,7 +23,7 @@ public final class MusicActivity extends HudModule {
     private final BoolSetting paused = add(new BoolSetting("paused", "Keep showing when paused", true));
 
     public MusicActivity() {
-        super("music", "Music activity", "The song you're playing on Spotify, YouTube or any music app", false, 0.25f, 0.74f);
+        super("music", "Music activity", "Current song from any music app", false, 0.25f, 0.74f);
     }
 
     private NowPlaying.Track track() {

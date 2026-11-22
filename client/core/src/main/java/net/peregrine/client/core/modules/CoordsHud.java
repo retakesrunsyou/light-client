@@ -22,11 +22,11 @@ public final class CoordsHud extends HudModule {
     private final BoolSetting facing = add(new BoolSetting("facing", "Show facing", true));
     private final BoolSetting dimension = add(new BoolSetting("dimension", "Show dimension", true));
     private final BoolSetting biome = add(new BoolSetting("biome", "Show biome", false));
-    private final BoolSetting other = add(new BoolSetting("other", "Show Nether / Overworld match", false));
+    private final BoolSetting other = add(new BoolSetting("other", "Show other dimension", false));
     private final ChoiceSetting decimals = add(new ChoiceSetting("decimals", "Decimals", 1, "None", "One", "Two"));
 
     public CoordsHud() {
-        super("coords", "Coordinates", "Your position, facing and dimension, everywhere you play", true, 0f, 0.04f);
+        super("coords", "Coordinates", "XYZ, facing and dimension", true, 0f, 0.04f);
     }
 
     private static String dimensionName(Platform p) {

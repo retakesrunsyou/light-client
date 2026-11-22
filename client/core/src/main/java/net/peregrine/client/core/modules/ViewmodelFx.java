@@ -24,7 +24,7 @@ public final class ViewmodelFx extends Module {
             "Everything you hold", "Swords only", "Swords and axes"));
 
     public ViewmodelFx() {
-        super("viewmodel_fx", "Viewmodel effects", "Your hand and held item see-through like glass or a hologram, with a glow and swing afterimages",
+        super("viewmodel_fx", "Viewmodel effects", "Glass or hologram hand effects",
                 Category.VISUALS, false);
     }
 

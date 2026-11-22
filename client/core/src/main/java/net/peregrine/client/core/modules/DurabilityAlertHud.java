@@ -13,7 +13,7 @@ public final class DurabilityAlertHud extends HudModule {
             new net.peregrine.client.core.settings.SliderSetting("threshold", "Warn below", 5f, 50f, 5f, 10f, "%.0f%%"));
 
     public DurabilityAlertHud() {
-        super("durability_alert", "Low durability alert", "Warns before your armor or tool breaks",
+        super("durability_alert", "Low durability alert", "Warning before gear breaks",
                 false, 0.5f, 0.70f);
     }
 

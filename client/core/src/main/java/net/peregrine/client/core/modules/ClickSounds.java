@@ -42,8 +42,7 @@ public final class ClickSounds extends Module {
     private final java.util.Random random = new java.util.Random();
 
     public ClickSounds() {
-        super("click_sounds", "Click sounds", "A soft creamy-keyboard sound for every key and mouse click. Pick your own sounds "
-                + "for letters, numbers, space, other keys and each mouse button in the launcher", Category.UTILITY, false);
+        super("click_sounds", "Click sounds", "Keyboard and mouse click sounds", Category.UTILITY, false);
         instance = this;
     }
 

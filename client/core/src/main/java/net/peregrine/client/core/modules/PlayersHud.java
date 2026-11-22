@@ -5,7 +5,7 @@ import net.peregrine.client.core.Platform;
 public final class PlayersHud extends LineHud {
 
     public PlayersHud() {
-        super("players", "Players online", "How many players are on the server", "Players", 1f, 0.48f);
+        super("players", "Players online", "Players online", "Players", 1f, 0.48f);
     }
 
     @Override

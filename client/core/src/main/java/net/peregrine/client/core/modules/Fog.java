@@ -18,7 +18,7 @@ public final class Fog extends Module {
     private final ColorSetting color = add(new ColorSetting("color", "Fog color", 0xFF4C7CF0, false, RGB));
 
     public Fog() {
-        super("fog", "Fog", "No fog in the distance, or fog in your color", Category.VISUALS, false);
+        super("fog", "Fog", "Remove or recolor fog", Category.VISUALS, false);
     }
 
     private void apply() {

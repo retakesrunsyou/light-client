@@ -5,7 +5,7 @@ import net.peregrine.client.core.Platform;
 public final class BiomeHud extends LineHud {
 
     public BiomeHud() {
-        super("biome", "Biome", "The biome you're standing in", "Biome", 0f, 0.455f);
+        super("biome", "Biome", "Current biome", "Biome", 0f, 0.455f);
     }
 
     /** "minecraft:dark_forest" → "Dark Forest". */

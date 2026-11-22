@@ -6,12 +6,12 @@ import net.peregrine.client.core.settings.BoolSetting;
 /** How many of the held item (like blocks for bridging) you have in total. */
 public final class BlockCountHud extends LineHud {
 
-    private final BoolSetting showName = add(new BoolSetting("name", "Show item name (held item mode)", false));
+    private final BoolSetting showName = add(new BoolSetting("name", "Show item name", false));
     private final net.peregrine.client.core.settings.ChoiceSetting count = add(
             new net.peregrine.client.core.settings.ChoiceSetting("count", "Count", 0, "Every block you have", "Only the held item"));
 
     public BlockCountHud() {
-        super("block_count", "Block counter", "How many blocks you have in total (hotbar and inventory), for bridging",
+        super("block_count", "Block counter", "Total blocks in your inventory",
                 "Blocks", 0.5f, 0.74f);
     }
 

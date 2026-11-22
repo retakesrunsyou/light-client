@@ -19,7 +19,7 @@ public final class ItemTrackerHud extends HudModule {
     private String[] ids = new String[0];
 
     public ItemTrackerHud() {
-        super("item_tracker", "Item counter", "Counts the items you choose, like pearls, elytras or golden apples",
+        super("item_tracker", "Item counter", "Counts chosen items",
                 false, 1f, 0.42f);
     }
 

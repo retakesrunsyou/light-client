@@ -34,12 +34,12 @@ public final class GpuMobs extends Module {
     public static volatile long solidNanos;
 
     public final ActionSetting test = add(new ActionSetting("ab_test",
-            "Before / after test (a creative world: spawns 300 still mobs in front of you, then removes them)",
+            "Before / after test (creative world)",
             this::buttonText, this::toggleTest));
 
     public GpuMobs() {
         super("gpu_mobs", "GPU mobs (experimental)",
-                "Mobs are posed by your graphics card instead of rebuilt every frame: more FPS with lots of mobs. Same look",
+                "Draws mobs on the GPU for more FPS",
                 Category.PERFORMANCE, false);
     }
 

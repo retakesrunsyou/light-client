@@ -11,7 +11,7 @@ public final class SmoothHotbar extends Module {
     private final SliderSetting speed = add(new SliderSetting("speed", "Speed", 5f, 40f, 1f, 18f, "%.0f"));
 
     public SmoothHotbar() {
-        super("smooth_hotbar", "Smooth hotbar", "The hotbar selection slides between slots", Category.VISUALS, false);
+        super("smooth_hotbar", "Smooth hotbar", "Sliding hotbar selection", Category.VISUALS, false);
     }
 
     @Override

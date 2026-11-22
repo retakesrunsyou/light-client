@@ -25,10 +25,10 @@ public final class Crosshair extends Module {
             0xFFFFFF, -1, 0xFF3B3B, 0x3BFF5A, 0x2BE7FF, 0xFFE23B, 0xFF5FD7, 0x000001));
     private final SliderSetting opacity = add(new SliderSetting("opacity", "Opacity", 20f, 100f, 5f, 100f, "%.0f%%"));
     private final BoolSetting outline = add(new BoolSetting("outline", "Dark outline", true));
-    private final BoolSetting hitTiming = add(new BoolSetting("hit_timing", "Hit timing: turns your ready color when your hit lands best", false));
+    private final BoolSetting hitTiming = add(new BoolSetting("hit_timing", "Hit timing indicator", false));
     private final ColorSetting ready = add(new ColorSetting("ready_color", "Ready color", 0xFF3BFF5A, false,
             0xFFFFFF, -1, 0xFF3B3B, 0x3BFF5A, 0x2BE7FF, 0xFFE23B, 0xFF5FD7, 0x000001));
-    private final SliderSetting reaction = add(new SliderSetting("reaction", "Your reaction time (turns ready this early)", 0f, 400f, 5f, 200f, "%.0f ms"));
+    private final SliderSetting reaction = add(new SliderSetting("reaction", "Reaction time", 0f, 400f, 5f, 200f, "%.0f ms"));
     /** "Drawn by you": click pixels to make your own crosshair. */
     private final net.peregrine.client.core.settings.PixelGridSetting pixels = add(
             new net.peregrine.client.core.settings.PixelGridSetting("pixels", "Your crosshair (pick \"Drawn by you\")"));
@@ -36,7 +36,7 @@ public final class Crosshair extends Module {
             "reaction_test", "Find your reaction time", () -> "Take the test", () -> Peregrine.get().menu().showReactionTest()));
 
     public Crosshair() {
-        super("crosshair", "Custom crosshair", "Your own crosshair: shape, size, gap, color and outline",
+        super("crosshair", "Custom crosshair", "Custom crosshair",
                 Category.VISUALS, false);
     }
 

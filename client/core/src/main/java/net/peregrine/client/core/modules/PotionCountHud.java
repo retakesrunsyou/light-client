@@ -7,7 +7,7 @@ import net.peregrine.client.core.Platform;
 public final class PotionCountHud extends HudModule {
 
     public PotionCountHud() {
-        super("potion_count", "Potion counter", "How many potions are left in your inventory", false, 1f, 0.92f);
+        super("potion_count", "Potion counter", "Potions left", false, 1f, 0.92f);
     }
 
     @Override

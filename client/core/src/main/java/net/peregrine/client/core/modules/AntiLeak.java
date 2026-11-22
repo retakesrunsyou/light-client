@@ -14,14 +14,14 @@ import net.peregrine.client.core.settings.BoolSetting;
  */
 public final class AntiLeak extends Module {
 
-    private final BoolSetting rotation = add(new BoolSetting("rotation", "Same rotation for every block", true));
-    private final BoolSetting plants = add(new BoolSetting("plants", "Plants and grass centred in their block", true));
-    private final BoolSetting bedrock = add(new BoolSetting("bedrock", "Bedrock shows as diamond blocks", true));
+    private final BoolSetting rotation = add(new BoolSetting("rotation", "Uniform rotation", true));
+    private final BoolSetting plants = add(new BoolSetting("plants", "Center plants", true));
+    private final BoolSetting bedrock = add(new BoolSetting("bedrock", "Bedrock as diamond", true));
     private String applied = "";
 
     public AntiLeak() {
         super("anti_leak", "Anti base leak",
-                "Hides block rotations (bedrock, deepslate, tuff, stone...) that can give away your coordinates",
+                "Hides block rotations that can leak coords",
                 Category.VISUALS, false);
     }
 

@@ -10,7 +10,7 @@ public final class CleanOverlays extends Module {
     public final BoolSetting frost = add(new BoolSetting("frost", "No powder snow frost", true));
 
     public CleanOverlays() {
-        super("clean_overlays", "Clean overlays", "No pumpkin mask or powder snow frost over your screen",
+        super("clean_overlays", "Clean overlays", "Removes pumpkin and frost overlays",
                 Category.VISUALS, false);
     }
 

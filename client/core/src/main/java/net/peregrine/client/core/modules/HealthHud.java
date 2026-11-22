@@ -9,7 +9,7 @@ import net.peregrine.client.core.Theme;
 public final class HealthHud extends HudModule {
 
     public HealthHud() {
-        super("health", "Health", "Your exact health, turning red when it gets low", false, 1f, 0.30f);
+        super("health", "Health", "Exact health", false, 1f, 0.30f);
     }
 
     private String value(Platform p) {

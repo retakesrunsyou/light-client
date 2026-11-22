@@ -8,17 +8,16 @@ final class LightPanel extends MenuPanel {
 
     /** What changed, newest first: {version, title, what it does}. */
     static final String[][] NEWS = {
-        {"2.2.0", "Holiday themes", "Holiday colours and snow, fireworks, hearts or autumn leaves (Main menu settings)"},
-        {"2.2.0", "Music in the pause menu", "The song playing, its cover, and back, play / pause and skip"},
-        {"2.2.0", "New skies", "Real-looking stars, a real sun and a detailed moon; much lighter on FPS"},
-        {"2.2.0", "Light Client", "A new name, a new logo, and the new main menu"},
-        {"2.2.0", "Faster with lots of items", "Far items, XP, item frames and displays aren't drawn (Performance boost)"},
-        {"2.2.0", "Light Engine", "One switch for the best FPS settings: Potato, Balanced, Max FPS or Quality"},
-        {"2.2.0", "Saturation", "Make the whole world more vivid, or greyer (Visuals, or here on Performance)"},
-        {"2.2.0", "Lyrics", "Fills in as it's sung, wraps long lines, counts down breaks; more songs found"},
-        {"2.2.0", "Dropdown menus", "Settings with options open a list to pick from"},
-        {"2.2.0", "Real server icons", "The Server HUD item shows the server's own icon, sharp at any size"},
-        {"2.2.0", "Screenshots and clips", "Saved in Pictures and Videos, in a Light Client folder"},
+        {"2.2.1", "Lyrics in 3D", "Float around you, unaffected by zoom"},
+        {"2.2.1", "Chat and scoreboard", "Move and resize them in Edit HUD"},
+        {"2.2.0", "GPU mobs", "Mobs drawn on the graphics card (experimental)"},
+        {"2.2.0", "Holiday themes", "Seasonal colors and effects"},
+        {"2.2.0", "Music in the pause menu", "Song, cover and controls"},
+        {"2.2.0", "New skies", "Realistic stars, sun and moon"},
+        {"2.2.0", "Light Engine", "One-click FPS presets"},
+        {"2.2.0", "Lyrics", "Synced lyrics on screen or in 3D"},
+        {"2.2.0", "Dropdown menus", "Pick options from a list"},
+        {"2.2.0", "Server icons", "Real icons in the HUD and pause menu"},
         {"2.1.3", "Pie chart", "Minecraft's own profiler pie chart as a HUD item you can move and size"},
         {"2.1.3", "Sliders", "Dragging a slider follows your mouse again, in the flat and 3D menus"},
         {"2.1.2", "Sharper shared capes", "Other players see your cape twice as sharp, every frame"},
@@ -60,7 +59,7 @@ final class LightPanel extends MenuPanel {
         d.textScaled("Light Engine", x + 8, y + 4, Theme.TEXT, 1.28f, false);
         String fps = p == null ? "" : p.fps() + " FPS";
         d.text(fps, x + w - 8 - d.width(fps), y + 7, accent, false);
-        d.text("The best FPS settings and Light Client's speed-ups, in one switch", x + 8, y + 20, Theme.MUTED, false);
+        d.text("One-click FPS presets", x + 8, y + 20, Theme.MUTED, false);
         y += 34;
         // the switch
         boolean on = engine != null && engine.enabled();
@@ -69,7 +68,7 @@ final class LightPanel extends MenuPanel {
         d.roundRect(bx, y, bw, 30, 6, Theme.mix(on ? Theme.withAlpha(accent, 0x40) : 0x80213043,
                 on ? Theme.withAlpha(accent, 0x60) : 0xB0374E64, hv));
         d.text(on ? "On: " + LightEngine.PRESETS[engine.preset.index] : "Off: your own settings", bx + 10, y + 6, Theme.TEXT, false);
-        d.text(on ? "Switch off to put your own settings back" : "Switch on to let Light Engine take over", bx + 10, y + 17,
+        d.text(on ? "Turn off to restore your settings" : "Turn on to apply the preset", bx + 10, y + 17,
                 Theme.MUTED, false);
         toggle(d, bx + bw - 34, y + 9, on, accent);
         spot("engine", bx, y, bw, 30);
@@ -181,7 +180,7 @@ final class LightPanel extends MenuPanel {
         if (id.equals("engine") && engine != null) {
             engine.setEnabled(!engine.enabled());
             say(engine.enabled() ? "Light Engine is on: " + LightEngine.PRESETS[engine.preset.index]
-                    : "Light Engine is off: your own settings are back");
+                    : "Light Engine off, your settings restored");
             pc.markDirty();
             return true;
         }

@@ -13,7 +13,7 @@ public final class BossBars extends Module {
     private final BoolSetting hide = add(new BoolSetting("hide_boss", "Hide them", false));
 
     public BossBars() {
-        super("boss_bars", "Boss bars", "Resize or hide boss bars at the top of the screen", Category.VISUALS, false);
+        super("boss_bars", "Boss bars", "Resize or hide boss bars", Category.VISUALS, false);
     }
 
     private void apply() {

@@ -12,7 +12,7 @@ public final class CleanMenus extends Module {
 
     public CleanMenus() {
         super("clean_menus", "Keep packs out of menus",
-                "Resource packs change blocks, items and the HUD, but not the title screen, buttons or fonts",
+                "Keep resource packs off the menus",
                 Category.VISUALS, true);
     }
 

@@ -29,7 +29,7 @@ public final class BetterF3 extends Module {
     private final SliderSetting size = add(new SliderSetting("size", "Size", 50f, 120f, 5f, 80f, "%.0f%%"));
 
     public BetterF3() {
-        super("better_f3", "Better F3", "A clean F3 screen with just the lines you pick", Category.UTILITY, false);
+        super("better_f3", "Better F3", "A cleaner F3 with only what you pick", Category.UTILITY, false);
     }
 
     private static String fmt(double v) {

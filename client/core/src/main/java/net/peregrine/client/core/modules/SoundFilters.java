@@ -11,7 +11,7 @@ public final class SoundFilters extends Module {
     private final SliderSetting[] levels = new SliderSetting[Hooks.SOUND_GROUPS.length];
 
     public SoundFilters() {
-        super("sound_filters", "Sound filters", "Make explosions, rain, footsteps, mobs and more quieter or silent",
+        super("sound_filters", "Sound filters", "Lower or mute specific sounds",
                 Category.UTILITY, false);
         float[] defaults = {40f, 50f, 100f, 100f, 100f, 60f, 70f, 60f, 60f};
         for (int i = 0; i < levels.length; i++) {

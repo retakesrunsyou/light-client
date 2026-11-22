@@ -217,7 +217,7 @@ public final class Cosmetics extends Module {
     private static volatile boolean fetching;
 
     public Cosmetics() {
-        super("cosmetics", "Cosmetics", "Light Client capes and badges", Category.VISUALS, true);
+        super("cosmetics", "Cosmetics", "Capes and badges", Category.VISUALS, true);
         instance = this;
     }
 

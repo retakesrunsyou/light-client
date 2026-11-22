@@ -11,7 +11,7 @@ public final class Saturation extends Module {
     public final SliderSetting amount = add(new SliderSetting("amount", "Saturation", 0f, 200f, 25f, 150f, "%.0f%%"));
 
     public Saturation() {
-        super("saturation", "Saturation", "Makes the whole world more vivid (or greyer): 100% is the game as it is",
+        super("saturation", "Saturation", "World color saturation",
                 Category.VISUALS, false);
     }
 

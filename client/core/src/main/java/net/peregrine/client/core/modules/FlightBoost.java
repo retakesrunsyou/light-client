@@ -20,7 +20,7 @@ public final class FlightBoost extends Module {
     private float applied = -1;    // what we set last (anything else means Minecraft changed it)
 
     public FlightBoost() {
-        super("flight_boost", "Flight boost", "Fly faster in creative and spectator", Category.UTILITY, false);
+        super("flight_boost", "Flight boost", "Faster creative flight", Category.UTILITY, false);
     }
 
     @Override

@@ -9,7 +9,7 @@ public final class ChunkHud extends LineHud {
     private final BoolSetting inside = add(new BoolSetting("inside", "Position inside the chunk", true));
 
     public ChunkHud() {
-        super("chunk", "Chunk position", "Which chunk you're in, and where inside it", "Chunk", 0f, 0.73f);
+        super("chunk", "Chunk position", "Chunk and position inside it", "Chunk", 0f, 0.73f);
     }
 
     @Override

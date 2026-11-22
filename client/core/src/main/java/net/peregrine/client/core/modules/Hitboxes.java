@@ -23,7 +23,7 @@ public final class Hitboxes extends OptionModule {
             0xFFFFFF, -1, 0xFF4040, 0x40FF60, 0x30E0FF, 0xFFE040, 0xFF60D0));
 
     public Hitboxes() {
-        super("hitboxes", "Hitboxes", "Hitboxes without F3+B: pick what shows them, their color and the look line",
+        super("hitboxes", "Hitboxes", "Hitboxes without F3+B",
                 Category.VISUALS, Platform.Option.HITBOXES);
     }
 

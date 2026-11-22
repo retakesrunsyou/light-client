@@ -10,11 +10,11 @@ import net.peregrine.client.core.settings.SliderSetting;
 public final class AutoReconnect extends Module {
 
     public final SliderSetting wait = add(new SliderSetting("wait", "First try after", 1f, 30f, 1f, 5f, "%.0f s"));
-    public final BoolSetting keepTrying = add(new BoolSetting("keep_trying", "Keep trying (each wait twice as long, up to 5 minutes)", true));
-    public final BoolSetting skipBans = add(new BoolSetting("skip_bans", "Don't rejoin after a ban or a login somewhere else", true));
+    public final BoolSetting keepTrying = add(new BoolSetting("keep_trying", "Keep retrying", true));
+    public final BoolSetting skipBans = add(new BoolSetting("skip_bans", "Skip after bans", true));
 
     public AutoReconnect() {
-        super("auto_reconnect", "Auto reconnect", "Kicked for being idle or the server restarted? Rejoins by itself, waiting a little longer each try",
+        super("auto_reconnect", "Auto reconnect", "Rejoins after a kick or restart",
                 Category.UTILITY, false);
     }
 

@@ -11,7 +11,7 @@ public final class ComboHud extends LineHud {
     private long lastHit;
 
     public ComboHud() {
-        super("combo", "Combo counter", "Hits in a row without getting hit back", "Combo", 0f, 0.86f);
+        super("combo", "Combo counter", "Hits in a row", "Combo", 0f, 0.86f);
     }
 
     public void hit() {

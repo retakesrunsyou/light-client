@@ -23,7 +23,7 @@ public final class GlintColor extends Module {
     private float appliedStrength = -1f;
 
     public GlintColor() {
-        super("glint_color", "Glint color", "Pick the color of the enchantment shine on items and armor",
+        super("glint_color", "Glint color", "Enchant glint color",
                 Category.VISUALS, false);
     }
 

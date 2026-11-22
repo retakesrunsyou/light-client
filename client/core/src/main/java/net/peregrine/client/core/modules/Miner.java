@@ -23,13 +23,13 @@ public final class Miner extends Module {
 
     public final ChoiceSetting mode = add(new ChoiceSetting("mode", "Tool", 0,
             "1x1 (a normal pickaxe)", "3x3 (a tool that mines 3x3)"));
-    public final ActionSetting first = add(new ActionSetting("corner1", "Corner 1: the block you stand on",
+    public final ActionSetting first = add(new ActionSetting("corner1", "Set corner 1 (feet)",
             () -> cornerA == null ? "Set" : text(cornerA), () -> cornerA = here(Peregrine.get().platform(), false)));
-    public final ActionSetting second = add(new ActionSetting("corner2", "Corner 2: the block you look at (or stand on)",
+    public final ActionSetting second = add(new ActionSetting("corner2", "Set corner 2 (crosshair)",
             () -> cornerB == null ? "Set" : text(cornerB), () -> cornerB = here(Peregrine.get().platform(), true)));
 
     public Miner() {
-        super("area_miner", "Area miner", "Singleplayer: mark two corners and it mines out the box between them, 1x1 or 3x3",
+        super("area_miner", "Area miner", "Mines out a marked area (singleplayer)",
                 Category.UTILITY, false);
     }
 

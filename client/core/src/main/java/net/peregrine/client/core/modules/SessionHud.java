@@ -9,7 +9,7 @@ public final class SessionHud extends LineHud {
     private long lastTick;
 
     public SessionHud() {
-        super("session", "Session time", "How long you've been playing in this world", "Session", 1f, 0.36f);
+        super("session", "Session time", "Time played this session", "Session", 1f, 0.36f);
     }
 
     @Override

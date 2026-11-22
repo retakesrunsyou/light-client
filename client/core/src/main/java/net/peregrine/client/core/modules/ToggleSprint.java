@@ -6,7 +6,7 @@ import net.peregrine.client.core.Platform;
 public final class ToggleSprint extends Module {
 
     public ToggleSprint() {
-        super("toggle_sprint", "Toggle sprint", "Always sprint when walking forward", Category.UTILITY, false);
+        super("toggle_sprint", "Toggle sprint", "Always sprint", Category.UTILITY, false);
     }
 
     @Override

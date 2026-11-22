@@ -13,12 +13,12 @@ import net.peregrine.client.core.settings.BoolSetting;
  */
 public final class InventoryTweaks extends Module {
 
-    private final BoolSetting drag = add(new BoolSetting("drag", "Shift + drag moves every stack you pass", true));
-    private final BoolSetting scroll = add(new BoolSetting("scroll", "Scroll over a stack to move items one at a time", true));
+    private final BoolSetting drag = add(new BoolSetting("drag", "Shift-drag stacks", true));
+    private final BoolSetting scroll = add(new BoolSetting("scroll", "Scroll to move items", true));
 
     public InventoryTweaks() {
         super("inventory_tweaks", "Inventory tweaks",
-                "Mouse Tweaks style: Shift-drag to move stacks, scroll over a stack to move one item at a time",
+                "Shift-drag and scroll to move items",
                 Category.UTILITY, false);
     }
 

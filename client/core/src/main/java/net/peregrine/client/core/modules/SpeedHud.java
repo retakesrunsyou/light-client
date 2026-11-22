@@ -11,7 +11,7 @@ public final class SpeedHud extends LineHud {
             new net.peregrine.client.core.settings.ChoiceSetting("unit", "Unit", 0, "Blocks a second", "km/h"));
 
     public SpeedHud() {
-        super("speed", "Speed", "How fast you're moving, in blocks per second", "Speed", 0f, 0.385f);
+        super("speed", "Speed", "Speed in blocks per second", "Speed", 0f, 0.385f);
     }
 
     @Override

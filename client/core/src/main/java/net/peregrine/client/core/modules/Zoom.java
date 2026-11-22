@@ -20,7 +20,7 @@ public final class Zoom extends Module {
     private long last;
 
     public Zoom() {
-        super("zoom", "Zoom", "Hold C to zoom in (scroll to zoom further), like a spyglass",
+        super("zoom", "Zoom", "Zoom with C",
                 Category.UTILITY, false);
     }
 

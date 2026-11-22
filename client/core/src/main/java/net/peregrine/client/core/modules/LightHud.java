@@ -7,7 +7,7 @@ import net.peregrine.client.core.Theme;
 public final class LightHud extends LineHud {
 
     public LightHud() {
-        super("light", "Light level", "Block light where you stand (mobs spawn at 0)", "Light", 0f, 0.99f);
+        super("light", "Light level", "Light level where you stand", "Light", 0f, 0.99f);
     }
 
     @Override

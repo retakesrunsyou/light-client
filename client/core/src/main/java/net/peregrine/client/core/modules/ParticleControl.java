@@ -20,7 +20,7 @@ public final class ParticleControl extends Module {
 
     public ParticleControl() {
         super("fewer_particles", "Particles",
-                "Thin out potion swirls, splash potions, XP bottles, lava and more: Normal, Semi or Strong",
+                "Fewer particles",
                 Category.PERFORMANCE, false);
         for (int i = 0; i < kinds.length; i++) {
             kinds[i] = add(new ChoiceSetting("kind" + i, Hooks.PARTICLE_KINDS[i], DEFAULTS[i], LEVELS));

@@ -11,7 +11,7 @@ public final class LowFire extends Module {
     private final SliderSetting drop = add(new SliderSetting("drop", "How much lower", 10f, 60f, 5f, 35f, "%.0f%%"));
 
     public LowFire() {
-        super("low_fire", "Low fire", "The flames on your screen sit lower when you're on fire", Category.VISUALS, false);
+        super("low_fire", "Low fire", "Lower fire overlay", Category.VISUALS, false);
     }
 
     @Override

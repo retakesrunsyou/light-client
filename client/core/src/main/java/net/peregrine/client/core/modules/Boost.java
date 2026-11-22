@@ -20,7 +20,7 @@ public final class Boost extends Module {
     static final String[] SCALE = {"100% (sharpest)", "85%", "75%", "66%", "50% (fastest)"};
     static final float[] SCALE_VALUES = {1f, 0.85f, 0.75f, 0.66f, 0.5f};
 
-    public final ChoiceSetting resolution = add(new ChoiceSetting("world_scale", "World resolution (big FPS gain on weaker graphics)", 0, SCALE) {
+    public final ChoiceSetting resolution = add(new ChoiceSetting("world_scale", "World resolution", 0, SCALE) {
         @Override
         public boolean visible() {   // only where the version can draw the world smaller
             net.peregrine.client.core.Platform p = net.peregrine.client.core.Peregrine.get() == null ? null
@@ -28,12 +28,12 @@ public final class Boost extends Module {
             return p == null || p.supports("boost_world_scale");
         }
     });
-    public final ChoiceSetting background = add(new ChoiceSetting("background", "When the game isn't the window you're using", 2, BACKGROUND));
+    public final ChoiceSetting background = add(new ChoiceSetting("background", "When unfocused", 2, BACKGROUND));
     public final SliderSetting particles = add(new SliderSetting("particles", "Most particles at once", 500f, 16000f, 500f, 4000f, "%.0f")
             .withText(v -> v >= 16000 ? "No limit" : String.valueOf(Math.round(v))));
-    public final SliderSetting blockEntities = add(new SliderSetting("block_entities", "Draw chests, signs and banners up to", 16f, 128f, 8f, 32f, "%.0f blocks")
+    public final SliderSetting blockEntities = add(new SliderSetting("block_entities", "Block entity distance", 16f, 128f, 8f, 32f, "%.0f blocks")
             .withText(v -> v >= 128 ? "No limit" : Math.round(v) + " blocks"));
-    public final SliderSetting smallEntities = add(new SliderSetting("small_entities", "Draw dropped items, XP, item frames and displays up to", 16f, 128f, 8f, 48f, "%.0f blocks")
+    public final SliderSetting smallEntities = add(new SliderSetting("small_entities", "Item and frame distance", 16f, 128f, 8f, 48f, "%.0f blocks")
             .withText(v -> v >= 128 ? "No limit" : Math.round(v) + " blocks"));
 
     /** Read by the game hooks (0 = off). */
@@ -42,7 +42,7 @@ public final class Boost extends Module {
     public static volatile float worldScale = 1f;
 
     public Boost() {
-        super("boost", "Performance boost", "Light Client's own speed-ups: world resolution, fewer frames in the background, a particle cap, nearer chests, signs, items and item frames",
+        super("boost", "Performance boost", "Resolution scale, background FPS cap and render limits",
                 Category.PERFORMANCE, true);
     }
 

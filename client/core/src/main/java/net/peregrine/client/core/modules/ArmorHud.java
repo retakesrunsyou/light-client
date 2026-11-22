@@ -27,7 +27,7 @@ public final class ArmorHud extends HudModule {
             "Number", "Percent", "Bar", "Bar and number", "Hidden"));
 
     public ArmorHud() {
-        super("armor", "Armor status", "Your armor and held item, with durability left",
+        super("armor", "Armor status", "Armor and held item durability",
                 true, 1f, 0.42f);
     }
 

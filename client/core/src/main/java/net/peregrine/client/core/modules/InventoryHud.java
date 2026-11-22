@@ -23,10 +23,10 @@ public final class InventoryHud extends HudModule {
     private final BoolSetting slots = add(new BoolSetting("slots", "Draw the slots", true));
     private final BoolSetting counts = add(new BoolSetting("counts", "Item counts", true));
     private final BoolSetting bars = add(new BoolSetting("bars", "Durability bars", true));
-    private final BoolSetting hideEmpty = add(new BoolSetting("hide_empty", "Hide when the inventory is empty", false));
+    private final BoolSetting hideEmpty = add(new BoolSetting("hide_empty", "Hide when empty", false));
 
     public InventoryHud() {
-        super("inventory_hud", "Inventory HUD", "Your whole inventory on screen, anywhere you like", false, 0.5f, 0.05f);
+        super("inventory_hud", "Inventory HUD", "Your inventory on screen", false, 0.5f, 0.05f);
         scale = 0.75f;
     }
 

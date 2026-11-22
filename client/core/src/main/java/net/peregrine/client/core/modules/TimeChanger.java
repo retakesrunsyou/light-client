@@ -13,7 +13,7 @@ public final class TimeChanger extends Module {
             .withText(TimeChanger::label));
 
     public TimeChanger() {
-        super("time_changer", "Time changer", "Your own time of day: always noon, sunset or night (only for you)",
+        super("time_changer", "Time changer", "Client-side time of day",
                 Category.VISUALS, false);
     }
 

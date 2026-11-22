@@ -11,7 +11,7 @@ public final class ChunkFade extends Module {
     private float applied = -1f;
 
     public ChunkFade() {
-        super("chunk_fade", "Chunk animation", "New chunks fade in smoothly instead of popping in",
+        super("chunk_fade", "Chunk animation", "Chunks fade in instead of popping",
                 Category.VISUALS, false);
     }
 

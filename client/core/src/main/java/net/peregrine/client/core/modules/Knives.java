@@ -36,7 +36,7 @@ public final class Knives extends Module {
     public final KeySetting inspect = add(new KeySetting("inspect", "Inspect key"));
 
     public Knives() {
-        super("knives", "Knives", "Your sword becomes a knife in your hand, with skins, slashes, stabs and an inspect key (F)",
+        super("knives", "Knives", "Swords as knives with skins and inspect",
                 Category.VISUALS, false);
         inspect.key = 70;   // F (Minecraft's swap-hands key: while you hold a knife it inspects instead)
     }

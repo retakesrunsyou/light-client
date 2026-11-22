@@ -93,7 +93,7 @@ public final class Menu {
     private final Map<HudModule, List<Setting>> styleRows = new IdentityHashMap<HudModule, List<Setting>>();
     /** "All HUD items": a page whose look applies to every HUD item at once. */
     private final HudModule allHud = new HudModule("all_hud", "All HUD items",
-            "One look for every HUD item at once. Change single items on their own pages afterwards.", false, 0f, 0f) {
+            "Applies to every HUD item", false, 0f, 0f) {
         @Override
         public int width(Draw d, Platform p) {
             return 0;
@@ -1168,7 +1168,7 @@ public final class Menu {
         y += 8;
         heading(d, "Profiles", x, y);
         y += 16;
-        d.text(d.trim("Save every feature's settings as a profile (PvP, building...) and switch between them.", w - 12),
+        d.text(d.trim("Save and switch setting profiles", w - 12),
                 x + 6, y + 2, Theme.FAINT, false);
         y += 14;
         for (String name : Profiles.list(pc)) {
@@ -1374,7 +1374,7 @@ public final class Menu {
                 d.roundRect(x, y, w - 4, SET_H, Theme.withAlpha(waiting ? a : 0xFFFFFF, waiting ? 0x18 : 0x0E));
             }
             d.text("Keybind", x + 6, y + 7, rh || waiting ? Theme.TEXT : Theme.MUTED, false);
-            String hint = waiting ? "Esc to cancel, Backspace for none" : "Press it in game to switch on or off";
+            String hint = waiting ? "Esc to cancel, Backspace for none" : "Toggle key";
             d.text(d.trim(hint, w / 2 - 20), x + 6 + d.width("Keybind  "), y + 7, Theme.FAINT, false);
             String val = waiting ? "Press a key\u2026" : Keys.name(m.key);
             int bw2 = Math.max(44, d.width(val) + 16);
@@ -1412,7 +1412,7 @@ public final class Menu {
             pencil(d, x + 7, y + 5, ch ? 0xFF15171C : Theme.withAlpha(a, 0xFF));
             d.text(label, x + 19, y + 5, ch ? 0xFF15171C : Theme.withAlpha(a, 0xFF), false);
             hit("customize", x, y, bw, 18, null);
-            d.text(d.trim("Size, colors and background. Or right-click it in Edit HUD.", w - 8),
+            d.text(d.trim("Size, colors and background", w - 8),
                     x + 1, y + 23, Theme.FAINT, false);
             y += 40;
         }

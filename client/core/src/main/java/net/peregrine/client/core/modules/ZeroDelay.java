@@ -12,16 +12,16 @@ import net.peregrine.client.core.settings.BoolSetting;
  */
 public final class ZeroDelay extends Module {
 
-    public final BoolSetting crystals = add(new BoolSetting("crystals", "Crystals vanish the moment you hit them", true));
-    public final BoolSetting anchors = add(new BoolSetting("anchors", "Anchors vanish the moment you blow them up", true));
-    public final BoolSetting instant = add(new BoolSetting("instant", "Clicks and hotbar keys act instantly (some anti-cheats flag this)", false));
-    public final BoolSetting gpuLag = add(new BoolSetting("gpu_lag", "Less input lag when your graphics card is the limit (costs some FPS)", false));
+    public final BoolSetting crystals = add(new BoolSetting("crystals", "Instant crystals", true));
+    public final BoolSetting anchors = add(new BoolSetting("anchors", "Instant anchors", true));
+    public final BoolSetting instant = add(new BoolSetting("instant", "Instant clicks (may flag)", false));
+    public final BoolSetting gpuLag = add(new BoolSetting("gpu_lag", "Reduce GPU input lag", false));
 
     /** Read by the game hooks. */
     public static volatile boolean fastCrystals, fastAnchors, instantInput, lowLatency;
 
     public ZeroDelay() {
-        super("zero_delay", "Zero delay", "Crystals and anchors vanish the instant you hit them so the next goes down right away; optional instant clicks",
+        super("zero_delay", "Zero delay", "Instant crystal and anchor removal",
                 Category.UTILITY, false);
     }
 

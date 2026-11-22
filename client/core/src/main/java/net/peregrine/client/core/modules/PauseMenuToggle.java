@@ -10,15 +10,15 @@ public final class PauseMenuToggle extends Module {
 
     public static final String DEFAULT_ORDER = "resume,modules,options,locker,more,leave";
 
-    public final TextSetting order = add(new TextSetting("order", "Button order (drag the buttons to change it)", DEFAULT_ORDER, 80,
+    public final TextSetting order = add(new TextSetting("order", "Button order", DEFAULT_ORDER, 80,
             DEFAULT_ORDER));
     public final ActionSetting resetOrder = add(new ActionSetting("reset_order", "Button order", () -> "Reset",
             () -> order.value = DEFAULT_ORDER));
 
-    public final BoolSetting music = add(new BoolSetting("music", "Show the song playing, with play, pause and skip", true));
+    public final BoolSetting music = add(new BoolSetting("music", "Show music controls", true));
 
     public PauseMenuToggle() {
-        super("pause_menu", "Light Client pause menu", "Replaces Minecraft's pause menu with Light Client's. Drag its buttons to rearrange them",
+        super("pause_menu", "Light Client pause menu", "Light Client pause menu",
                 Category.UTILITY, true);
     }
 }

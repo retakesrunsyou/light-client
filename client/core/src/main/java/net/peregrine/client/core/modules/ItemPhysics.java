@@ -7,7 +7,7 @@ import net.peregrine.client.core.Module;
 public final class ItemPhysics extends Module {
 
     public ItemPhysics() {
-        super("item_physics", "Item physics", "Dropped items lie flat on the ground instead of spinning",
+        super("item_physics", "Item physics", "Dropped items lie flat",
                 Category.VISUALS, false);
     }
 

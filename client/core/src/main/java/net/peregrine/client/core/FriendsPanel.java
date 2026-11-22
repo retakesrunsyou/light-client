@@ -101,14 +101,14 @@ final class FriendsPanel extends MenuPanel {
         d.text(when, x + w - d.width(when), y + 3, Theme.FAINT, false);
         int top = y + 20;
         if (friends.isEmpty()) {
-            String t = stamp == 0 ? "Open the launcher's Friends page once to see them here" : "No friends yet";
+            String t = stamp == 0 ? "Open Friends in the launcher once to load them" : "No friends yet";
             d.text(d.trim(t, w), x + (w - Math.min(w, d.width(t))) / 2, y + h / 2 - 10, Theme.MUTED, false);
             String t2 = "Your Xbox friends, the same list Minecraft uses";
             d.text(d.trim(t2, w), x + (w - Math.min(w, d.width(t2))) / 2, y + h / 2 + 2, Theme.FAINT, false);
             return;
         }
         if (updated != 0 && now - updated > 10 * 60_000L) {
-            top += banner(d, x, top, w, "Keep the launcher open to keep this list fresh", a);
+            top += banner(d, x, top, w, "Updates while the launcher is open", a);
         }
         int listTop = top, listH = y + h - top;
         int rowH = 26, gap = 4;

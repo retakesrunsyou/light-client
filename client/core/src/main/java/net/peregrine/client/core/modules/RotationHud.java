@@ -6,7 +6,7 @@ import net.peregrine.client.core.Platform;
 public final class RotationHud extends LineHud {
 
     public RotationHud() {
-        super("rotation", "Rotation", "Your exact yaw and pitch, for lining up builds", "Yaw/Pitch", 0f, 0.92f);
+        super("rotation", "Rotation", "Yaw and pitch", "Yaw/Pitch", 0f, 0.92f);
     }
 
     @Override

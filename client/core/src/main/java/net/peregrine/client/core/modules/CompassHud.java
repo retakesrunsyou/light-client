@@ -14,7 +14,7 @@ public final class CompassHud extends HudModule {
     private static final String[] LABELS = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
 
     public CompassHud() {
-        super("compass", "Compass", "A strip of headings across the top of the screen", false, 0.5f, 0f);
+        super("compass", "Compass", "Heading strip at the top", false, 0.5f, 0f);
     }
 
     @Override
