@@ -27,8 +27,16 @@ public abstract class GpuMobsMixin {
         }
     }
 
+    private static long peregrine$solidStart;
+
+    @Inject(method = "renderSolid", at = @At("HEAD"), require = 0)
+    private void peregrine$solidStart(CallbackInfo ci) {
+        peregrine$solidStart = System.nanoTime();
+    }
+
     @Inject(method = "renderSolid", at = @At("RETURN"), require = 0)
     private void peregrine$gpuMobsDraw(CallbackInfo ci) {
         GpuEntities.flush();
+        net.peregrine.client.core.modules.GpuMobs.solidNanos += System.nanoTime() - peregrine$solidStart;
     }
 }

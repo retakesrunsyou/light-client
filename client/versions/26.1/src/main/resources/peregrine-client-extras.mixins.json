@@ -12,6 +12,7 @@
 		"BoostParticleMixin",
 		"BoostEntityMixin",
 		"GpuMobsMixin",
+		"GpuMobsLevelMixin",
 		"BorderlessMixin",
 		"BossBarMixin",
 		"CapeMixin",

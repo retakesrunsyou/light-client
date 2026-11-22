@@ -30,6 +30,8 @@ public final class GpuMobs extends Module {
     /** Set by the adapter: what it drew last frame, and why it stopped if it did. */
     public static volatile int instances, draws, models, passedBack;
     public static volatile String broken = "";
+    /** Time the game spends on its solid models (mobs) so far, added up by the adapter. */
+    public static volatile long solidNanos;
 
     public final ActionSetting test = add(new ActionSetting("ab_test",
             "Before / after test (a creative world: spawns 300 still mobs in front of you, then removes them)",
@@ -69,7 +71,8 @@ public final class GpuMobs extends Module {
 
     static final String[] MOBS = {"cow", "pig", "sheep", "chicken", "villager", "zombie"};
     static final int COLS = 20, ROWS = 15;
-    static final long PHASE_MS = 10_000, SETTLE_MS = 3_000;
+    static final long PHASE_MS = 8_000, SETTLE_MS = 2_000;
+    static final int PHASES = 6;     // off, on, off, on, off, on: each setting gets the same luck
 
     private int testState;        // 0 off, 1 spawning, 2 measuring, 3 cleaning up
     private boolean testOn;
@@ -77,12 +80,14 @@ public final class GpuMobs extends Module {
     private long phaseStart;
     private final List<Long> frames = new ArrayList<Long>();
     private long lastFrame;
-    private final double[][] results = new double[4][];
-    private int[] perPhaseMobs = new int[4];
+    private final double[][] results = new double[PHASES][];
+    private int[] perPhaseMobs = new int[PHASES];
+    private long solidSnap;
+    private boolean measuring;
     private boolean enabledBefore;
 
     private String buttonText() {
-        return testState == 0 ? "Start" : "Stop (" + Math.min(4, phase + (testState == 2 ? 1 : 0)) + "/4)";
+        return testState == 0 ? "Start" : "Stop (" + Math.min(PHASES, phase + (testState == 2 ? 1 : 0)) + "/" + PHASES + ")";
     }
 
     private void toggleTest() {
@@ -107,7 +112,7 @@ public final class GpuMobs extends Module {
         phase = 0;
         Arrays.fill(results, null);
         p.sendChat("/kill @e[tag=lc_gpu_test]");
-        Peregrine.get().log("GPU mobs test: spawning " + COLS * ROWS + " still mobs in front of you; don't move or turn for about 45 seconds");
+        Peregrine.get().log("GPU mobs test: spawning " + COLS * ROWS + " still mobs in front of you; don't move or turn for about a minute");
         Peregrine.get().menu().close();
     }
 
@@ -132,10 +137,13 @@ public final class GpuMobs extends Module {
             }
         } else if (testState == 2) {
             if (now - phaseStart >= SETTLE_MS + PHASE_MS) {
-                results[phase] = stats();
+                double[] st = stats();
+                int n = (int) st[2];
+                double drawMs = n > 0 ? (solidNanos - solidSnap) / 1e6 / n : 0;
+                results[phase] = new double[] {st[0], st[1], st[2], drawMs};
                 perPhaseMobs[phase] = instances;
                 phase++;
-                if (phase >= 4) {
+                if (phase >= PHASES) {
                     finishTest(p, "done");
                 } else {
                     startPhase(now);
@@ -145,8 +153,9 @@ public final class GpuMobs extends Module {
     }
 
     private void startPhase(long now) {
-        testOn = phase % 2 == 1;     // off, on, off, on
+        testOn = phase % 2 == 1;     // off, on, off, on, off, on
         phaseStart = now;
+        measuring = false;
         synchronized (frames) {
             frames.clear();
         }
@@ -160,13 +169,20 @@ public final class GpuMobs extends Module {
             return;
         }
         String line = testState == 1 ? "GPU mobs test: spawning mobs... don't move or turn"
-                : "GPU mobs test " + (phase + 1) + "/4: " + (testOn ? "ON" : "off") + " - don't move or turn";
+                : "GPU mobs test " + (phase + 1) + "/" + PHASES + ": " + (testOn ? "ON" : "off") + " - don't move or turn";
         d.text(line, (p.screenWidth() - d.width(line)) / 2, 6, 0xFFFFFFFF, true);
         if (testState != 2) {
             return;
         }
         long t = System.nanoTime();
-        if (System.currentTimeMillis() - phaseStart >= SETTLE_MS && lastFrame != 0) {
+        if (System.currentTimeMillis() - phaseStart >= SETTLE_MS && !measuring) {
+            measuring = true;          // settled: start counting from here
+            solidSnap = solidNanos;
+            synchronized (frames) {
+                frames.clear();
+            }
+        }
+        if (measuring && lastFrame != 0) {
             synchronized (frames) {
                 frames.add(t - lastFrame);
             }
@@ -207,12 +223,21 @@ public final class GpuMobs extends Module {
         }
         p.sendChat("/kill @e[tag=lc_gpu_test]");
         StringBuilder b = new StringBuilder("GPU mobs test (" + how + "):");
-        String[] names = {"off", "on", "off", "on"};
-        for (int i = 0; i < 4; i++) {
-            if (results[i] != null) {
-                b.append(String.format(java.util.Locale.ROOT, " | %s: %.0f FPS, 1%% low %.0f (%d mobs on GPU)",
-                        names[i], results[i][0], results[i][1], perPhaseMobs[i]));
+        double[] sum = new double[4];   // FPS off, FPS on, drawing ms off, drawing ms on
+        int[] cnt = new int[2];
+        for (int i = 0; i < PHASES; i++) {
+            if (results[i] != null && results[i][2] > 0) {
+                int k = i % 2;
+                sum[k] += results[i][0];
+                sum[2 + k] += results[i][3];
+                cnt[k]++;
+                b.append(String.format(java.util.Locale.ROOT, " | %d %s: %.0f FPS, 1%% low %.0f, mob drawing %.2f ms a frame",
+                        i + 1, k == 1 ? "ON" : "off", results[i][0], results[i][1], results[i][3]));
             }
+        }
+        if (cnt[0] > 0 && cnt[1] > 0) {
+            b.append(String.format(java.util.Locale.ROOT, " || AVERAGE off: %.0f FPS, mob drawing %.2f ms | ON: %.0f FPS, mob drawing %.2f ms",
+                    sum[0] / cnt[0], sum[2] / cnt[0], sum[1] / cnt[1], sum[3] / cnt[1]));
         }
         b.append(" | ").append(summary());
         Peregrine.get().log(b.toString());

@@ -320,15 +320,27 @@ public final class GpuEntities {
      * Called for each mob instead of drawing it: true when it was taken (the game must not draw
      * it too), false to let the game draw it as usual.
      */
+    /** True while the game draws the world (never for menus, the inventory or the main menu's player). */
+    public static volatile boolean inLevel;
+    private static Boolean skinLayers;
+
+    /** 3D Skin Layers draws players' outer skin through the normal path: players stay there when it's installed. */
+    private static boolean playersStayNormal() {
+        if (skinLayers == null) {
+            skinLayers = net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("skinlayers3d");
+        }
+        return skinLayers;
+    }
+
     public static boolean take(SubmitNodeStorage.ModelSubmit<?> submit, RenderType type) {
-        if (!GpuMobs.on || !GpuMobs.broken.isEmpty()) {
+        if (!GpuMobs.on || !GpuMobs.broken.isEmpty() || !inLevel) {
             return false;
         }
         try {
             Model<?> model = submit.model();
             if (submit.sprite() != null || submit.outlineColor() != 0 || submit.crumblingOverlay() != null
                     || type.hasBlending() || type.isOutline() || RenderSystem.outputColorTextureOverride != null
-                    || model instanceof net.minecraft.client.model.player.PlayerModel
+                    || (model instanceof net.minecraft.client.model.player.PlayerModel && playersStayNormal())
                     || model instanceof net.minecraft.client.model.player.PlayerCapeModel
                     || UNSUPPORTED.containsKey(model) || shaderPackOn()) {
                 passedBack++;
