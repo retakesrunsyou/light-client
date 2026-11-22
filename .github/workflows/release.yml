@@ -71,6 +71,16 @@ jobs:
             gh release upload "${{ github.event.release.tag_name }}" "${jars[@]}" --clobber
           fi
 
+      # Manual builds keep the jars for a few days (for testing before a release).
+      - name: Keep the in-game mod (manual builds)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: in-game-mod
+          path: client/dist/*.jar
+          retention-days: 3
+          if-no-files-found: ignore
+
       # Versions that built are already attached; this just makes a failure visible.
       - name: Report versions that failed to build
         if: env.MOD_BUILD_FAILED == '1'
