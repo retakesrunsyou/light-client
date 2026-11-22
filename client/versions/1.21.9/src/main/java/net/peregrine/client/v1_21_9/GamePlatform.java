@@ -1039,4 +1039,14 @@ final class GamePlatform implements Platform {
     public java.util.List<Object[]> profilerTimes(String path) {
         return PieData.times(path);
     }
+
+    @Override
+    public int video(String key) {
+        return VideoOptions.get(key);
+    }
+
+    @Override
+    public void setVideo(String key, int value) {
+        VideoOptions.set(key, value);
+    }
 }

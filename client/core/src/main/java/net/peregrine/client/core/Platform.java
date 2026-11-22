@@ -383,6 +383,19 @@ public interface Platform {
     default void setParticleLevel(int level) {
     }
 
+    /**
+     * One of the game's video settings by name, as a number: "clouds" (0 off, 1 fast, 2 fancy),
+     * "smooth_lighting" (0/1), "biome_blend" (0-7), "mipmaps" (0-4), "entity_shadows" (0/1),
+     * "max_fps" (10-260, 260 = unlimited), "vsync" (0/1), "simulation" (chunks). -1 if unknown.
+     */
+    default int video(String key) {
+        return -1;
+    }
+
+    /** Changes one of the video settings above (the Light Engine presets). */
+    default void setVideo(String key, int value) {
+    }
+
     // ---- batch 6
 
     /** Every block in the inventory (all block items), or 0. */

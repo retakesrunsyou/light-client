@@ -260,7 +260,7 @@ final class GamePlatform implements Platform {
         if (moduleId.equals("custom_sky") || moduleId.equals("knives") || moduleId.equals("viewmodel_fx") || moduleId.equals("zero_delay") || moduleId.equals("benchmark") || moduleId.equals("boost") || moduleId.equals("auto_reconnect") || moduleId.equals("area_miner") || moduleId.equals("skeletons") || moduleId.equals("pickaxe_look") || moduleId.equals("frame_gen") || moduleId.equals("click_sounds") || moduleId.equals("hd_look") || moduleId.equals("clips") || moduleId.equals("menu_3d") || moduleId.equals("smooth_join") || moduleId.equals("chat") || moduleId.equals("clean_overlays")) {
             return false;  // these are on 26.1 for now (beta)
         }
-        if (moduleId.equals("motion_blur")) {
+        if (moduleId.equals("motion_blur") || moduleId.equals("saturation")) {
             return false;  // 1.21.2-1.21.5 effects can't keep the last frame (they can from 1.21.6)
         }
         if (moduleId.equals("chunk_fade")) {
@@ -1067,5 +1067,15 @@ final class GamePlatform implements Platform {
     @Override
     public java.util.List<Object[]> profilerTimes(String path) {
         return PieData.times(path);
+    }
+
+    @Override
+    public int video(String key) {
+        return VideoOptions.get(key);
+    }
+
+    @Override
+    public void setVideo(String key, int value) {
+        VideoOptions.set(key, value);
     }
 }

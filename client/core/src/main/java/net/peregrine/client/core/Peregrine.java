@@ -46,6 +46,8 @@ import net.peregrine.client.core.modules.FoodHud;
 import net.peregrine.client.core.modules.MemoryHud;
 import net.peregrine.client.core.modules.PieChart;
 import net.peregrine.client.core.modules.LyricsHud;
+import net.peregrine.client.core.modules.LightEngine;
+import net.peregrine.client.core.modules.Saturation;
 import net.peregrine.client.core.modules.PacksHud;
 import net.peregrine.client.core.modules.PotionCountHud;
 import net.peregrine.client.core.modules.ClockHud;
@@ -112,6 +114,8 @@ public final class Peregrine {
         modules.add(new MemoryHud());
         modules.add(new PieChart());
         modules.add(new LyricsHud());
+        modules.add(new LightEngine());
+        modules.add(new Saturation());
         modules.add(new FoodHud());
         modules.add(new PotionCountHud());
         modules.add(new PacksHud());

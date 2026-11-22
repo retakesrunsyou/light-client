@@ -417,6 +417,8 @@ public final class Hooks {
     public static int placeDrawHits;
     /** Motion blur: how much of the last frame stays (0 = off). */
     public static volatile float motionBlur;
+    /** World saturation for the screen effect: 1 = as the game draws it, 0 = grey, 2 = twice as vivid. */
+    public static volatile float saturation = 1f;
     public static int motionBlurHits;
 
     /** The HUD's width while it's drawn stretched. */

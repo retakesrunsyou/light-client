@@ -1,0 +1,45 @@
+{
+  "targets": [
+    "swap",
+    "prev"
+  ],
+  "passes": [
+    {
+      "name": "peregrine-client:motion_blur",
+      "intarget": "minecraft:main",
+      "outtarget": "swap",
+      "auxtargets": [
+        {
+          "name": "PrevSampler",
+          "id": "prev"
+        }
+      ],
+      "uniforms": [
+        {
+          "name": "Strength",
+          "values": [
+            0.9
+          ]
+        }
+      ]
+    },
+    {
+      "name": "peregrine-client:saturation",
+      "intarget": "swap",
+      "outtarget": "minecraft:main",
+      "uniforms": [
+        {
+          "name": "Saturation",
+          "values": [
+            1.5
+          ]
+        }
+      ]
+    },
+    {
+      "name": "blit",
+      "intarget": "swap",
+      "outtarget": "prev"
+    }
+  ]
+}
