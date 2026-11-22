@@ -22,5 +22,5 @@ public final class Compat {
     }
 
     /** Whether GPU mobs work on this version. */
-    public static final boolean GPU_MOBS = false;
+    public static final boolean GPU_MOBS = true;
 }
