@@ -3,6 +3,7 @@
 import json
 import re
 import shutil
+import time
 import subprocess
 from pathlib import Path
 
@@ -374,7 +375,12 @@ class Instance:
             try:
                 return performance.sync(self, progress)
             except Exception as e:  # never let this stop the game from starting
+                import traceback
                 print(f"[peregrine] performance mods not updated: {e}")
+                try:  # kept with the instance, so a problem can be looked into afterwards
+                    self.update(perf_error=traceback.format_exc()[-2000:], perf_error_at=time.time())
+                except Exception:
+                    pass
                 return {"error": repr(e)}
 
     # ---- install + launch
