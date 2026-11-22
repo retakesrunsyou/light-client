@@ -349,9 +349,9 @@ class MainWindow(QMainWindow):
 
     def apply_theme(self):
         cfg = config.load()
-        Theme.set(cfg["theme"], cfg["accent"])
+        from .sky import holiday_accent, season
+        Theme.set(cfg["theme"], holiday_accent(cfg))
         QApplication.instance().setStyleSheet(stylesheet())
-        from .sky import season
         self.sky.season = season() if cfg.get("seasonal", True) else ""
         self.sky.set_enabled(bool(cfg.get("animations", True)))
         self.logo.setPixmap(logo_pixmap(32))
@@ -998,7 +998,8 @@ def main():
     except Exception as e:
         print(f"[peregrine] couldn't read the game's colour: {e}")
     cfg = config.load()
-    Theme.set(cfg["theme"], cfg["accent"])
+    from .sky import holiday_accent
+    Theme.set(cfg["theme"], holiday_accent(cfg))
     try:
         instances.name_folders()  # folders named like their instances (they were codes before 1.5)
     except Exception as e:

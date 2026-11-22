@@ -12,8 +12,9 @@ NOTES = [
                               "Potato, Balanced, Max FPS or Quality. Switching it off puts your own settings back."),
     ("2.2.0", "Saturation", "Make the whole world more vivid, or greyer."),
     ("2.2.0", "Lyrics", "Words to the song you're playing, in time with it, on screen or floating in 3D in the world."),
-    ("2.2.0", "Holiday themes", "Christmas, New Year, Valentine's, Easter, Halloween and Thanksgiving, each with its own "
-                                "look on the main menu, the pause menu and here. On by date; pick one or turn them off."),
+    ("2.2.0", "Holiday themes", "Christmas, New Year, Valentine's, Easter, Halloween and Thanksgiving recolour the "
+                                "launcher and the game's menus, with snow, fireworks, falling hearts or real autumn leaves. "
+                                "Each starts on the 1st of its month; pick one or turn them off."),
     ("2.2.0", "Music in the pause menu", "The song playing with its cover art, and back, play / pause and skip buttons."),
     ("2.2.0", "New skies", "Real-looking stars, a real sun and a detailed moon, and much lighter on FPS."),
     ("2.2.0", "Server icons", "The pause menu shows the server's own icon."),

@@ -364,8 +364,34 @@ public final class Peregrine {
         return Theme.withAlpha(argb, Math.round(((argb >>> 24) & 0xFF) * k));
     }
 
+    /** The accent colour menus are drawn in: your own, or the holiday theme's while one is on. */
     public int accent() {
+        int h = holidayAccent();
+        return h != 0 ? h : accent;
+    }
+
+    /** Your own accent colour (what's saved), whatever the holiday theme shows. */
+    public int userAccent() {
         return accent;
+    }
+
+    private long holidayCheckedAt;
+    private int holidayAccent;
+
+    private int holidayAccent() {
+        long now = System.currentTimeMillis();
+        if (now - holidayCheckedAt > 1500) {   // looked up now and then, not on every draw
+            holidayCheckedAt = now;
+            Module m = module("main_menu");
+            holidayAccent = 0;
+            if (m instanceof net.peregrine.client.core.modules.MainMenu) {
+                net.peregrine.client.core.modules.MainMenu mm = (net.peregrine.client.core.modules.MainMenu) m;
+                if (mm.holidayColors.value) {
+                    holidayAccent = Holidays.accent(mm.holidayTheme());
+                }
+            }
+        }
+        return holidayAccent;
     }
 
     {
@@ -493,9 +519,9 @@ public final class Peregrine {
         int y = platform.screenHeight() - 88 + Math.round((1f - in) * 4);
         f.roundRect(x, y, w, h, Theme.withAlpha(Theme.PANEL, 0xE6));
         f.roundOutline(x, y, w, h, Theme.HAIRLINE);
-        f.roundRect(x + 6, y + 5, 5, 5, toastOn ? accent : Theme.FAINT);
+        f.roundRect(x + 6, y + 5, 5, 5, toastOn ? accent() : Theme.FAINT);
         f.text(toast, x + 15, y + 4, Theme.TEXT, false);
-        f.text(state, x + w - 6 - d.width(state), y + 4, toastOn ? accent : Theme.MUTED, false);
+        f.text(state, x + w - 6 - d.width(state), y + 4, toastOn ? accent() : Theme.MUTED, false);
     }
 
     private boolean optionsRepaired;
@@ -561,9 +587,9 @@ public final class Peregrine {
             }
         }
         renderToast(d);
-        UpdateNotice.render(d, platform, -1, -1, accent);
+        UpdateNotice.render(d, platform, -1, -1, accent());
         Module sj = module("smooth_join");
-        joinScreen.render(d, platform, accent, sj != null && sj.enabled());
+        joinScreen.render(d, platform, accent(), sj != null && sj.enabled());
     }
 
     /** While F3 is open: Peregrine's own debug panel, if Better F3 is on. Returns true if it drew. */

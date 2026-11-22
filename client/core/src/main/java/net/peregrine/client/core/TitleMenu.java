@@ -303,7 +303,7 @@ public final class TitleMenu {
         if (e < 0.98f) {
             Draw vd = e > 0.01f ? new FadeDraw(base, 1f - e) : base;
             if (holiday != Holidays.NONE) {
-                Holidays.greetingChip(vd, holiday, sw / 2, holiday == Holidays.CHRISTMAS ? 16 : 6);
+                Holidays.greetingChip(vd, holiday, sw / 2, 6);
             }
             String ver = versionLine(p);
             vd.text(ver, sw - 6 - vd.width(ver), sh - 20, Theme.FAINT, true);

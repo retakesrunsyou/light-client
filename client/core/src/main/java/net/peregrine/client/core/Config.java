@@ -197,7 +197,7 @@ public final class Config {
     static void saveTo(Peregrine p, Path target) {
         JsonObject root = new JsonObject();
         root.addProperty("version", VERSION);
-        root.addProperty("accent", Integer.toHexString(p.accent()));
+        root.addProperty("accent", Integer.toHexString(p.userAccent()));
         root.addProperty("menuBackground", p.menuBackground());
         JsonObject mods = new JsonObject();
         for (Module m : p.modules()) {

@@ -15,6 +15,7 @@ public final class MainMenu extends Module {
 
     public final ChoiceSetting background = add(new ChoiceSetting("background", "Background", 0, BACKGROUNDS));
     public final ChoiceSetting holiday = add(new ChoiceSetting("holiday", "Holiday theme", 0, net.peregrine.client.core.Holidays.CHOICES));
+    public final BoolSetting holidayColors = add(new BoolSetting("holiday_colors", "Holiday colours (menus take the theme's colours)", true));
     public final BoolSetting player = add(new BoolSetting("player", "Show your player", true));
     // Your picture: its size (1 = just fills the screen) and where its middle is (0..1 of the screen).
     // Set by dragging it around in the Locker's picture editor.

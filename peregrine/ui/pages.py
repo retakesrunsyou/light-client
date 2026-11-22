@@ -771,7 +771,8 @@ class SettingsPage(QWidget):
         look.row("Animations", anim, "Buttons and pages move smoothly. Switch off for a calmer, snappier launcher.")
         seasonal = self._check(cfg, "seasonal")
         seasonal.toggled.connect(lambda _: self.appearance_changed.emit())
-        look.row("Holiday themes", seasonal, "Christmas, New Year, Valentine's, Easter, Halloween and Thanksgiving looks, by the date.")
+        look.row("Holiday themes", seasonal, "Christmas, New Year, Valentine's, Easter, Halloween and Thanksgiving "
+                                             "colours and decorations, from the 1st of each holiday's month.")
         start = Segmented([("recent", "Home"), ("library", "Library"), ("home", "Instances")],
                           cfg.get("start_page", "recent") if cfg.get("start_page") in ("recent", "library", "home") else "recent")
 

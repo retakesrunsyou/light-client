@@ -1098,6 +1098,8 @@ public final class Menu {
         heading(d, "Look", x, y);
         y += 14;
         d.text("Accent color", x + 6, y + 7, Theme.MUTED, false);
+        int drawA = a;
+        a = pc.userAccent();   // the swatches show your own colour, even while a holiday theme recolours the menus
         int sx = x + w - 6 - (ACCENTS.length + 1) * 14 + 2;
         {   // the last one: any colour, from the picker (the launcher takes it too)
             int cx = sx + ACCENTS.length * 14;
@@ -1128,6 +1130,7 @@ public final class Menu {
             d.roundRect(cx, y + 5, 10, 10, ACCENTS[i]);
             hit("accent:" + i, cx - 1, y + 4, 12, 12, null);
         }
+        a = drawA;
         y += SET_H + 4;
         // menu background: solid, see-through or none
         d.text("Menu background", x + 6, y + 7, Theme.MUTED, false);
