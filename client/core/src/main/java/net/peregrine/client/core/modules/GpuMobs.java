@@ -114,13 +114,16 @@ public final class GpuMobs extends Module {
     private void testTick(Platform p) {
         long now = System.currentTimeMillis();
         if (testState == 1) {
+            // flat rows in front of you, level with your feet (whichever way you're looking up or down)
+            double yaw = Math.toRadians(p.yaw());
+            double fx = -Math.sin(yaw), fz = Math.cos(yaw), sx = -fz, sz = fx;
             for (int i = 0; i < 15 && spawned < COLS * ROWS; i++, spawned++) {
                 int c = spawned % COLS, r = spawned / COLS;
-                double x = (c - COLS / 2.0) * 1.6, z = 5 + r * 1.6;
+                double side = (c - COLS / 2.0) * 1.6, ahead = 5 + r * 1.6;
                 String mob = MOBS[spawned % MOBS.length];
                 p.sendChat(String.format(java.util.Locale.ROOT,
-                        "/summon minecraft:%s ^%.1f ^ ^%.1f {NoAI:1b,Silent:1b,Invulnerable:1b,PersistenceRequired:1b,Tags:[\"lc_gpu_test\"]}",
-                        mob, x, z));
+                        "/summon minecraft:%s ~%.1f ~ ~%.1f {NoAI:1b,Silent:1b,Invulnerable:1b,PersistenceRequired:1b,Tags:[\"lc_gpu_test\"]}",
+                        mob, fx * ahead + sx * side, fz * ahead + sz * side));
             }
             if (spawned >= COLS * ROWS) {
                 testState = 2;
