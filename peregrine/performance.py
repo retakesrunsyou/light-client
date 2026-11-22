@@ -12,6 +12,7 @@ Minecraft version and fast game settings, kept up to date automatically.
 """
 
 import json
+import io
 import re
 import shutil
 import tempfile
@@ -133,6 +134,26 @@ def _meta(jar: Path):
         return None
 
 
+def _bundled(jar: Path) -> list:
+    """The fabric.mod.json of every library a mod carries inside itself (Fabric's
+    jar-in-jar, e.g. MixinExtras inside Lithium): those count as installed."""
+    out = []
+    try:
+        with zipfile.ZipFile(jar) as z:
+            for name in z.namelist():
+                if name.startswith("META-INF/jars/") and name.endswith(".jar"):
+                    try:
+                        with zipfile.ZipFile(io.BytesIO(z.read(name))) as inner:
+                            m = json.loads(inner.read("fabric.mod.json").decode("utf-8", "replace"), strict=False)
+                        if isinstance(m, dict) and m.get("id"):
+                            out.append(m)
+                    except (KeyError, ValueError, zipfile.BadZipFile):
+                        pass
+    except (OSError, zipfile.BadZipFile):
+        pass
+    return out
+
+
 # ---- the version rules mods declare in fabric.mod.json ("depends", "breaks")
 
 def _version(text: str):
@@ -206,6 +227,11 @@ def conflicts(mods: Path, mc: str, ours: set, ignore=()) -> dict:
             if m and m.get("id"):
                 jars[f.name] = m
     versions = {m["id"]: str(m.get("version", "")) for m in jars.values()}
+    for f in list(jars):
+        for b in _bundled(mods / f):
+            versions.setdefault(b["id"], str(b.get("version", "")))
+            for p in b.get("provides", []) or []:
+                versions.setdefault(p, str(b.get("version", "")))
     for m in jars.values():
         for p in m.get("provides", []) or []:
             versions.setdefault(p, str(m.get("version", "")))
@@ -227,7 +253,8 @@ def conflicts(mods: Path, mc: str, ours: set, ignore=()) -> dict:
 
 
 # Mod ids a mod may need that aren't separate downloads (or come from elsewhere).
-_BUILT_IN = {"minecraft", "java", "fabricloader", "fabric", "fabric-api", "fabric-api-base"}
+_BUILT_IN = {"minecraft", "java", "fabricloader", "fabric", "fabric-api", "fabric-api-base",
+             "mixinextras"}  # MixinExtras comes with Fabric Loader itself
 
 
 def unmet(mods: Path, names) -> dict:
@@ -238,6 +265,9 @@ def unmet(mods: Path, names) -> dict:
         if m and m.get("id"):
             have.add(m["id"])
             have.update(m.get("provides", []) or [])
+            for b in _bundled(f):
+                have.add(b["id"])
+                have.update(b.get("provides", []) or [])
     bad = {}
     for name in names:
         m = _meta(mods / name) if (mods / name).exists() else None
@@ -256,6 +286,7 @@ def _fetch_with_deps(project: str, mc: str, mods: Path, have: dict, ours: set, p
     already in the folder (unless it's an older copy we put there ourselves,
     which is replaced). Returns (main filename or None, [(mod id, filename)])."""
     added, queue, seen, main = [], [project], set(), None
+    placed = []   # files this call put in the folder: taken out again if a library can't be had
     tmp = Path(tempfile.mkdtemp(prefix="peregrine-mods-"))
     try:
         while queue:
@@ -279,6 +310,7 @@ def _fetch_with_deps(project: str, mc: str, mods: Path, have: dict, ours: set, p
                 if old is not None and old.exists():
                     old.unlink()  # our older copy
                 shutil.move(str(dl), dest)
+                placed.append(dest)
             if mid:
                 have[mid] = dest
             if p == project:
@@ -287,6 +319,15 @@ def _fetch_with_deps(project: str, mc: str, mods: Path, have: dict, ours: set, p
             for dep in version.get("dependencies", []):
                 if dep.get("dependency_type") == "required" and dep.get("project_id"):
                     queue.append(dep["project_id"])
+    except Exception:
+        # A mod without the library it needs stops the game from starting (Iris without
+        # Sodium): leave nothing half-installed behind; it's tried again on the next check.
+        for f in placed:
+            try:
+                f.unlink()
+            except OSError:
+                pass
+        raise
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     return main, added
