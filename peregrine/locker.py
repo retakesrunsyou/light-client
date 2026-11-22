@@ -94,6 +94,101 @@ def add_skin(data: bytes, name: str, variant: str = None) -> dict:
     return entry
 
 
+# ---- seasonal extras, drawn onto a copy of a skin's outer layers (3D with 3D Skin Layers)
+
+_RED, _RED_DARK, _WHITE, _CREAM = (0xC8, 0x1E, 0x2A), (0x9C, 0x14, 0x1E), (0xF6, 0xF6, 0xF6), (0xE4, 0xE4, 0xE4)
+_PINK, _PINK_DARK, _PINK_EAR = (0xF4, 0x9A, 0xC1), (0xD9, 0x76, 0xA4), (0xFF, 0xC4, 0xDC)
+
+
+def _modern(img):
+    """An old 64 x 32 skin as a 64 x 64 one (the game copies the right arm and leg to the left)."""
+    from PySide6.QtCore import QPoint, QRect
+    from PySide6.QtGui import QImage, QPainter
+    if img.height() >= 64:
+        return img.convertToFormat(QImage.Format_ARGB32)
+    out = QImage(64, 64, QImage.Format_ARGB32)
+    out.fill(0)
+    p = QPainter(out)
+    p.drawImage(QPoint(0, 0), img)
+    p.drawImage(QPoint(16, 48), img.copy(QRect(0, 16, 16, 16)).mirrored(True, False))   # left leg
+    p.drawImage(QPoint(32, 48), img.copy(QRect(40, 16, 16, 16)).mirrored(True, False))  # left arm
+    p.end()
+    return out
+
+
+def _px(img, x, y, rgb):
+    from PySide6.QtGui import QColor
+    img.setPixelColor(x, y, QColor(*rgb))
+
+
+def _santa_hat(img):
+    """A red Santa hat with white fur on the head's outer layer (over the top of the head)."""
+    # top of the head: red, a white pom-pom in the back corner
+    for x in range(40, 48):
+        for y in range(0, 8):
+            _px(img, x, y, _RED if (x + y) % 5 else _RED_DARK)
+    for x, y in ((45, 5), (46, 5), (45, 6), (46, 6)):
+        _px(img, x, y, _WHITE)
+    # the sides (right, front, left, back): red crown, a white fur band across the forehead
+    for x0 in (32, 40, 48, 56):
+        for x in range(x0, x0 + 8):
+            for y in range(8, 11):
+                _px(img, x, y, _RED if (x * 3 + y) % 7 else _RED_DARK)
+            for y in (11, 12):
+                _px(img, x, y, _WHITE if (x + y) % 4 else _CREAM)
+    # the tip flops down the back, ending in the pom-pom
+    for y in range(13, 15):
+        for x in range(60, 63):
+            _px(img, x, y, _RED)
+    for x, y in ((61, 15), (62, 15), (61, 14), (62, 14)):
+        _px(img, x, y, _WHITE)
+
+
+def _slippers(img):
+    """Fluffy pink bunny slippers on the legs' outer layers: pink feet, white soles, little ears."""
+    for top in (32, 48):                      # right leg (outer), left leg (outer)
+        side_y = top + 4                      # the side faces start under the top/bottom faces
+        for x in range(0, 16):                # the bottom of every side: the slipper
+            for y in range(side_y + 8, side_y + 12):
+                _px(img, x, y, _PINK if (x + y) % 5 else _PINK_DARK)
+        for x in range(0, 16):                # a white fluffy cuff above it
+            _px(img, x, side_y + 8, _WHITE)
+        for x in range(8, 12):                # the sole (the bottom face)
+            for y in range(top, top + 4):
+                _px(img, x, y, _WHITE if (x + y) % 3 else _CREAM)
+        # two little ears on the toe (front face), pink inside
+        fx = 4
+        for ex in (fx, fx + 3):
+            _px(img, ex, side_y + 7, _WHITE)
+            _px(img, ex, side_y + 6, _WHITE)
+        _px(img, fx, side_y + 7, _PINK_EAR)
+        _px(img, fx + 3, side_y + 7, _PINK_EAR)
+        # eyes on the toe
+        _px(img, fx + 1, side_y + 9, (0x22, 0x22, 0x22))
+        _px(img, fx + 2, side_y + 9, (0x22, 0x22, 0x22))
+
+
+def add_extras(data: bytes, name: str, variant: str, hat: bool = False, slippers: bool = False) -> dict:
+    """A copy of a skin wearing a Santa hat and/or bunny slippers, added to the library (the original is kept)."""
+    from PySide6.QtCore import QBuffer, QByteArray, QIODevice
+    from PySide6.QtGui import QImage
+    check_skin(data)
+    img = QImage.fromData(data)
+    if img.isNull():
+        raise LockerError("That skin couldn't be read.")
+    img = _modern(img)
+    if hat:
+        _santa_hat(img)
+    if slippers:
+        _slippers(img)
+    ba = QByteArray()
+    buf = QBuffer(ba)
+    buf.open(QIODevice.WriteOnly)
+    img.save(buf, "PNG")
+    extra = " + ".join(n for n, on in (("Santa hat", hat), ("slippers", slippers)) if on)
+    return add_skin(bytes(ba.data()), f"{name or 'Skin'} ({extra})"[:32], variant)
+
+
 def add_skin_file(path) -> dict:
     p = Path(path)
     return add_skin(p.read_bytes(), p.stem.replace("_", " ").replace("-", " ").title())

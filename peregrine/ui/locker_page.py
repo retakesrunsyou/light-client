@@ -13,7 +13,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QEasingCurve, QRectF, QSize, Qt, QTimer, QVariantAnimation, Signal
 from PySide6.QtGui import QColor, QImage, QPainter, QPainterPath, QPen
-from PySide6.QtWidgets import QFileDialog, QGridLayout, QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QFileDialog, QGridLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
 from .. import auth, custom_cape, locker
 from . import workers
@@ -640,6 +640,20 @@ class LockerPage(QWidget):
         self.wear = PillButton("Wear", "check", "primary")
         self.wear.clicked.connect(self.wear_picked)
         lv.addWidget(self.wear, 0, Qt.AlignHCenter)
+        # seasonal: a copy of the picked skin with a Santa hat or bunny slippers
+        extras = QHBoxLayout()
+        extras.setSpacing(6)
+        extras.addStretch()
+        self.extra_buttons = []
+        for label, hat, slip in (("+ Santa hat", True, False), ("+ Bunny slippers", False, True)):
+            b = QPushButton(label, objectName="ghostSmall")
+            b.setCursor(Qt.PointingHandCursor)
+            b.setToolTip("Makes a copy of this skin wearing it (your skin is kept). 3D with 3D Skin Layers.")
+            b.clicked.connect(lambda _=False, h=hat, s=slip: self.add_extra(h, s))
+            extras.addWidget(b)
+            self.extra_buttons.append(b)
+        extras.addStretch()
+        lv.addLayout(extras)
         self.status = QLabel("", objectName="faint", alignment=Qt.AlignCenter, wordWrap=True)
         lv.addWidget(self.status)
         lv.addStretch()
@@ -960,6 +974,25 @@ class LockerPage(QWidget):
         self.status.setText(text)
         self.wear.setEnabled(True)
         self.say(text)
+
+    def add_extra(self, hat: bool, slippers: bool):
+        """A copy of the picked skin with the extra on it, picked and ready to wear."""
+        if not self.picked or self.picked[0] not in ("skin", "account-skin"):
+            self.status.setText("Pick a skin first.")
+            return
+        if self.picked[0] == "skin":
+            entry = self.picked[1]
+            data, name, variant = locker.skin_bytes(entry), entry.get("name", "Skin"), entry.get("variant")
+        else:
+            data, name, variant = self.picked[1], "My skin", self.arms.value()
+        try:
+            new = locker.add_extras(data, name, variant, hat=hat, slippers=slippers)
+        except Exception as e:
+            self.status.setText(str(e))
+            return
+        self.render()
+        self.pick(("skin", new))
+        self.status.setText("Made a copy with it on. Press Wear to put it on your account.")
 
     def wear_picked(self):
         if not self.picked:
