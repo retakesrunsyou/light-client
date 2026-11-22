@@ -151,6 +151,13 @@ def stylesheet() -> str:
     QComboBox QAbstractItemView::item:hover {{ background: {p['raised']}; }}
     QComboBox QAbstractItemView {{ background: {p['surface']}; border: 1px solid {p['border']};
                                    selection-background-color: {tint(a, 0.2)}; }}
+    QPushButton#choiceCard {{ background: {rgba(p['bg'], 0.55)}; border: 1px solid {p['border']}; border-radius: 10px; text-align: left; }}
+    QPushButton#choiceCard:hover {{ border-color: {rgba(a, 0.6)}; }}
+    QPushButton#choiceCard:checked {{ background: {rgba(a, 0.16)}; border: 1.5px solid {a}; }}
+    QPushButton#choiceCard:disabled {{ background: {rgba(p['bg'], 0.3)}; }}
+    QLabel#choiceTitle {{ font-size: 14px; font-weight: 700; background: transparent; }}
+    QLabel#choiceSub {{ color: {p['muted']}; font-size: 12px; background: transparent; }}
+    #formLabel {{ color: {p['muted']}; font-size: 12px; font-weight: 600; background: transparent; }}
     #segmented {{ background: {rgba(p['bg'], 0.78)}; border: 1px solid {p['border']}; border-radius: 9px; }}
     QPushButton#segment {{ background: transparent; border: none; border-radius: 5px;
                            padding: 6px 14px; color: {p['muted']}; font-weight: 600; }}

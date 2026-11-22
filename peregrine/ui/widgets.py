@@ -3,7 +3,7 @@
 from PySide6.QtCore import (Property, QEasingCurve, QPropertyAnimation, QRectF, QSize, Qt,
                             Signal)
 from PySide6.QtGui import QColor, QPainter
-from PySide6.QtWidgets import QAbstractButton, QButtonGroup, QHBoxLayout, QPushButton, QWidget
+from PySide6.QtWidgets import QAbstractButton, QButtonGroup, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
 from .theme import Theme
 
@@ -90,6 +90,48 @@ class Segmented(QWidget):
             self.group.addButton(b)
             self.buttons[key] = b
             h.addWidget(b)
+        self.set(current or options[0][0])
+
+    def set(self, key):
+        if key in self.buttons:
+            self.buttons[key].setChecked(True)
+
+    def value(self) -> str:
+        return next((k for k, b in self.buttons.items() if b.isChecked()), "")
+
+    def set_enabled(self, key, enabled):
+        self.buttons[key].setEnabled(enabled)
+
+
+class ChoiceCards(QWidget):
+    """Big pickable cards (title and a line under it), one chosen: the same calls as Segmented."""
+    changed = Signal(str)
+
+    def __init__(self, options: list, current: str = None, parent=None):
+        """options: (key, title, line under it)."""
+        super().__init__(parent)
+        h = QHBoxLayout(self)
+        h.setContentsMargins(0, 0, 0, 0)
+        h.setSpacing(10)
+        self.group = QButtonGroup(self)
+        self.buttons = {}
+        for key, title, sub in options:
+            b = QPushButton(objectName="choiceCard", checkable=True)
+            b.setCursor(Qt.PointingHandCursor)
+            b.setMinimumHeight(62)
+            inner = QVBoxLayout(b)
+            inner.setContentsMargins(14, 10, 14, 10)
+            inner.setSpacing(2)
+            t1 = QLabel(title, objectName="choiceTitle")
+            t2 = QLabel(sub, objectName="choiceSub")
+            t2.setWordWrap(True)
+            for lab in (t1, t2):
+                lab.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+                inner.addWidget(lab)
+            b.clicked.connect(lambda _=False, k=key: self.changed.emit(k))
+            self.group.addButton(b)
+            self.buttons[key] = b
+            h.addWidget(b, 1)
         self.set(current or options[0][0])
 
     def set(self, key):

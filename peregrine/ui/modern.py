@@ -43,11 +43,12 @@ class PillButton(QPushButton):
     badge on the left like a play button. Brightens on hover, dips on press."""
 
     def __init__(self, text: str, icon_name: str = None, kind: str = "primary", big: bool = False, parent=None):
-        super().__init__(text.upper(), parent)
+        # the big hero buttons shout (PLAY); everyday buttons read as normal words
+        super().__init__(text.upper() if big else text, parent)
         self.kind, self.icon_name, self.big = kind, icon_name, big
         self._hover = 0.0
         self.setCursor(Qt.PointingHandCursor)
-        self.setFont(heavy_font(17 if big else 14, QFont.Black if big else QFont.ExtraBold, 0.4))
+        self.setFont(heavy_font(17 if big else 14, QFont.Black if big else QFont.Bold, 0.4 if big else 0.0))
         self._anim = QVariantAnimation(self)
         self._anim.setDuration(150)
         self._anim.setEasingCurve(QEasingCurve.OutCubic)

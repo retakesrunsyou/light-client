@@ -130,7 +130,7 @@ class NewInstanceDialog(Sheet):
         self.setWindowTitle("New instance")
         v = QVBoxLayout(self)
         v.setContentsMargins(24, 22, 24, 20)
-        v.addWidget(_title("New instance", "Each instance has its own worlds, mods and settings."))
+        v.addWidget(_title("New instance", "Its own worlds, mods and settings, separate from your others."))
 
         form = QFormLayout()
         form.setSpacing(12)
@@ -139,19 +139,19 @@ class NewInstanceDialog(Sheet):
         self.version = QComboBox()
         self.version.addItem("Loading versions…")
         self.version.setEnabled(False)
-        snap_row = _toggle_row("Include snapshots", show_snapshots)
+        snap_row = _toggle_row("Snapshots", show_snapshots)
         self.snapshots = snap_row.toggle
         self.snapshots.toggled.connect(self.load_versions)
 
-        self.loader = Segmented([("fabric", "Fabric"), ("vanilla", "Vanilla")], "fabric")
+        from .widgets import ChoiceCards
+        self.loader = ChoiceCards([("fabric", "Light Client", "Fabric, with all the extras"),
+                                   ("vanilla", "Plain Minecraft", "No mods, just the game")], "fabric")
         self.wanted_loader = "fabric"  # what the player picked; kept while versions load
         self.loader.changed.connect(self.pick_loader)
         loaders = QHBoxLayout()
-        loaders.addWidget(self.loader)
-        loaders.addStretch()
+        loaders.addWidget(self.loader, 1)
 
-        perf_row = _toggle_row("Performance mode: Sodium, C2ME, Lithium, FerriteCore, Iris, Entity Culling, ScalableLux and Clumps, picked for this "
-                               "version, plus fast game settings", True)
+        perf_row = _toggle_row("FPS pack: Sodium, Lithium, C2ME and friends, matched to this version", True)
         self.perf, self.perf_row = perf_row.toggle, perf_row
         self.version.currentTextChanged.connect(self.update_options)
 
@@ -166,19 +166,36 @@ class NewInstanceDialog(Sheet):
         self.copy_from.setToolTip("Copies game settings and keybinds, resource packs, shaders and mods. "
                                   "Mods are fetched again for the version you pick here.")
 
-        form.addRow("Name", self.name)
-        form.addRow("Description", self.description)
-        form.addRow("Version", self.version)
-        form.addRow("", snap_row)
-        form.addRow("Loader", loaders)
-        form.addRow("", perf_row)
-        form.addRow("Bring over", self.copy_from)
-        v.addLayout(form)
+        # one column: a label above each thing, grouped like a game's setup screen
+        def label(text):
+            return QLabel(text, objectName="formLabel")
+        col = QVBoxLayout()
+        col.setSpacing(6)
+        col.addWidget(label("Name"))
+        col.addWidget(self.name)
+        col.addSpacing(6)
+        col.addWidget(label("Minecraft version"))
+        vrow = QHBoxLayout()
+        vrow.setSpacing(12)
+        vrow.addWidget(self.version, 1)
+        vrow.addWidget(snap_row)
+        col.addLayout(vrow)
+        col.addSpacing(6)
+        col.addWidget(label("Play with"))
+        col.addLayout(loaders)
+        col.addWidget(perf_row)
+        col.addSpacing(6)
+        col.addWidget(label("Settings, packs and mods from"))
+        col.addWidget(self.copy_from)
+        col.addSpacing(6)
+        col.addWidget(label("Note (optional)"))
+        col.addWidget(self.description)
+        v.addLayout(col)
         v.addSpacing(8)
         row, self.ok = _buttons(self, "Create instance")
         self.ok.setEnabled(False)
         v.addLayout(row)
-        self.resize(480, 0)
+        self.resize(520, 0)
 
         self.fabric_versions = frozenset()
         self.versions_loaded = False
