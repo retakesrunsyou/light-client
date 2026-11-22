@@ -9,7 +9,8 @@ import net.peregrine.client.core.settings.SliderSetting;
  * Performance boost: Peregrine's own speed-ups, each measured with the benchmark. Fewer frames
  * when the game isn't in front of you (cooler, quieter, more for other apps), a cap on
  * particles so explosions and crystal fights don't tank FPS, and chests, signs and other block
- * entities left out past a distance you choose.
+ * entities, and dropped items, XP orbs, item frames (maps!) and display entities, left out past
+ * distances you choose.
  */
 public final class Boost extends Module {
 
@@ -32,14 +33,16 @@ public final class Boost extends Module {
             .withText(v -> v >= 16000 ? "No limit" : String.valueOf(Math.round(v))));
     public final SliderSetting blockEntities = add(new SliderSetting("block_entities", "Draw chests, signs and banners up to", 16f, 128f, 8f, 32f, "%.0f blocks")
             .withText(v -> v >= 128 ? "No limit" : Math.round(v) + " blocks"));
+    public final SliderSetting smallEntities = add(new SliderSetting("small_entities", "Draw dropped items, XP, item frames and displays up to", 16f, 128f, 8f, 48f, "%.0f blocks")
+            .withText(v -> v >= 128 ? "No limit" : Math.round(v) + " blocks"));
 
     /** Read by the game hooks (0 = off). */
-    public static volatile int backgroundFps, maxParticles, blockEntityDistance;
+    public static volatile int backgroundFps, maxParticles, blockEntityDistance, smallEntityDistance;
     /** World resolution, 1 = full (read by the game hooks). */
     public static volatile float worldScale = 1f;
 
     public Boost() {
-        super("boost", "Performance boost", "Light Client's own speed-ups: world resolution, fewer frames in the background, a particle cap, nearer chests and signs",
+        super("boost", "Performance boost", "Light Client's own speed-ups: world resolution, fewer frames in the background, a particle cap, nearer chests, signs, items and item frames",
                 Category.PERFORMANCE, true);
     }
 
@@ -58,6 +61,7 @@ public final class Boost extends Module {
         backgroundFps = 0;
         maxParticles = 0;
         blockEntityDistance = 0;
+        smallEntityDistance = 0;
         worldScale = 1f;
     }
 
@@ -66,6 +70,7 @@ public final class Boost extends Module {
         backgroundFps = on ? BACKGROUND_FPS[background.index] : 0;
         maxParticles = on && particles.value < 16000 ? Math.round(particles.value) : 0;
         blockEntityDistance = on && blockEntities.value < 128 ? Math.round(blockEntities.value) : 0;
+        smallEntityDistance = on && smallEntities.value < 128 ? Math.round(smallEntities.value) : 0;
         worldScale = on ? SCALE_VALUES[resolution.index] : 1f;
     }
 }

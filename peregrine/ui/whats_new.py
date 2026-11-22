@@ -8,6 +8,9 @@ from .theme import Theme
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
     ("2.2.0", "Light Client", "A new name, a new logo, and a new main menu in game."),
+    ("2.2.0", "Faster with lots of items", "Dropped items, XP, item frames (and their maps) and display entities far away "
+                                           "aren't drawn: a new Performance boost setting. Each Light Engine preset now tunes "
+                                           "every boost setting too, and switching it off puts yours back."),
     ("2.2.0", "Light Engine", "One switch in the Right Shift menu's Performance page sets the best FPS settings for "
                               "Potato, Balanced, Max FPS or Quality. Switching it off puts your own settings back."),
     ("2.2.0", "Saturation", "Make the whole world more vivid, or greyer."),

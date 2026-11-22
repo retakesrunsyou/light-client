@@ -12,6 +12,7 @@ final class LightPanel extends MenuPanel {
         {"2.2.0", "Music in the pause menu", "The song playing, its cover, and back, play / pause and skip"},
         {"2.2.0", "New skies", "Real-looking stars, a real sun and a detailed moon; much lighter on FPS"},
         {"2.2.0", "Light Client", "A new name, a new logo, and the new main menu"},
+        {"2.2.0", "Faster with lots of items", "Far items, XP, item frames and displays aren't drawn (Performance boost)"},
         {"2.2.0", "Light Engine", "One switch for the best FPS settings: Potato, Balanced, Max FPS or Quality"},
         {"2.2.0", "Saturation", "Make the whole world more vivid, or greyer (Visuals, or here on Performance)"},
         {"2.2.0", "Lyrics", "Words to the song you're playing, in time, on screen or floating in 3D"},

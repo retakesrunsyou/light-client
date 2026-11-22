@@ -11,6 +11,7 @@
 		"CapeMixin",
 		"BoostFpsMixin",
 		"BoostParticleMixin",
+		"BoostEntityMixin",
 		"BoostBlockEntityMixin",
 		"PieChartMixin",
 		"PieResultsMixin",

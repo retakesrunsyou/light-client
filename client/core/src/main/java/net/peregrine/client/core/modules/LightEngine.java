@@ -37,6 +37,13 @@ public final class LightEngine extends Module {
     };
     private static final String[] KEYS = {"simulation", "clouds", "smooth_lighting", "biome_blend", "mipmaps", "entity_shadows"};
     /** Light Client features each preset turns on (the rest are left as they are). */
+    /** Performance boost per preset: {particle cap, chests and signs distance, items and frames distance, world resolution choice}. 16000 / 128 = no limit. */
+    private static final int[][] BOOST = {
+        {1000, 16, 16, 3},
+        {4000, 48, 48, 0},
+        {1500, 24, 24, 1},
+        {16000, 128, 128, 0},
+    };
     private static final String[][] FEATURES = {
         {"boost", "fewer_particles", "hide_plants", "smooth_join"},
         {"boost", "fewer_particles", "smooth_join"},
@@ -91,6 +98,17 @@ public final class LightEngine extends Module {
         p.setVideo("max_fps", 260);   // no cap: Stable FPS and V-Sync below decide
         p.setVideo("vsync", 0);
         Peregrine pc = Peregrine.get();
+        Module bm = pc.module("boost");
+        if (bm instanceof Boost) {
+            Boost b = (Boost) bm;
+            int[] k = BOOST[i];
+            b.particles.value = k[0];
+            b.blockEntities.value = k[1];
+            b.smallEntities.value = k[2];
+            if (p.supports("boost_world_scale")) {
+                b.resolution.index = k[3];
+            }
+        }
         for (String id : FEATURES[i]) {
             Module m = pc.module(id);
             if (m != null && !m.enabled() && p.supports(id)) {
@@ -136,6 +154,14 @@ public final class LightEngine extends Module {
         }
         m.put("max_fps", String.valueOf(p.video("max_fps")));
         m.put("vsync", String.valueOf(p.video("vsync")));
+        Module bm = Peregrine.get().module("boost");
+        if (bm instanceof Boost) {
+            Boost b = (Boost) bm;
+            m.put("boost.particles", String.valueOf(Math.round(b.particles.value)));
+            m.put("boost.block_entities", String.valueOf(Math.round(b.blockEntities.value)));
+            m.put("boost.small_entities", String.valueOf(Math.round(b.smallEntities.value)));
+            m.put("boost.world_scale", String.valueOf(b.resolution.index));
+        }
         StringBuilder b = new StringBuilder();
         for (Map.Entry<String, String> e : m.entrySet()) {
             b.append(e.getKey()).append('=').append(e.getValue()).append('\n');
@@ -162,7 +188,20 @@ public final class LightEngine extends Module {
                 if (v.startsWith("-1")) {
                     continue;   // unknown on this version
                 }
-                if (k.equals("render")) {
+                if (k.startsWith("boost.")) {
+                    Module bm = Peregrine.get().module("boost");
+                    if (bm instanceof Boost) {
+                        Boost b = (Boost) bm;
+                        int n = Integer.parseInt(v);
+                        switch (k) {
+                            case "boost.particles": b.particles.value = n; break;
+                            case "boost.block_entities": b.blockEntities.value = n; break;
+                            case "boost.small_entities": b.smallEntities.value = n; break;
+                            case "boost.world_scale": b.resolution.index = Math.max(0, Math.min(Boost.SCALE.length - 1, n)); break;
+                            default: break;
+                        }
+                    }
+                } else if (k.equals("render")) {
                     p.setRenderDistance(Integer.parseInt(v));
                 } else if (k.equals("entity")) {
                     p.setEntityDistance(Double.parseDouble(v));
