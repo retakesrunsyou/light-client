@@ -71,15 +71,18 @@ jobs:
             gh release upload "${{ github.event.release.tag_name }}" "${jars[@]}" --clobber
           fi
 
-      # Manual builds keep the jars for a few days (for testing before a release).
+      # Manual builds go to a draft release named "test-build" (only the repo's owners can
+      # see drafts, and the launcher only looks at the latest published release).
       - name: Keep the in-game mod (manual builds)
         if: github.event_name == 'workflow_dispatch'
-        uses: actions/upload-artifact@v4
-        with:
-          name: in-game-mod
-          path: client/dist/*.jar
-          retention-days: 3
-          if-no-files-found: ignore
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          jars=(client/dist/*.jar)
+          [ ${#jars[@]} -gt 0 ] || exit 0
+          gh release view test-build >/dev/null 2>&1 || gh release create test-build --draft --title "Test build" --notes "For testing only; not a release."
+          gh release upload test-build "${jars[@]}" --clobber
 
       # Versions that built are already attached; this just makes a failure visible.
       - name: Report versions that failed to build
