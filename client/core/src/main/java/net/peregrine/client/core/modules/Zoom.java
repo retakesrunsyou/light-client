@@ -49,6 +49,11 @@ public final class Zoom extends Module {
         return true;
     }
 
+    /** How far zoomed in it is right now (1 when not zoomed), without moving the zoom on. */
+    public double current() {
+        return current;
+    }
+
     public double divisor(Platform p) {
         double target = target(p);
         if (!smooth.value) {

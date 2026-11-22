@@ -889,6 +889,11 @@ final class GamePlatform implements Platform {
         return Proj.project(x, y, z);
     }
 
+    @Override
+    public float fovSetting() {
+        return mc().options.fov().get().floatValue();
+    }
+
     private long tntTick = Long.MIN_VALUE;
     private final java.util.List<double[]> tntList = new java.util.ArrayList<double[]>();
     private int entities = -1;

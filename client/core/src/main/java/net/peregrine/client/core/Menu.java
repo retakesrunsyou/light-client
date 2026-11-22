@@ -379,6 +379,11 @@ public final class Menu {
         return editingHud;
     }
 
+    /** True while the HUD editor is open (items that are normally hidden show a stand-in to place). */
+    public boolean isEditingHud() {
+        return editingHud;
+    }
+
     String search() {
         return search;
     }

@@ -115,6 +115,18 @@ public final class Hooks {
     // ---- Scoreboard (sidebar) size, 1 = Minecraft's
     public static volatile float scoreboardScale = 1f;
 
+    // ---- Moving the scoreboard and the chat (HUD editor). Set by the core each frame;
+    // the version adapter moves Minecraft's own drawing there (and says it can).
+    public static volatile boolean canMoveScoreboard, canMoveChat;
+    public static volatile boolean scoreboardMoved, chatMoved;
+    /** Where the scoreboard goes: top-left x, y and size. */
+    public static volatile float scoreboardX, scoreboardY, scoreboardK = 1f;
+    /** Where Minecraft drew the scoreboard (before moving): x, y, w, h; w 0 when there's none. */
+    public static volatile int[] scoreboardBox = {0, 0, 0, 0};
+    public static volatile long scoreboardSeenAt;
+    /** Where the chat goes: its bottom-left x, y and size. */
+    public static volatile float chatX, chatY, chatK = 1f;
+
     // ---- Low fire: how far down the fire overlay moves (0 = Minecraft's)
     public static volatile float fireDrop;
 

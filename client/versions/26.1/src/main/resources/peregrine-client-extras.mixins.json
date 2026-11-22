@@ -80,6 +80,7 @@
 		"ReconnectScreenMixin",
 		"ReconnectTickMixin",
 		"ScoreboardMixin",
+		"ChatMoveMixin",
 		"ScreenTextMixin",
 		"SeeThroughContainerMixin",
 		"SeeThroughInventoryMixin",

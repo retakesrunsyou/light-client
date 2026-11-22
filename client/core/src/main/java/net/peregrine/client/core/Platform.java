@@ -484,6 +484,11 @@ public interface Platform {
         return null;
     }
 
+    /** The field of view chosen in the game's options (degrees), before zoom or sprinting change it. */
+    default float fovSetting() {
+        return 70f;
+    }
+
     /** Lit TNT near you: {x, y, z, fuse ticks left}. */
     default List<double[]> primedTnt() {
         return java.util.Collections.emptyList();

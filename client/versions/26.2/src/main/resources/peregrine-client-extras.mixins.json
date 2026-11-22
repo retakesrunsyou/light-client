@@ -60,6 +60,7 @@
 		"PlaceAnimLevelMixin",
 		"PlaceAnimLightMixin",
 		"ScoreboardMixin",
+		"ChatMoveMixin",
 		"ScreenTextMixin",
 		"SeeThroughContainerMixin",
 		"SeeThroughInventoryMixin",
