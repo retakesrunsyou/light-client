@@ -45,6 +45,7 @@ import net.peregrine.client.core.modules.Flag;
 import net.peregrine.client.core.modules.FoodHud;
 import net.peregrine.client.core.modules.MemoryHud;
 import net.peregrine.client.core.modules.PieChart;
+import net.peregrine.client.core.modules.LyricsHud;
 import net.peregrine.client.core.modules.PacksHud;
 import net.peregrine.client.core.modules.PotionCountHud;
 import net.peregrine.client.core.modules.ClockHud;
@@ -110,6 +111,7 @@ public final class Peregrine {
         modules.add(new BiomeHud());
         modules.add(new MemoryHud());
         modules.add(new PieChart());
+        modules.add(new LyricsHud());
         modules.add(new FoodHud());
         modules.add(new PotionCountHud());
         modules.add(new PacksHud());
@@ -545,7 +547,7 @@ public final class Peregrine {
         SelfTest.count("hud");
         pollKeys();
         for (Module m : modules) {  // world markers first, so HUD items sit on top of them
-            if (m.enabled() && !(m instanceof HudModule) && platform.supports(m.id)) {
+            if (m.enabled() && (!(m instanceof HudModule) || ((HudModule) m).supportsWorldRender()) && platform.supports(m.id)) {
                 m.renderWorld(d, platform);
             }
         }

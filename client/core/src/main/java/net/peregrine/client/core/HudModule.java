@@ -114,6 +114,11 @@ public abstract class HudModule extends Module {
         return true;
     }
 
+    /** HUD items that also draw over the world (renderWorld) say so here. */
+    public boolean supportsWorldRender() {
+        return false;
+    }
+
     void renderAt(Draw d, Platform p) {
         StyleDraw sd = new StyleDraw(d, this);
         int bw = brackets ? d.width("[") + 2 : 0;   // room for the brackets on each side
