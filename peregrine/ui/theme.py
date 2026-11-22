@@ -291,7 +291,13 @@ _PATHS = {
     "info": '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8v.2"/>',
 }
 
-LOGO_SVG = ('<path d="M64 104 L54 62 L18 40 L56 48 L64 22 L72 48 L110 40 L74 62 Z" fill="{c}"/>')
+LOGO_SVG = (
+    '<g transform="translate(23 23) scale(5)">'
+    '<path fill="#fff0cf" d="M12 0h3L7 16H4Z"/>'
+    '<path fill="#e6a04f" d="m11.5 7 5 9H7Z"/>'
+    '<path fill="{c}" d="M0 11h6l-.5 1H0zm2-2h5l-.5 1H2z"/>'
+    '</g>'
+)
 
 
 def _render(svg: str, size: int, dpr: float) -> QPixmap:

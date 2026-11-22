@@ -38,6 +38,16 @@ public final class StableFps extends Module {
                 Category.PERFORMANCE, true);
     }
 
+    /** Applies a policy from the Performance page while retaining the player's base video settings. */
+    public void applyPreset(int targetIndex, boolean lowerDistance, int minimumChunks) {
+        if (level > 0) restore(platform(), true);
+        target.index = targetIndex;
+        distance.value = lowerDistance;
+        floor.value = minimumChunks;
+        slow = fast = settle = 0;
+        setEnabled(true);
+    }
+
     public int level() {
         return level;
     }

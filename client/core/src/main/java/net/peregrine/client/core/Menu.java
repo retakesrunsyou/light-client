@@ -81,6 +81,7 @@ public final class Menu {
     private final List<Hit> sideHits = new ArrayList<Hit>();
     private float sideSlide = -1;
     private int sideX, sideY, sideW, sideH;
+    private int sideScroll, maxSideScroll;
     private boolean onlyOn;       // the ≡ button: show only what's switched on
     private final ColorPicker picker = new ColorPicker();
     private String listSearch = "";
@@ -169,6 +170,7 @@ public final class Menu {
         draggingSlider = null;
         hits.clear();
         sideSlide = -1;
+        sideScroll = 0;
         MenuPanel pn = panel();
         if (pn != null) {
             pn.shown();
@@ -194,7 +196,7 @@ public final class Menu {
     private static final Node[] SIDEBAR = {
         new Node("modules", "Modules", "grid",
                 new Node("cat:HUD", "HUD", "hud"), new Node("cat:UTILITY", "Utility", "wrench"),
-                new Node("cat:VISUALS", "Visuals", "eye"), new Node("cat:PERFORMANCE", "Performance", "bolt")),
+                new Node("cat:VISUALS", "Visuals", "eye"), new Node("performance", "Performance", "bolt")),
         new Node("mods", "Mods", "puzzle", new Node("mods:installed", "Installed", null), new Node("mods:browse", "Browse", null)),
         new Node("shaders", "Shaders", "sun", new Node("shaders:installed", "Installed", null), new Node("shaders:browse", "Browse", null)),
         new Node("packs", "Resource packs", "layers", new Node("packs:installed", "Installed", null), new Node("packs:browse", "Browse", null)),
@@ -202,7 +204,7 @@ public final class Menu {
         new Node("locker", "Locker", "shirt"),
         new Node("friends", "Friends", "people"),
         new Node("voice", "Voice chat", "mic"),
-        null,  // a divider
+        new Node("news", "What's new", "layers"),
         new Node("keybinds", "Keybinds", "keyboard"),
         new Node("settings", "Settings", "gear"),
     };
@@ -214,7 +216,9 @@ public final class Menu {
         }
         MenuPanel pn = panels.get(section);
         if (pn == null) {
-            if (section.equals("locker")) {
+            if (section.equals("performance") || section.equals("news")) {
+                pn = new LightPanel(pc, this, section.equals("performance"));
+            } else if (section.equals("locker")) {
                 pn = new LockerPanel(pc, this);
             } else if (section.equals("friends")) {
                 pn = new FriendsPanel(pc, this);
@@ -595,16 +599,16 @@ public final class Menu {
         int a = pc.accent();
 
         // The window: frosted glass with the accent glowing along its top edge, the falcon faint in the corner
-        Glass.window(d, px, py, pw, ph, pc.menuBg(Glass.GLASS), a);
-        Glass.falcon(d, px + pw - 92, py + ph - 96, 9f, 0x0CFFFFFF);
-        d.rect(px + 10, py + TITLE_H, pw - 20, 1, 0x18FFFFFF);
+        d.roundRect(px, py, pw, ph, 9, pc.menuBg(0xF20D1420));
+        d.roundOutline(px, py, pw, ph, 9, 0x66485870);
+        d.rect(px + 11, py + TITLE_H, pw - 22, 1, 0x40607793);
+        d.rect(px + 11, py + TITLE_H, 38, 1, a);
 
-        // Title: the falcon, "Peregrine", and where you are
         int ty = py + (TITLE_H - 8) / 2;
-        Glass.logo(d, px + 9, ty - 4, 1.6f, 0xFFFFFFFF);
-        d.textScaled("Peregrine", px + 27, ty - 1, Theme.TEXT, 1.25f, true);
+        TitleMenu.lightMark(d, px + 10, ty - 4, a);
+        d.textScaled(TitleMenu.BRAND, px + 36, ty - 1, Theme.TEXT, 1.25f, false);
         String crumb = crumb();
-        int cx0 = px + 27 + Math.round(d.width("Peregrine") * 1.25f) + 6;
+        int cx0 = px + 36 + Math.round(d.width(TitleMenu.BRAND) * 1.25f) + 6;
         int room = (view == 0 ? menuBtnX : searchX) - 8 - cx0;
         if (room > 20) {
             d.text("/", cx0, ty + 1, Theme.FAINT, false);
@@ -790,6 +794,7 @@ public final class Menu {
         if (page != null) {
             return page.name;
         }
+        if (section.equals("cat:PERFORMANCE")) return "Performance / Modules";
         for (Node n : SIDEBAR) {
             if (n == null) {
                 continue;
@@ -835,7 +840,7 @@ public final class Menu {
     private void drawSidebar(Draw d, int mx, int my, float dt, int a) {
         sideHits.clear();
         rows.clear();
-        Glass.pane(d, sideX, sideY, sideW, sideH, 5, pc.menuBg(0x50080A0E));
+        d.roundRect(sideX, sideY, sideW, sideH, 6, pc.menuBg(0x74141F2F));
         int lines = 0, dividers = 0;
         for (Node n : SIDEBAR) {
             if (n == null) {
@@ -846,7 +851,9 @@ public final class Menu {
         }
         int rowH = Math.max(11, Math.min(SIDE_ROW, (sideH - 8 - dividers * 7) / Math.max(1, lines)));
         int ty = (rowH - 8) / 2 + 1;
-        int y = sideY + 4;
+        sideScroll = Math.min(sideScroll, Math.max(0, 8 + lines * rowH + dividers * 7 - sideH));
+        clipArea(d, sideX, sideY, sideW, sideH);
+        int y = sideY + 4 - sideScroll;
         float selY = -1;
         boolean selKid = false;
         for (Node n : SIDEBAR) {
@@ -888,6 +895,7 @@ public final class Menu {
                 d.rect(sideX + 10, kidsTop, 1, Math.max(0, y - kidsTop - 3), Theme.withAlpha(a, Math.round(0x60 * ex)));
             }
         }
+        maxSideScroll = Math.max(0, y + sideScroll + 4 - sideY - sideH);
         // hover washes, under everything else
         for (Row r : rows) {
             boolean selected = isSelected(r.n);
@@ -940,6 +948,12 @@ public final class Menu {
                     Glass.chevron(rd, sideX + sideW - 12, r.y + ty + 1, r.open, selected ? col : Theme.withAlpha(col, 0xB0));
                 }
             }
+        }
+        unclipArea(d);
+        if (maxSideScroll > 0) {
+            int thumb = Math.max(9, sideH * sideH / (sideH + maxSideScroll));
+            int offset = (sideH - thumb) * Math.min(sideScroll, maxSideScroll) / maxSideScroll;
+            d.rect(sideX + sideW - 2, sideY + offset, 1, thumb, Theme.withAlpha(a, 0x80));
         }
     }
 
@@ -2079,7 +2093,7 @@ public final class Menu {
             return true;
         }
         for (Hit h : new ArrayList<Hit>(sideHits)) {
-            if (in(mx, my, h.x, h.y, h.w, h.h)) {
+            if (in(mx, my, sideX, sideY, sideW, sideH) && in(mx, my, h.x, h.y, h.w, h.h)) {
                 Node n = node(h.id);
                 if (n != null && n.kids.length > 0) {
                     toggleGroup(n);
@@ -2263,6 +2277,11 @@ public final class Menu {
     public boolean mouseScrolled(double amount) {
         if (editingHud) {
             return editor.mouseScrolled(amount, lastMx, lastMy);
+        }
+        if (maxSideScroll > 0 && in(Math.round(lastMx / k), Math.round(lastMy / k), sideX, sideY, sideW, sideH)) {
+            sideScroll = clamp(sideScroll - (int) Math.round(amount * 24), 0, maxSideScroll);
+            sideSlide = -1;
+            return true;
         }
         MenuPanel pn = page == null ? panel() : null;
         if (pn != null) {

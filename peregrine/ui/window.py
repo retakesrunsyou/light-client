@@ -14,7 +14,7 @@ from . import workers
 from .dialogs import LoginDialog, NewInstanceDialog
 from .browse import BrowsePage, MarketPage, ModBrowser, ModpacksPage
 from .friends_page import FriendsPage
-from .modern import FloatButton, Pill, Rail, StatusRing
+from .modern import FloatButton, Pill, Rail, StatusRing, big_title
 from .recent import RecentPage
 from .pages import AccountsPage, ContentPage, HomePage, SettingsPage, icon_button
 from .sheet import tell
@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
     RAIL = [("recent", "s_home", "Home"), ("library", "library", "Library"), ("home", "s_grid", "Instances"),
             ("browse", "s_layers", "Mods"), None,
             ("clips", "s_film", "Clips"), ("locker", "s_shirt", "Locker"), ("friends", "s_user", "Friends"),
-            ("profiles", "users", "Profiles"), ("settings", "s_gear", "Settings")]
+            ("profiles", "users", "Profiles"), ("news", "s_layers", "What's new"), ("settings", "s_gear", "Settings")]
     RAIL_OF = {"content": "library", "accounts": None}
 
     def __init__(self):
@@ -163,10 +163,25 @@ class MainWindow(QMainWindow):
         self.shaders = BrowsePage("shader", "Shaders", "Shader packs from Modrinth. Iris comes along to run them, "
                                   "and the pack you add is switched on.")
         self.market = MarketPage(self.mods, self.packs, self.modpacks, self.shaders)
+        self.news = QWidget()
+        news = QVBoxLayout(self.news)
+        news.setContentsMargins(32, 20, 32, 20)
+        news.setSpacing(14)
+        news.addWidget(big_title("What's new"))
+        for headline, detail in (
+            ("Light Client", "A new starting screen with direct access to play, recent servers, settings and Locker."),
+            ("Right Shift", "Open the refreshed in-game menu for modules, cosmetics and the release notes."),
+            ("Performance presets", "Use Right Shift → Modules → Performance to choose how Stable FPS responds to dips."),
+        ):
+            news.addWidget(QLabel(headline, objectName="sectionTitle"))
+            description = QLabel(detail, objectName="muted")
+            description.setWordWrap(True)
+            news.addWidget(description)
+        news.addStretch()
         self.pages = {"recent": self.recent, "library": self.library, "home": self.home, "content": self.content,
                       "settings": self.settings, "accounts": self.accounts, "friends": self.friends,
                       "profiles": self.profiles, "locker": self.locker, "clips": self.clips,
-                      "browse": self.market}
+                      "browse": self.market, "news": self.news}
         for page in self.pages.values():
             self.stack.addWidget(page)
         main.addWidget(self.stack, 1)
@@ -906,7 +921,7 @@ def appimage_integration():
         if icon.is_file():
             import shutil
             shutil.copyfile(icon, icons / "peregrine.png")
-        entry = ("[Desktop Entry]\nType=Application\nName=Peregrine Launcher\nGenericName=Minecraft Launcher\n"
+        entry = ("[Desktop Entry]\nType=Application\nName=Light Client Launcher\nGenericName=Minecraft Launcher\n"
                  "Comment=Launch and speed up Minecraft: Java Edition\n"
                  f'Exec="{appimage}" %U\nIcon=peregrine\nStartupWMClass=peregrine\nStartupNotify=true\n'
                  "Categories=Game;\nKeywords=minecraft;launcher;mods;fabric;\nTerminal=false\n")

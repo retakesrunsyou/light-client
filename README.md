@@ -1,10 +1,9 @@
-# 🪶 Peregrine Launcher
+# Light Client
 
 **Fast to launch. Faster to play.** A Minecraft: Java Edition launcher for Windows and Linux.
 
-The peregrine falcon is the fastest animal on Earth, diving at over 300 km/h.
-Peregrine gets you into the game just as fast, then keeps it fast while you
-play: more FPS, smoother frames and fewer lag spikes, out of the box.
+Light Client brings the Peregrine launcher and in-game client together under a new name.
+Existing instances and client settings continue to use their Peregrine storage paths.
 
 ## What it does
 
@@ -72,16 +71,18 @@ drawn in software; real graphics cards usually gain more from Sodium):
 | 1.21.11 | 17-18 FPS | 28-31 FPS | about 1.7x |
 | 1.21.1 | 37-38 FPS (lows 16) | 42-44 FPS (lows 28) | lows +70% |
 
-**In-game menu (Peregrine Client)**
-- **Main menu**: the falcon glowing in the middle, three big glass tiles (Singleplayer, Multiplayer, Modules) and
-  round buttons for the rest, your player turning beside it in your cape, and a background you choose: Minecraft's
-  panorama, Dusk, Aurora, Night sky or your own picture. The **Locker** button slides in your capes, skins and backgrounds:
+**In-game menu (Light Client)**
+- **Starting screen**: a vertical navigation dock over your chosen background with Singleplayer, Multiplayer,
+  Client menu, Settings, Quit, and direct access to your last server. Open **What's new** from the starting
+  screen, Right Shift menu, or launcher. The **Locker** button slides in your capes, skins and backgrounds:
   try a skin on and wear it, without leaving the game. **Adjust** your own picture like the HUD editor: drag it,
   resize it from the corners or with the scroll wheel, snap it to the middle or the edges, show the whole
   picture, darken it, and switch its slow drift on or off
 - Press **Right Shift** in game for the Peregrine menu, a frosted glass window with a sidebar that drops down:
   - **Modules** (HUD, Utility, Visuals, Performance): every built-in mod as a tile with its icon, a green
     **Enabled** / red **Disabled** bar to switch it and a gear for its options; star your favourites to keep them first
+  - **Modules → Performance** offers Low-end, Balanced, and High-end Stable FPS presets. Open
+    **Performance modules** for the individual controls. High-end preserves your render distance when FPS dips.
   - Every feature's page works like Lunar's: search its settings, a small arrow resets any one of them, and colours
     come from a full picker (any colour, opacity, or RGB) — block outline, hitboxes, hit color, glint, fog, crosshair
     and waypoints included. HUD items have their whole look on their page too: size, text, label, background and
