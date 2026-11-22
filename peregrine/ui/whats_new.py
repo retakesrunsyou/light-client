@@ -12,6 +12,10 @@ NOTES = [
                               "Potato, Balanced, Max FPS or Quality. Switching it off puts your own settings back."),
     ("2.2.0", "Saturation", "Make the whole world more vivid, or greyer."),
     ("2.2.0", "Lyrics", "Words to the song you're playing, in time with it, on screen or floating in 3D in the world."),
+    ("2.2.0", "A cleaner launcher", "Blocky buttons like Minecraft's, a calm still background, a simpler "
+                                    "New instance screen, and pages that fit any window size."),
+    ("2.2.0", "Faster game start", "The FPS pack now includes ModernFix, so the game opens and reloads much faster."),
+    ("2.2.0", "Santa hat and bunny slippers", "Add them to any skin from the Locker."),
     ("2.2.0", "Screenshots and clips", "Saved in your Pictures and Videos folders, in a Light Client folder, "
                                        "on Windows and Linux."),
     ("2.1.3", "Pie chart", "Minecraft's own profiler pie chart as a HUD item you can move and size."),

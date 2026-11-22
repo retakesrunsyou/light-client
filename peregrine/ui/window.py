@@ -43,8 +43,8 @@ class MainWindow(QMainWindow):
         self.page = None
         self.friends_online = None
 
-        # The whole window sits on an animated night sky (see sky.py). The rail is
-        # solid; everything else floats over the sky as glass.
+        # The whole window sits on a still backdrop (see sky.py). The rail is
+        # solid; everything else floats over it as glass.
         self.sky = Sky()
         root = self.sky
         outer = QHBoxLayout(root)

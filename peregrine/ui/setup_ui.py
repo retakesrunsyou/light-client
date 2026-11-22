@@ -54,36 +54,23 @@ def _anim(parent, ms, start, end, curve, step, done=None):
 # ---------------------------------------------------------------------- pieces
 
 class _Sky:
-    """Twinkling stars and two slow glows, drawn behind everything."""
-
-    def __init__(self, seed=7):
-        rnd = random.Random(seed)
-        self.stars = [(rnd.random(), rnd.random() ** 1.4, rnd.uniform(0.5, 1.6), rnd.uniform(0, 6.28),
-                       rnd.uniform(0.6, 1.8)) for _ in range(90)]
-        self.t0 = time.monotonic()
+    """A still backdrop: a deep gradient and two soft glows, drawn behind everything."""
 
     def paint(self, p: QPainter, r: QRectF):
-        t = time.monotonic() - self.t0
         g = QLinearGradient(r.topLeft(), r.bottomRight())
         g.setColorAt(0, QColor("#1d1740"))
         g.setColorAt(0.55, QColor("#12131d"))
         g.setColorAt(1, QColor("#0c0d14"))
         p.fillRect(r, g)
-        for cx, cy, rad, col, ph in ((0.18 + 0.05 * math.sin(t * 0.21), 0.12, 0.62, ACCENT, 0),
-                                     (0.86 + 0.04 * math.cos(t * 0.17), 0.95, 0.55, AMBER, 1)):
+        for cx, cy, rad, col in ((0.18, 0.12, 0.62, ACCENT), (0.86, 0.95, 0.55, AMBER)):
             rg = QRadialGradient(QPointF(r.left() + cx * r.width(), r.top() + cy * r.height()), rad * r.width())
             c = QColor(col)
-            c.setAlpha(int(46 + 12 * math.sin(t * 0.6 + ph)))
+            c.setAlpha(46)
             rg.setColorAt(0, c)
             c2 = QColor(col)
             c2.setAlpha(0)
             rg.setColorAt(1, c2)
             p.fillRect(r, rg)
-        p.setPen(Qt.NoPen)
-        for x, y, size, phase, speed in self.stars:
-            a = 0.35 + 0.65 * (0.5 + 0.5 * math.sin(t * speed + phase))
-            p.setBrush(QColor(255, 255, 255, int(150 * a * (1 - y * 0.6))))
-            p.drawEllipse(QPointF(r.left() + x * r.width(), r.top() + y * r.height() * 0.9), size * 0.6, size * 0.6)
 
 
 class Logo(QWidget):

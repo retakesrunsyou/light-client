@@ -768,11 +768,7 @@ class SettingsPage(QWidget):
         look.row("Accent color", swatches)
         anim = self._check(cfg, "animations")
         anim.toggled.connect(lambda _: self.appearance_changed.emit())
-        look.row("Animated background", anim,
-                 "A night sky with stars and the odd peregrine. Pauses while you play.")
-        seasonal = self._check(cfg, "seasonal")
-        seasonal.toggled.connect(lambda _: self.appearance_changed.emit())
-        look.row("Seasonal touches", seasonal, "Bats and a harvest moon in October, snow in December.")
+        look.row("Animations", anim, "Buttons and pages move smoothly. Switch off for a calmer, snappier launcher.")
         start = Segmented([("recent", "Home"), ("library", "Library"), ("home", "Instances")],
                           cfg.get("start_page", "recent") if cfg.get("start_page") in ("recent", "library", "home") else "recent")
 

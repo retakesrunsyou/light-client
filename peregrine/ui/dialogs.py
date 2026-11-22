@@ -13,16 +13,28 @@ from .theme import Theme
 from .widgets import Segmented, Toggle
 
 
-def _toggle_row(text: str, checked: bool):
-    """A label with a switch on the right, used in forms."""
+def _toggle_row(text: str, checked: bool, sub: str = ""):
+    """A label (and a quieter line under it, if given) with a switch on the right, used in forms."""
     w = QWidget()
     h = QHBoxLayout(w)
     h.setContentsMargins(0, 0, 0, 0)
+    h.setSpacing(12)
     label = QLabel(text)
     label.setWordWrap(True)
     t = Toggle(checked)
-    h.addWidget(label, 1)
-    h.addWidget(t)
+    if sub:
+        words = QVBoxLayout()
+        words.setSpacing(1)
+        label.setStyleSheet("font-weight: 600;")
+        words.addWidget(label)
+        hint = QLabel(sub, objectName="muted")
+        hint.setWordWrap(True)
+        hint.setStyleSheet("font-size: 12px;")
+        words.addWidget(hint)
+        h.addLayout(words, 1)
+    else:
+        h.addWidget(label, 1)
+    h.addWidget(t, 0, Qt.AlignVCenter)
     w.toggle, w.label = t, label
     return w
 
@@ -151,7 +163,7 @@ class NewInstanceDialog(Sheet):
         loaders = QHBoxLayout()
         loaders.addWidget(self.loader, 1)
 
-        perf_row = _toggle_row("FPS pack: Sodium, Lithium, C2ME and friends, matched to this version", True)
+        perf_row = _toggle_row("FPS pack", True, "Sodium, Lithium, C2ME, ModernFix and more, matched to this version")
         self.perf, self.perf_row = perf_row.toggle, perf_row
         self.version.currentTextChanged.connect(self.update_options)
 
@@ -183,6 +195,7 @@ class NewInstanceDialog(Sheet):
         col.addSpacing(6)
         col.addWidget(label("Play with"))
         col.addLayout(loaders)
+        col.addSpacing(4)
         col.addWidget(perf_row)
         col.addSpacing(6)
         col.addWidget(label("Settings, packs and mods from"))

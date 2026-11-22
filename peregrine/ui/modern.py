@@ -39,8 +39,8 @@ def heavy_font(px: int, weight=QFont.Black, spacing: float = 0) -> QFont:
 # ------------------------------------------------------------------ buttons
 
 class PillButton(QPushButton):
-    """A rounded pill: 'primary' (accent fill) or 'ghost' (glass), with a round icon
-    badge on the left like a play button. Brightens on hover, dips on press."""
+    """A Minecraft-style block button: 'primary' (accent), 'ghost' (stone grey) or 'danger',
+    with an optional icon on the left. Lights up on hover, pushes in on press."""
 
     def __init__(self, text: str, icon_name: str = None, kind: str = "primary", big: bool = False, parent=None):
         # the big hero buttons shout (PLAY); everyday buttons read as normal words
@@ -86,11 +86,6 @@ class PillButton(QPushButton):
     def mousePressEvent(self, e):
         if e.button() == Qt.LeftButton and self.isEnabled():
             self._press_to(1.0, 90)
-            if animations_on():
-                pos = e.position()
-                self._ripple = (pos.x(), pos.y(), 0.0)
-                self._ripple_anim.stop()
-                self._ripple_anim.start()
         super().mousePressEvent(e)
 
     def mouseReleaseEvent(self, e):
@@ -128,69 +123,69 @@ class PillButton(QPushButton):
         return self.sizeHint()
 
     def paintEvent(self, _):
+        """Drawn like a Minecraft button: a square block with a dark outline, a light top
+        edge and a dark bottom edge. Hover lights the outline; pressing pushes it in."""
         p = QPainter(self)
-        p.setRenderHint(QPainter.Antialiasing)
-        r = QRectF(self.rect()).adjusted(1, 1, -1, -1)
-        if self._press:
-            k = 0.035 * self._press  # dip: shrink a touch around the middle
-            r = r.adjusted(r.width() * k / 2, r.height() * k, -r.width() * k / 2, -r.height() * k)
-        radius = r.height() / 2
-        accent = QColor(Theme.accent)
-        enabled = self.isEnabled()
-        down = self.isDown()
-        if self.kind == "danger":
-            accent = QColor(Theme.p["danger"])
+        enabled, down = self.isEnabled(), self.isDown() or self._press > 0.5
+        o = 2                                  # outline thickness
+        bev_top, bev_bot = (3, 4) if self.big else (2, 3)
+        r = self.rect().adjusted(0, 0, -1, -1)
+        accent = QColor(Theme.p["danger"]) if self.kind == "danger" else QColor(Theme.accent)
         if self.kind in ("primary", "danger"):
-            base = accent if enabled else QColor(accent.red(), accent.green(), accent.blue(), 90)
-            fill = _mix(base, base.lighter(118), self._hover)
-            if down:
-                fill = base.darker(112)
-            if enabled and self._hover > 0:  # soft glow under it
-                for i, a in ((6, 18), (3, 30)):
-                    glow = QColor(accent)
-                    glow.setAlpha(int(a * self._hover))
-                    path = QPainterPath()
-                    path.addRoundedRect(r.adjusted(-i, -i + 3, i, i + 3), radius + i, radius + i)
-                    p.fillPath(path, glow)
+            base = QColor(accent)
             text_color = QColor(on_color(accent.name()))
-            border = None
         else:
-            if dark():
-                fill = _mix(QColor(255, 255, 255, 14), QColor(255, 255, 255, 26), self._hover)
-                border = _mix(QColor(255, 255, 255, 24), accent, self._hover * 0.8)
-            else:
-                fill = _mix(QColor(20, 24, 40, 12), QColor(20, 24, 40, 22), self._hover)
-                border = _mix(QColor(20, 24, 40, 30), accent, self._hover * 0.8)
-            if down:
-                fill.setAlpha(fill.alpha() + 12)
-            text_color = QColor(Theme.p["text"] if enabled else Theme.p["faint"])
-        path = QPainterPath()
-        path.addRoundedRect(r, radius, radius)
-        p.fillPath(path, fill)
-        if self._ripple is not None and self._ripple[2] < 1.0:
-            x, y, t = self._ripple
-            p.save()
-            p.setClipPath(path)
-            ring = QColor(255, 255, 255, int(70 * (1 - t)))
-            reach = max(r.width(), r.height()) * 1.1 * t
-            p.setPen(Qt.NoPen)
-            p.setBrush(ring)
-            p.drawEllipse(QPointF(x, y), reach, reach)
-            p.restore()
-        if border is not None:
-            p.setPen(QPen(border, 1.2))
-            p.drawPath(path)
-        x = r.left() + r.height() * 0.38
+            base = QColor(Theme.p["raised"]).lighter(128 if dark() else 100)
+            if not dark():
+                base = QColor(214, 216, 222)
+            text_color = QColor(Theme.p["text"])
+        if not enabled:
+            g = int(base.red() * 0.3 + base.green() * 0.59 + base.blue() * 0.11)
+            base = QColor(g, g, g).darker(150 if dark() else 110)
+            text_color = QColor(Theme.p["faint"])
+        base = _mix(base, base.lighter(116), self._hover if enabled else 0.0)
+        hi, lo = base.lighter(138), base.darker(165)
+        if down:
+            hi, lo = lo, hi.darker(110)
+        # outline: near-black, lit up on hover
+        edge = QColor(0, 0, 0, 230)
+        if enabled and self._hover > 0:
+            lit = QColor(255, 255, 255) if dark() else QColor(accent).darker(130)
+            edge = _mix(edge, lit, self._hover)
+        p.fillRect(r, edge)
+        inner = r.adjusted(o, o, -o + 1, -o + 1)
+        p.fillRect(inner, base)
+        p.fillRect(inner.x(), inner.y(), inner.width(), bev_top, hi)
+        p.fillRect(inner.x(), inner.bottom() - bev_bot + 1, inner.width(), bev_bot, lo)
+        p.fillRect(inner.x(), inner.y(), 2, inner.height() - bev_bot, hi if not down else base.darker(115))
+        # the face moves down a pixel while pressed
+        dy = 1 if down else 0
+        face = QRectF(inner.adjusted(0, bev_top, 0, -bev_bot)).translated(0, dy)
+        p.setRenderHint(QPainter.Antialiasing)
+        p.setRenderHint(QPainter.TextAntialiasing)
+        x = face.left() + face.height() * 0.42 + 4
+        # Minecraft's hard text shadow: dark under light text, a soft light edge under dark text
+        if text_color.lightness() > 140:
+            shadow = QColor(0, 0, 0, 110 if enabled else 40)
+        else:
+            shadow = QColor(255, 255, 255, 150 if enabled else 60)
         if self.icon_name:
-            size = int(r.height() - 22)
-            badge_color = text_color.name() if self.kind in ("primary", "danger") else Theme.p["text"]
-            pm = icon_pixmap(self.icon_name, badge_color, size)
-            p.drawPixmap(QPointF(x - 4, r.top() + (r.height() - size) / 2), pm)
+            size = int(min(face.height() - 10, 26 if self.big else 20))
+            pm = icon_pixmap(self.icon_name, text_color.name(), size)
+            sh = icon_pixmap(self.icon_name, shadow.name(), size)
+            y = face.top() + (face.height() - size) / 2
+            p.setOpacity(shadow.alphaF())
+            p.drawPixmap(QPointF(x + 1.5, y + 1.5), sh)
+            p.setOpacity(1.0)
+            p.drawPixmap(QPointF(x, y), pm)
             x += size + 10
-        p.setPen(text_color)
         p.setFont(self.font())
-        p.drawText(QRectF(x, r.top(), r.right() - x - r.height() * 0.3, r.height()),
-                   Qt.AlignVCenter | Qt.AlignLeft, self.text())
+        tr = QRectF(x, face.top(), face.right() - x - face.height() * 0.3, face.height())
+        p.setPen(shadow)
+        off = 1.5 if shadow.lightness() < 128 else 1.0
+        p.drawText(tr.translated(off, off), Qt.AlignVCenter | Qt.AlignLeft, self.text())
+        p.setPen(text_color)
+        p.drawText(tr, Qt.AlignVCenter | Qt.AlignLeft, self.text())
         p.end()
 
 

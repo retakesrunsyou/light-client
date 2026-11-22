@@ -27,6 +27,9 @@ MODS = [
     ("c2me-fabric", "C2ME", "loads and builds chunks on every CPU core"),
     ("lithium", "Lithium", "faster game logic: mobs, physics, block ticks"),
     ("ferrite-core", "FerriteCore", "less memory, so fewer garbage-collector stutters"),
+    # ModernFix switches off its own memory tweaks that FerriteCore already does, so the two
+    # don't overlap: what it adds is a much faster game start and faster resource reloads.
+    ("modernfix", "ModernFix", "the game starts and reloads resources much faster"),
     ("iris", "Iris Shaders", "shader packs, fast (with Sodium)"),
     ("entityculling", "Entity Culling", "skips mobs and chests hidden behind walls"),
     ("scalablelux", "ScalableLux", "faster lighting while chunks load: smoother joining"),
@@ -37,7 +40,7 @@ SLUGS = [m[0] for m in MODS]
 # Bump when MODS changes: instances set up with an older list are moved to this one the
 # next time they're checked (mods dropped from the list are taken out; the player's own
 # copies are never touched, since only files we put there are tracked).
-SET_VERSION = 3
+SET_VERSION = 4
 # Mods that used to come with the extras and now come from here: their files move over
 # instead of being downloaded again.
 FROM_EXTRAS = ("iris",)

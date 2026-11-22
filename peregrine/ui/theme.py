@@ -66,6 +66,16 @@ def round_menu(menu):
     return menu
 
 
+def _block(base: str, pressed: bool = False) -> str:
+    """A Minecraft-style bevel as a QSS gradient: a light top edge, the face, a dark bottom edge."""
+    hi, lo = shade(base, 138), shade(base, 60)
+    if pressed:
+        hi, lo = lo, shade(base, 120)
+    return (f"qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {hi}, stop:0.09 {hi}, stop:0.091 {base}, "
+            f"stop:0.86 {base}, stop:0.861 {lo}, stop:1 {lo})")
+
+
+
 def stylesheet() -> str:
     p, a = Theme.p, Theme.accent
     on_a = on_color(a)
@@ -83,6 +93,11 @@ def stylesheet() -> str:
     glass_pill = "rgba(255, 255, 255, 0.055)" if dark else "rgba(20, 24, 40, 0.045)"
     glass_hover = "rgba(255, 255, 255, 0.085)" if dark else "rgba(20, 24, 40, 0.07)"
     glass_edge = "rgba(255, 255, 255, 0.09)" if dark else "rgba(20, 24, 40, 0.09)"
+    # Minecraft-style buttons: stone grey blocks with a near-black outline that lights up on hover
+    stone = shade(p["raised"], 128) if dark else "#d6d8de"
+    stone_off = shade(p["raised"], 92) if dark else "#c4c6cc"
+    mc_edge = "#050608" if dark else "#2a2c33"
+    mc_lit = "#ffffff" if dark else shade(a, 75)
     return f"""
     QWidget {{ color: {p['text']}; font-size: 14px; }}
     QMainWindow, QDialog {{ background: {p['bg']}; }}
@@ -116,20 +131,16 @@ def stylesheet() -> str:
     #row:hover {{ border-color: {rgba(a, 0.45)}; }}
     #emptyIcon {{ background: {tint(a, 0.12)}; border-radius: 16px; }}
 
-    QPushButton {{ background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {btn_top}, stop:1 {btn_bot});
-                   border: 1px solid {p['border']}; border-top-color: {edge_hi}; border-radius: 12px;
-                   padding: 8px 16px; color: {p['text']}; font-weight: 600; }}
-    QPushButton:hover {{ border-color: {rgba(a, 0.6)}; color: {p['text']}; }}
-    QPushButton:pressed {{ background: {btn_bot}; padding-top: 9px; padding-bottom: 7px; }}
-    QPushButton:disabled {{ color: {p['faint']}; }}
-    QPushButton:focus {{ border-color: {a}; }}
-    QPushButton#accent {{ background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {a_top}, stop:1 {a_bot});
-                          color: {on_a}; border: 1px solid {a_edge}; border-top-color: {shade(a, 135)};
-                          font-weight: 700; }}
-    QPushButton#accent:hover {{ background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                    stop:0 {shade(a, 124)}, stop:1 {hover_a}); }}
-    QPushButton#accent:pressed {{ background: {a_edge}; padding-top: 9px; padding-bottom: 7px; }}
-    QPushButton#accent:disabled {{ background: {tint(a, 0.35)}; color: {tint(on_a, 0.6)}; border-color: transparent; }}
+    QPushButton {{ background: {_block(stone)}; border: 2px solid {mc_edge}; border-radius: 1px;
+                   padding: 8px 16px; color: {p['text']}; font-weight: 700; }}
+    QPushButton:hover {{ background: {_block(shade(stone, 114))}; border-color: {mc_lit}; }}
+    QPushButton:pressed {{ background: {_block(stone, True)}; padding-top: 9px; padding-bottom: 7px; }}
+    QPushButton:disabled {{ background: {_block(stone_off)}; color: {p['faint']}; border-color: {mc_edge}; }}
+    QPushButton:focus {{ border-color: {mc_lit}; }}
+    QPushButton#accent {{ background: {_block(a)}; color: {on_a}; border: 2px solid {mc_edge}; font-weight: 800; }}
+    QPushButton#accent:hover {{ background: {_block(hover_a)}; border-color: {mc_lit}; }}
+    QPushButton#accent:pressed {{ background: {_block(a, True)}; padding-top: 9px; padding-bottom: 7px; }}
+    QPushButton#accent:disabled {{ background: {_block(stone_off)}; color: {p['faint']}; border-color: {mc_edge}; }}
     QPushButton#outline {{ background: {rgba(a, 0.06)}; color: {a}; border: 1px solid {rgba(a, 0.45)}; }}
     QPushButton#outline:hover {{ background: {rgba(a, 0.14)}; border-color: {a}; }}
     QPushButton#icon {{ background: transparent; border: none; padding: 6px; border-radius: 5px; }}
@@ -205,16 +216,19 @@ def stylesheet() -> str:
     #modName {{ font-size: 15px; font-weight: 700; }}
     #modAbout {{ font-size: 12px; color: {p['muted']}; }}
     #modVersion {{ font-size: 12px; color: {p['muted']}; }}
-    QPushButton#bigAccent {{ background: {a}; color: {on_a}; border: none; border-radius: 10px;
-        font-size: 15px; font-weight: 700; }}
-    QPushButton#bigAccent:hover {{ background: {hover_a}; }}
-    QPushButton#bigAccent:disabled {{ background: {rgba(a, 0.35)}; }}
-    QPushButton#bigGhost {{ background: {rgba(p['raised'], 0.55 if dark else 0.9)}; color: {p['text']};
-        border: 1px solid {edge_hi}; border-radius: 10px; font-size: 14px; font-weight: 600; }}
-    QPushButton#bigGhost:hover {{ border-color: {rgba(a, 0.6)}; background: {rgba(a, 0.12)}; }}
-    QPushButton#ghostSmall, QPushButton#chipBtn {{ background: {rgba(p['raised'], 0.55 if dark else 0.9)};
-        color: {p['text']}; border: 1px solid {edge_hi}; border-radius: 9px; padding: 6px 12px; font-size: 13px; }}
-    QPushButton#ghostSmall:hover, QPushButton#chipBtn:hover {{ border-color: {rgba(a, 0.6)}; }}
+    QPushButton#bigAccent {{ background: {_block(a)}; color: {on_a}; border: 2px solid {mc_edge}; border-radius: 1px;
+        font-size: 15px; font-weight: 800; }}
+    QPushButton#bigAccent:hover {{ background: {_block(hover_a)}; border-color: {mc_lit}; }}
+    QPushButton#bigAccent:pressed {{ background: {_block(a, True)}; }}
+    QPushButton#bigAccent:disabled {{ background: {_block(stone_off)}; color: {p['faint']}; }}
+    QPushButton#bigGhost {{ background: {_block(stone)}; color: {p['text']};
+        border: 2px solid {mc_edge}; border-radius: 1px; font-size: 14px; font-weight: 700; }}
+    QPushButton#bigGhost:hover {{ background: {_block(shade(stone, 114))}; border-color: {mc_lit}; }}
+    QPushButton#bigGhost:pressed {{ background: {_block(stone, True)}; }}
+    QPushButton#ghostSmall, QPushButton#chipBtn {{ background: {_block(stone)};
+        color: {p['text']}; border: 2px solid {mc_edge}; border-radius: 1px; padding: 5px 12px; font-size: 13px; font-weight: 700; }}
+    QPushButton#ghostSmall:hover, QPushButton#chipBtn:hover {{ background: {_block(shade(stone, 114))}; border-color: {mc_lit}; }}
+    QPushButton#ghostSmall:pressed, QPushButton#chipBtn:pressed {{ background: {_block(stone, True)}; }}
     #railBrand {{ font-size: 15px; font-weight: 800; letter-spacing: 0.5px; }}
     #railLine {{ background: {glass_edge}; border: none; }}
     #railAccount {{ background: transparent; border: none; }}
