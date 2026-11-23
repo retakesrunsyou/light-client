@@ -417,11 +417,15 @@ export class VoiceRoom {
   }
 }
 
+export { Person, CallRoom } from "./friends.js";
+import { handleFriends } from "./friends.js";
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "");
     if (request.method === "OPTIONS") return reply({});
+    if (path.startsWith("/v2/")) return handleFriends(request, env, path, proven);
 
     // 1. A one-time challenge to sign.
     if (path === "/v1/challenge" && request.method === "POST") {
@@ -538,7 +542,7 @@ export default {
       return env.VOICE.get(env.VOICE.idFromName(code)).fetch(request);
     }
 
-    if (path === "" || path === "/v1") return reply({ service: "peregrine-profiles", version: 6, voice: !!env.VOICE, capes: !!env.AI, ok: true });
+    if (path === "" || path === "/v1") return reply({ service: "peregrine-profiles", version: 7, voice: !!env.VOICE, capes: !!env.AI, friends: !!env.PERSON, ok: true });
     return reply({ error: "not found" }, 404);
   },
 };

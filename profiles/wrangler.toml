@@ -18,3 +18,16 @@ new_sqlite_classes = ["VoiceRoom"]
 # The safety check for players' own capes (Workers AI, on the free plan)
 [ai]
 binding = "AI"
+
+# Light Client friends: one small database per player, and a room per call (Durable Objects)
+[[durable_objects.bindings]]
+name = "PERSON"
+class_name = "Person"
+
+[[durable_objects.bindings]]
+name = "CALL"
+class_name = "CallRoom"
+
+[[migrations]]
+tag = "friends-v1"
+new_sqlite_classes = ["Person", "CallRoom"]

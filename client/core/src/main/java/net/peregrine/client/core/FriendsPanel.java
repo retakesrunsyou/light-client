@@ -13,8 +13,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 /**
- * Your friends (your Xbox friends, the same list Minecraft uses): who's online and what they're
- * playing. The launcher keeps the list fresh while it runs; the game reads what it saved.
+ * Your Light Client friends and who's online. Adding friends, chat and calls live in the
+ * launcher, which keeps this list fresh while it runs; the game reads what it saved.
  */
 final class FriendsPanel extends MenuPanel {
 
@@ -103,7 +103,7 @@ final class FriendsPanel extends MenuPanel {
         if (friends.isEmpty()) {
             String t = stamp == 0 ? "Open Friends in the launcher once to load them" : "No friends yet";
             d.text(d.trim(t, w), x + (w - Math.min(w, d.width(t))) / 2, y + h / 2 - 10, Theme.MUTED, false);
-            String t2 = "Your Xbox friends, the same list Minecraft uses";
+            String t2 = "Add friends on the Friends page in the launcher";
             d.text(d.trim(t2, w), x + (w - Math.min(w, d.width(t2))) / 2, y + h / 2 + 2, Theme.FAINT, false);
             return;
         }

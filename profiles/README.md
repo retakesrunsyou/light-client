@@ -23,6 +23,25 @@ key that Mojang signs for that account, and the launcher signs a one-time challe
 The service checks both signatures itself (it never has to ask Mojang, which blocks
 Cloudflare), and players' logins never reach it.
 
+## Friends
+
+The service also runs **Light Client friends** (`friends.js`): friend requests by Minecraft
+name, chat, and voice calls with screen sharing. Each player gets a small database of their
+own (a Durable Object), and each call gets a room that passes frames between the people in it.
+
+It can't read any of it. Each launcher makes a key pair and only sends the public half here;
+messages are locked for each of the other person's launchers before they leave the PC, and
+calls use a key that only travels inside such a message. What the service does see: who's
+friends with whom, who's online, and when messages were sent. Locked messages are deleted
+after 30 days. On the free plan a day holds roughly 40 hours of calls across everyone; the
+$5 Workers plan lifts that.
+
+After changing `friends.js` or `worker.js`, put the new version online with:
+
+```bash
+cd profiles && npx --yes wrangler@3 deploy
+```
+
 ## Set it up (once, about 5 minutes)
 
 You need [Node.js](https://nodejs.org) installed. Then:
