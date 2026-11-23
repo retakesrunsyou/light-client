@@ -252,7 +252,23 @@ class LibraryPage(QWidget):
         self.mods_card.setMinimumWidth(260)
         self.mods_card.setMinimumHeight(220)
         body.addWidget(self.mods_card, 1)
-        v.addLayout(body, 1)
+        self.body_w = QWidget()
+        self.body_w.setLayout(body)
+        v.addWidget(self.body_w, 1)
+        # nothing to show yet: one clear way forward instead of empty cards
+        from .pages import empty_state
+        self.empty = QWidget()
+        ev = QVBoxLayout(self.empty)
+        ev.addWidget(empty_state("library", "Nothing here yet",
+                                 "Make an instance first. Its details and speed mods show up here."))
+        go = QPushButton("Go to Instances", objectName="bigAccent")
+        go.setCursor(Qt.PointingHandCursor)
+        go.setFixedSize(200, 40)
+        go.clicked.connect(self.all_instances.emit)
+        ev.addWidget(go, 0, Qt.AlignHCenter)
+        ev.addStretch(1)
+        v.addWidget(self.empty, 1)
+        self.empty.hide()
 
     # ------------------------------------------------------------------ data
 
@@ -272,11 +288,11 @@ class LibraryPage(QWidget):
         self.switch.setVisible(len(insts) > 1)
         if inst is None:
             self.title.setText("Library")
-            self.rows.addWidget(QLabel("No instances yet. Make one to start playing.", objectName="muted"))
-            self.play_btn.setEnabled(False)
-            self.mods_card.hide()
+            self.body_w.hide()
+            self.empty.show()
             return
-        self.mods_card.show()
+        self.empty.hide()
+        self.body_w.show()
         self.play_btn.setEnabled(True)
         self.title.setText(inst.name)
         self.underline.setFixedWidth(max(120, self.title.sizeHint().width()))
