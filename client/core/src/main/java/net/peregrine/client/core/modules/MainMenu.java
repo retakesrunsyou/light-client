@@ -34,7 +34,7 @@ public final class MainMenu extends Module {
     }
 
     public MainMenu() {
-        super("main_menu", "Light Client main menu", "Light Client title screen",
+        super("main_menu", "Title screen", "Our title screen instead of the vanilla one",
                 Category.UTILITY, true);
     }
 }

@@ -52,7 +52,10 @@ public final class Menu {
     private int windowW, windowH;
     private int dragX, dragY;
     private boolean movingWindow, resizingWindow;
-    private Module.Category tab;
+    private String group;         // the tab along the top of the modules list (null: all)
+    private int chipScroll, chipMax;
+    private final List<Hit> chipHits = new ArrayList<Hit>();
+    private int onlyX, onlyW, filterY;
     private int scroll;
     private float smoothScroll;
     private int maxScroll;
@@ -203,9 +206,8 @@ public final class Menu {
     }
 
     private static final Node[] SIDEBAR = {
-        new Node("modules", "Modules", "grid",
-                new Node("cat:HUD", "HUD", "hud"), new Node("cat:UTILITY", "Utility", "wrench"),
-                new Node("cat:VISUALS", "Visuals", "eye"), new Node("performance", "Performance", "bolt")),
+        new Node("modules", "Modules", "grid"),
+        new Node("performance", "Performance", "bolt"),
         new Node("mods", "Mods", "puzzle", new Node("mods:installed", "Installed", null), new Node("mods:browse", "Browse", null)),
         new Node("shaders", "Shaders", "sun", new Node("shaders:installed", "Installed", null), new Node("shaders:browse", "Browse", null)),
         new Node("packs", "Resource packs", "layers", new Node("packs:installed", "Installed", null), new Node("packs:browse", "Browse", null)),
@@ -261,13 +263,19 @@ public final class Menu {
         if (page != null) {
             closePage();
         }
+        if (id.equals("modules")) {
+            id = "cat:all";
+        }
+        if (id.startsWith("cat:")) {   // old names for the tabs: cat:all, cat:HUD, cat:PERFORMANCE
+            String c = id.substring(4);
+            group = c.equals("HUD") ? ModuleGroups.HUD : c.equals("PERFORMANCE") ? ModuleGroups.PERF : null;
+            id = "cat:all";
+        }
         boolean changed = !id.equals(section);
         section = id;
-        if (id.startsWith("cat:")) {
-            String c = id.substring(4);
-            tab = c.equals("all") ? null : Module.Category.valueOf(c);
+        if (id.equals("cat:all")) {
             view = 0;
-            expanded = "modules";
+            expanded = "";
         } else if (id.equals("settings")) {
             view = 1;
         } else if (id.equals("keybinds")) {
@@ -478,7 +486,7 @@ public final class Menu {
     private List<Module> visible() {
         List<Module> out = new ArrayList<Module>();
         for (Module m : pc.modules()) {
-            if ((tab == null || m.category == tab) && m.matches(search) && pc.platform().supports(m.id)
+            if ((group == null || ModuleGroups.of(m).equals(group)) && m.matches(search) && pc.platform().supports(m.id)
                     && (!onlyOn || m.enabled() || view != 0)) {
                 out.add(m);
             }
@@ -513,7 +521,7 @@ public final class Menu {
         int sw = Math.round(p.screenWidth() / k);
         int sh = Math.round(p.screenHeight() / k);
         int fitW = sw - 16, fitH = sh - 16;
-        pw = Math.min(fitW, windowW > 0 ? windowW : clamp(Math.round(sw * 0.62f), 330, 480));
+        pw = Math.min(fitW, windowW > 0 ? windowW : clamp(Math.round(sw * 0.64f), 330, 530));
         ph = Math.min(fitH, windowH > 0 ? windowH : clamp(Math.round(sh * 0.70f), 210, 300));
         px = windowX < 0 ? (sw - pw) / 2 : clamp(windowX, 8, sw - pw - 8);
         py = windowY < 0 ? (sh - ph) / 2 : clamp(windowY, 8, sh - ph - 8);
@@ -523,8 +531,9 @@ public final class Menu {
         searchX = closeX - 6 - searchW;
         searchY = py + 7;
         tabsY = searchY;
-        menuBtnX = searchX - 4 - TABBAR_H;
+        menuBtnX = searchX - 4;
         int bodyY = py + TITLE_H + 6;
+        boolean list = view == 0 && page == null;
         editW = SIDE_W;
         editH = 17;
         editX = px + 8;
@@ -537,9 +546,21 @@ public final class Menu {
         listY = bodyY;
         listW = px + pw - 12 - listX;
         listH = py + ph - 8 - bodyY;
-        cols = Math.max(1, (listW + TILE_GAP) / (86 + TILE_GAP));
+        if (list) {
+            // the modules list has its own search bar and tabs above it, like a store shelf
+            filterY = bodyY;
+            onlyW = 44;
+            onlyX = listX + listW - onlyW;
+            searchX = listX;
+            searchY = bodyY;
+            searchW = listW - onlyW - 4;
+            menuBtnX = closeX - 6 - 70;
+            listY = bodyY + 38;
+            listH = py + ph - 8 - listY;
+        }
+        cols = Math.max(1, (listW + TILE_GAP) / (140 + TILE_GAP));
         tileW = (listW - TILE_GAP * (cols - 1)) / cols;
-        tileH = 76;
+        tileH = ROW_H;
     }
 
     /** Tile i of the grid: x, y, width (menu pixels, scrolled). */
@@ -548,9 +569,11 @@ public final class Menu {
         return new int[] {listX + col * (tileW + TILE_GAP), listY + row * (tileH + TILE_GAP) - Math.round(smoothScroll), tileW};
     }
 
-    /** A tile's on/off bar along its bottom: x, y, width, height (the options button sits right of it). */
+    private static final int ROW_H = 27;
+
+    /** A row's switch, on the right: x, y, width, height. */
     private int[] toggleAt(int[] c) {
-        return new int[] {c[0] + 5, c[1] + tileH - 19, c[2] - 10 - GEAR - 3, 14};
+        return new int[] {c[0] + c[2] - 7 - 24, c[1] + (tileH - 11) / 2, 24, 11};
     }
 
     private static final int GEAR = 14;
@@ -561,9 +584,9 @@ public final class Menu {
         return new int[] {c[0] + c[2] - 5 - GEAR, c[1] + tileH - 19};
     }
 
-    /** A tile's star (favourite), top right: x, y (11 square). */
+    /** A row's star (favourite), left of the switch: x, y (11 square). */
     private int[] starAt(int[] c) {
-        return new int[] {c[0] + c[2] - 15, c[1] + 4};
+        return new int[] {c[0] + c[2] - 7 - 24 - 15, c[1] + (tileH - 9) / 2};
     }
 
     private int tabY(int i) {
@@ -617,6 +640,7 @@ public final class Menu {
             py += lift;
             listY += lift;
             searchY += lift;
+            filterY += lift;
             closeY += lift;
             editY += lift;
             tabsY += lift;
@@ -657,13 +681,8 @@ public final class Menu {
         // Search (it searches whatever page you're on), and ≡ (only what's on) for the modules
         MenuPanel pn = page == null ? panel() : null;
         boolean searchable = canSearch(pn);
-        if (view == 0) {
-            boolean mh = in(mx, my, menuBtnX, tabsY, TABBAR_H, TABBAR_H);
-            float mg = sideGlowOf("onlyon", mh || onlyOn, dt);
-            d.roundRect(menuBtnX, tabsY, TABBAR_H, TABBAR_H, 8, onlyOn ? Theme.withAlpha(a, 0x60) : Theme.mix(0x20FFFFFF, 0x38FFFFFF, mg));
-            for (int i = 0; i < 3; i++) {
-                d.rect(menuBtnX + 5, tabsY + 4 + i * 3, 6, 1, onlyOn ? a : Theme.mix(Theme.MUTED, Theme.TEXT, mg));
-            }
+        if (view == 0 && page == null) {
+            drawFilters(d, mx, my, dt, a);
         }
         if (searchable) {
             boolean searching = !search.isEmpty();
@@ -757,76 +776,121 @@ public final class Menu {
         unclipArea(d);
 
         if (mods.isEmpty()) {
-            String none = onlyOn && search.isEmpty() ? "Nothing switched on here" : "Nothing matches \"" + d.trim(search, listW - 80) + "\"";
+            String none = !search.isEmpty() ? "Nothing matches \"" + d.trim(search, listW - 80) + "\""
+                    : onlyOn ? "Nothing on in " + (group == null ? "here" : group) : "Nothing here";
             d.text(none, listX + (listW - d.width(none)) / 2, listY + listH / 2 - 8, Theme.MUTED, false);
-            String hint = onlyOn ? "The ≡ button shows everything again" : "Backspace to clear the search";
+            String hint = !search.isEmpty() ? "Backspace clears the search" : onlyOn ? "Click Only on to see everything" : "";
             d.text(hint, listX + (listW - d.width(hint)) / 2, listY + listH / 2 + 4, Theme.FAINT, false);
         }
         scrollbar(d, listY, listH, in(mx, my, listX, listY, listW + 8, listH), a);
     }
 
     /**
-     * One feature's tile: its icon in the middle, its name under it, and along the bottom a wide
-     * on/off bar (green when on, red when off) with an options button beside it; a star in the
-     * corner keeps favourites first.
+     * The bar above the list: how many are on (in the title), the search box, the Only on
+     * button and a tab for each group. Tabs that don't fit scroll sideways with the wheel.
+     */
+    private void drawFilters(Draw d, int mx, int my, float dt, int a) {
+        int on = 0, all = 0;
+        for (Module m : pc.modules()) {
+            if (pc.platform().supports(m.id)) {
+                all++;
+                if (m.enabled()) on++;
+            }
+        }
+        String count = on + " of " + all + " on";
+        d.text(count, closeX - 8 - d.width(count), py + (TITLE_H - 8) / 2 + 1, Theme.FAINT, false);
+
+        boolean oh = in(mx, my, onlyX, filterY, onlyW, TABBAR_H);
+        float og = sideGlowOf("onlyon", oh, dt);
+        d.roundRect(onlyX, filterY, onlyW, TABBAR_H, 5, onlyOn ? Theme.withAlpha(a, 0x50) : Theme.mix(0x18FFFFFF, 0x2CFFFFFF, og));
+        d.roundOutline(onlyX, filterY, onlyW, TABBAR_H, 5, onlyOn ? Theme.withAlpha(a, 0xC0) : 0x1CFFFFFF);
+        String ol = "Only on";
+        d.text(ol, onlyX + (onlyW - d.width(ol)) / 2, filterY + 4, onlyOn ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, og), false);
+
+        int cy = filterY + TABBAR_H + 5, ch = 14;
+        chipHits.clear();
+        int total = 0;
+        for (int i = 0; i <= ModuleGroups.ALL.length; i++) {
+            String label = i == 0 ? "All" : ModuleGroups.ALL[i - 1];
+            total += d.width(label) + 12 + (i > 0 ? 3 : 0);
+        }
+        chipMax = Math.max(0, total - listW);
+        chipScroll = clamp(chipScroll, 0, chipMax);
+        clipArea(d, listX, cy - 1, listW, ch + 2);
+        int x = listX - chipScroll;
+        for (int i = 0; i <= ModuleGroups.ALL.length; i++) {
+            String g = i == 0 ? null : ModuleGroups.ALL[i - 1];
+            String label = g == null ? "All" : g;
+            int w = d.width(label) + 12;
+            boolean sel = g == null ? group == null : g.equals(group);
+            boolean hv = in(mx, my, x, cy, w, ch) && in(mx, my, listX, cy, listW, ch);
+            float hg = sideGlowOf("chip:" + label, hv, dt);
+            if (sel) {
+                d.roundRect(x, cy, w, ch, 4, 0x30FFFFFF);
+                d.rect(x + 4, cy + ch - 1, w - 8, 1, a);
+            } else if (hg > 0.01f) {
+                d.roundRect(x, cy, w, ch, 4, Theme.withAlpha(0xFFFFFF, Math.round(0x14 * hg)));
+            }
+            d.text(label, x + 6, cy + 3, sel ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, hg), false);
+            chipHits.add(new Hit(g == null ? "" : g, x, cy, w, ch, null));
+            x += w + 3;
+        }
+        unclipArea(d);
+        if (chipMax > 0) {   // a fade at the edge says there's more to the side
+            int fx = listX + listW - 10;
+            for (int i = 0; i < 10; i++) {
+                d.rect(fx + i, cy, 1, ch, Theme.withAlpha(0x111520, chipScroll >= chipMax ? 0 : i * 22));
+            }
+        }
+    }
+
+    /** True over the row of tabs (the wheel scrolls them sideways there). */
+    private boolean overChips(int mx, int my) {
+        return view == 0 && page == null && in(mx, my, listX, filterY + TABBAR_H + 4, listW, 16);
+    }
+
+    /**
+     * One feature's row: its icon, name and a short line on what it does, with the switch on
+     * the right. Clicking the row opens its options; the star (on hover) keeps it near the top.
      */
     private void drawTile(Draw cd, Module m, int[] c, int mx, int my, boolean hover, float g, float on, int a, Platform p) {
         int cx = c[0], cy = c[1], cw = c[2];
-        Glass.pane(cd, cx, cy, cw, tileH, 5, Theme.mix(Glass.PANE, Glass.PANE_HOVER, g));
-        if (on > 0.01f) {  // switched on: a soft wash of the accent from the top
-            cd.roundRect(cx + 1, cy + 1, cw - 2, tileH - 22, 4, Theme.withAlpha(a, Math.round(0x14 * on)));
+        cd.roundRect(cx, cy, cw, tileH, 4, Theme.mix(0x14FFFFFF, 0x22FFFFFF, g));
+        if (hover) {
+            cd.roundOutline(cx, cy, cw, tileH, 4, 0x1EFFFFFF);
         }
-        cd.roundOutline(cx, cy, cw, tileH, 5, Theme.mix(0x14FFFFFF, Theme.withAlpha(a, 0xB0), g));
-        // the icon, centred, in a soft round light that takes the accent when it's on
-        int ic = 28;
-        int ix = cx + (cw - ic) / 2, iy = cy + 7;
-        cd.roundRect(ix, iy, ic, ic, ic / 2, Theme.mix(0x1CFFFFFF, Theme.withAlpha(a, 0x48), on));
-        if (on > 0.01f) {
-            cd.roundOutline(ix, iy, ic, ic, ic / 2, Theme.withAlpha(a, Math.round(0x90 * on)));
-        }
+        int ic = 18;
+        int ix = cx + 5, iy = cy + (tileH - ic) / 2;
         Object stack = p.icon(Icons.of(m));
         if (stack != null) {
-            cd.item(stack, ix + (ic - 16) / 2, iy + (ic - 16) / 2);
+            cd.item(stack, ix + 1, iy + 1);
         } else {
-            categoryIcon(cd, m.category, ix + (ic - 8) / 2, iy + (ic - 8) / 2, Theme.TEXT);
+            categoryIcon(cd, m.category, ix + 4, iy + 4, on > 0.5f ? a : Theme.MUTED);
         }
-        // name (or, while hovered, a warning if it has one)
-        boolean warn = hover && m.warning() != null;
-        String title = cd.trim(warn ? m.warning() : m.name, cw - 10);
-        cd.text(title, cx + (cw - cd.width(title)) / 2, iy + ic + 4, warn ? Theme.OK : Theme.TEXT, false);
-        // its key, small, in the top left
-        if (m.key >= 0) {
-            String key = cd.trim(Keys.name(m.key), cw / 2 - 12);
-            int kw = cd.width(key) + 6;
-            cd.roundRect(cx + 4, cy + 4, kw, 10, 3, 0x48000000);
-            cd.text(key, cx + 7, cy + 5, Theme.MUTED, false);
-        }
-        // the star
+        int tx = ix + ic + 5;
+        int[] tg = toggleAt(c);
         int[] st = starAt(c);
-        boolean starHover = hover && in(mx, my, st[0] - 2, st[1] - 2, 15, 15);
+        int room = (hover || m.favorite ? st[0] - 3 : tg[0] - 5) - tx;
+        boolean warn = hover && m.warning() != null;
+        String title = cd.trim(m.name, room);
+        cd.text(title, tx, cy + 5, Theme.TEXT, false);
+        if (m.key >= 0) {   // its key, after the name
+            String key = Keys.name(m.key);
+            int kx = tx + cd.width(title) + 4;
+            if (kx + cd.width(key) + 4 < tx + room) {
+                cd.roundRect(kx, cy + 4, cd.width(key) + 4, 10, 2, 0x40000000);
+                cd.text(key, kx + 2, cy + 5, Theme.FAINT, false);
+            }
+        }
+        String sub = cd.trim(warn ? m.warning() : m.description, room);
+        cd.text(sub, tx, cy + 15, warn ? Theme.OK : Theme.FAINT, false);
         if (m.favorite || hover) {
-            MenuIcons.draw(cd, m.favorite ? "star" : "star_o", st[0] + 1, st[1] + 1,
+            boolean starHover = hover && in(mx, my, st[0] - 2, st[1] - 2, 15, 15);
+            MenuIcons.draw(cd, m.favorite ? "star" : "star_o", st[0], st[1],
                     m.favorite ? a : starHover ? Theme.TEXT : Theme.withAlpha(Theme.MUTED, 0xA0));
         }
-        // the on/off bar
-        int[] tg = toggleAt(c);
-        boolean barHover = hover && in(mx, my, tg[0], tg[1], tg[2], tg[3]);
-        int onCol = Theme.GOOD, offCol = Theme.BAD;
-        int fill = Theme.mix(Theme.withAlpha(offCol, barHover ? 0x58 : 0x3A), Theme.withAlpha(onCol, barHover ? 0x70 : 0x50), on);
-        cd.roundRect(tg[0], tg[1], tg[2], tg[3], 4, fill);
-        cd.roundOutline(tg[0], tg[1], tg[2], tg[3], 4, Theme.mix(Theme.withAlpha(offCol, 0x90), Theme.withAlpha(onCol, 0xB0), on));
-        String state = on >= 0.5f ? "ENABLED" : "DISABLED";
-        int tc = Theme.mix(Theme.mix(offCol, 0xFFFFFFFF, 0.35f), Theme.mix(onCol, 0xFFFFFFFF, 0.35f), on);
-        if (cd.width(state) > tg[2] - 4) {
-            state = on >= 0.5f ? "ON" : "OFF";
-        }
-        cd.text(state, tg[0] + (tg[2] - cd.width(state)) / 2, tg[1] + 3, tc, false);
-        // the options button
-        int[] gb = gearAt(c);
-        boolean gearHover = hover && in(mx, my, gb[0], gb[1], GEAR, GEAR);
-        cd.roundRect(gb[0], gb[1], GEAR, GEAR, 4, gearHover ? 0x40FFFFFF : 0x22FFFFFF);
-        cd.roundOutline(gb[0], gb[1], GEAR, GEAR, 4, gearHover ? Theme.withAlpha(a, 0xC0) : 0x1AFFFFFF);
-        MenuIcons.draw(cd, "gear", gb[0] + (GEAR - 9) / 2, gb[1] + (GEAR - 9) / 2, gearHover ? Theme.TEXT : Theme.MUTED);
+        boolean swHover = hover && in(mx, my, tg[0] - 2, tg[1] - 3, tg[2] + 4, tg[3] + 6);
+        switchKnob(cd, tg[0], tg[1], on, a, swHover);
     }
 
     /** Where you are, for the title: "Modules / HUD", "Mods / Browse"... */
@@ -998,7 +1062,7 @@ public final class Menu {
     }
 
     private boolean isSelected(Node n) {
-        return n.id.equals(section) || (n.id.equals("modules") && section.equals("cat:all"));
+        return n.id.equals(section) || (n.id.equals("modules") && section.startsWith("cat:"));
     }
 
     private void scrollbar(Draw d, int top, int viewH, boolean active, int a) {
@@ -2326,10 +2390,22 @@ public final class Menu {
                 return true;
             }
         }
-        if (view == 0 && in(mx, my, menuBtnX, tabsY, TABBAR_H, TABBAR_H)) {
+        if (view == 0 && page == null && in(mx, my, onlyX, filterY, onlyW, TABBAR_H)) {
             onlyOn = !onlyOn;
             listShownAt = System.currentTimeMillis();
             scroll = 0;
+            return true;
+        }
+        if (overChips(mx, my)) {
+            for (Hit h : chipHits) {
+                if (in(mx, my, h.x, h.y, h.w, h.h)) {
+                    group = h.id.isEmpty() ? null : h.id;
+                    listShownAt = System.currentTimeMillis();
+                    scroll = 0;
+                    smoothScroll = 0;
+                    return true;
+                }
+            }
             return true;
         }
         if (in(mx, my, editX, editY, editW, editH)) {
@@ -2360,7 +2436,7 @@ public final class Menu {
                     Module m = mods.get(i);
                     int[] tg = toggleAt(c);
                     int[] st = starAt(c);
-                    if (in(mx, my, tg[0], tg[1], tg[2], tg[3])) {  // the on/off bar
+                    if (in(mx, my, tg[0] - 3, c[1], tg[2] + 10, tileH)) {  // the switch
                         m.setEnabled(!m.enabled());
                         pc.markDirty();
                     } else if (in(mx, my, st[0] - 2, st[1] - 2, 15, 15)) {  // the star
@@ -2532,6 +2608,10 @@ public final class Menu {
         if (in(mx, my, sideX, sideY, sideW, sideH)) {
             sideScroll = clamp(sideScroll - (int) Math.round(amount * 24), 0, maxSideScroll);
             sideSlide = -1;
+            return true;
+        }
+        if (overChips(mx, my)) {
+            chipScroll = clamp(chipScroll - (int) Math.round(amount * 30), 0, chipMax);
             return true;
         }
         if (!in(mx, my, listX, listY, listW + 8, listH)) {

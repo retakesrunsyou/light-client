@@ -18,7 +18,7 @@ public final class PauseMenuToggle extends Module {
     public final BoolSetting music = add(new BoolSetting("music", "Show music controls", true));
 
     public PauseMenuToggle() {
-        super("pause_menu", "Light Client pause menu", "Light Client pause menu",
+        super("pause_menu", "Pause menu", "Our pause screen instead of the vanilla one",
                 Category.UTILITY, true);
     }
 }

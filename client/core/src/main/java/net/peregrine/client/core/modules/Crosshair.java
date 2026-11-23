@@ -36,7 +36,7 @@ public final class Crosshair extends Module {
             "reaction_test", "Find your reaction time", () -> "Take the test", () -> Peregrine.get().menu().showReactionTest()));
 
     public Crosshair() {
-        super("crosshair", "Custom crosshair", "Custom crosshair",
+        super("crosshair", "Custom crosshair", "Draw your own, or pick a shape and color",
                 Category.VISUALS, false);
     }
 
