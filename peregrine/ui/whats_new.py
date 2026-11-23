@@ -7,7 +7,7 @@ from .theme import Theme
 
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
-    ("2.2.1", "Lyrics in 3D", "Words can float around you, and zooming no longer enlarges them."),
+    ("2.2.1", "New Lyrics", "Lyrics are now 3D words in the world: around you, overhead, or on the floor. Pick the font, colours and animations."),
     ("2.2.1", "Move the chat and scoreboard", "Drag and resize both in Edit HUD."),
     ("2.2.1", "Cleaner wording", "Shorter names and descriptions everywhere."),
     ("2.2.1", "GPU chests and players", "Chests, signs, beds, shulker boxes and players are drawn on the GPU too (GPU mobs)."),

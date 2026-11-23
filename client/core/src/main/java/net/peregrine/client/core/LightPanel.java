@@ -8,7 +8,7 @@ final class LightPanel extends MenuPanel {
 
     /** What changed, newest first: {version, title, what it does}. */
     static final String[][] NEWS = {
-        {"2.2.1", "Lyrics in 3D", "Float around you, unaffected by zoom"},
+        {"2.2.1", "New Lyrics", "3D words around you, overhead or on the floor"},
         {"2.2.1", "Chat and scoreboard", "Move and resize them in Edit HUD"},
         {"2.2.0", "GPU mobs", "Mobs drawn on the graphics card (experimental)"},
         {"2.2.0", "Holiday themes", "Seasonal colors and effects"},

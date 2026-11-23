@@ -13,7 +13,7 @@ import org.joml.Matrix4f;
 
 
 /**
- * World Lyrics: draws Hooks.worldTexts in the world. Each piece faces the camera, with layers
+ * Lyrics: draws Hooks.worldTexts in the world. Each piece faces the camera, with layers
  * behind it for thickness, and optional outline, glow and colour fringes, letter by letter when
  * it has per-letter nudges. It all goes into the game's own text drawing (a few quads per
  * letter), so it costs next to nothing.

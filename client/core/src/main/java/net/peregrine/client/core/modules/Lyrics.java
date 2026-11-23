@@ -18,14 +18,14 @@ import net.peregrine.client.core.settings.ColorSetting;
 import net.peregrine.client.core.settings.SliderSetting;
 
 /**
- * World Lyrics: the song you're playing, word by word, as real 3D text in the world. Words can
+ * Lyrics: the song you're playing, word by word, as real 3D text in the world. Words can
  * pop up all around where you look, sit on an arc around you, follow your view, stay in one
  * place, or hang huge in the sky; each comes in and goes out with an animation you pick.
  *
  * The words are handed to the version adapter as WorldText (drawn into the game's own text
  * buffers), so each letter is a few quads: cheap even with thickness, glow and outline on.
  */
-public final class WorldLyrics extends Module {
+public final class Lyrics extends Module {
 
     static final int AROUND = 0, ARC = 1, FOLLOW = 2, FIXED = 3, SKY = 4;
     static final int HIGHLIGHT = 0, SOLID = 1, GRADIENT = 2, RAINBOW = 3, GLITCH = 4;
@@ -74,7 +74,7 @@ public final class WorldLyrics extends Module {
         int line, firstChar;
         boolean wholeLine;
         double x, y, z;
-        float size, roll, seed;
+        float size, roll, seed, fit = 1f;
         long born, leaving = -1;
         double fromX, fromY, fromZ;   // where "zoom from far" starts
     }
@@ -84,11 +84,11 @@ public final class WorldLyrics extends Module {
     private String songKey = "";
     private int lastLine = Integer.MIN_VALUE;
     private int spawnedUpTo = -1;   // words of the current line already put up
-    private double ax, ay, az, aYaw = Double.NaN;
+    private double ax, ay, az, aYaw = Double.NaN, aPitch;
     private boolean anchored;
 
-    public WorldLyrics() {
-        super("world_lyrics", "World Lyrics", "Song lyrics as 3D words in the world", Category.VISUALS, false);
+    public Lyrics() {
+        super("lyrics", "Lyrics", "The song you're playing, as 3D words in the world", Category.VISUALS, false);
     }
 
     @Override
@@ -277,8 +277,27 @@ public final class WorldLyrics extends Module {
             }
             aYaw += Math.atan2(Math.sin(yaw - aYaw), Math.cos(yaw - aYaw)) * (mode.index == SKY ? 0.02 : 0.08);
             double dist = mode.index == SKY ? 45 : distance.value;
-            double tx = p.x() - Math.sin(aYaw) * dist, tz = p.z() + Math.cos(aYaw) * dist;
-            double ty = p.y() + 1.62 + (mode.index == SKY ? 14 : height.value);
+            double eye = p.y() + 1.62;
+            double tx, ty, tz;
+            if (mode.index == FOLLOW) {
+                // up and down too: look up and the words hang over you looking down, look down
+                // and they lie on the ground at your feet
+                double pitch = Math.toRadians(Math.max(-82, Math.min(82, p.pitch())));
+                aPitch = anchored ? aPitch + (pitch - aPitch) * 0.08 : pitch;
+                double sp = Math.sin(aPitch), cp = Math.cos(aPitch);
+                double d = dist;
+                if (sp > 0) {   // looking down: stop at the floor
+                    d = Math.min(d, Math.max(0.6, (1.62 + height.value * cp - 0.08) / sp));
+                }
+                tx = p.x() - Math.sin(aYaw) * cp * d;
+                tz = p.z() + Math.cos(aYaw) * cp * d;
+                ty = eye - sp * d + height.value * cp;
+                w.fit = (float) (d / dist);   // closer on the floor, so smaller to look the same
+            } else {
+                tx = p.x() - Math.sin(aYaw) * dist;
+                tz = p.z() + Math.cos(aYaw) * dist;
+                ty = eye + (mode.index == SKY ? 14 : height.value);
+            }
             if (!anchored) {
                 ax = tx;
                 ay = ty;
@@ -404,7 +423,7 @@ public final class WorldLyrics extends Module {
         t.x = wx;
         t.y = wy + offY;
         t.z = wz;
-        t.size = w.size * scale;
+        t.size = w.size * scale * w.fit;
         t.roll = roll;
         t.font = font.index;
         t.layers = Math.round(thickness.value / 100f * 8f);

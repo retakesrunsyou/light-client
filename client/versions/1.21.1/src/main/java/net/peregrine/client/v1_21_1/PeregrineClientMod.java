@@ -69,7 +69,7 @@ public final class PeregrineClientMod implements ClientModInitializer {
                 OreOutlines.draw(ctx.matrixStack(), ctx.consumers(), ctx.camera());
                 net.minecraft.world.phys.Vec3 pc = ctx.camera().getPosition();
                 PlaceAnim.draw(ctx.matrixStack(), ctx.consumers(), pc.x, pc.y, pc.z);
-                WorldTextDraw.drawInto(ctx.matrixStack(), ctx.consumers(), pc.x, pc.y, pc.z);   // World Lyrics
+                WorldTextDraw.drawInto(ctx.matrixStack(), ctx.consumers(), pc.x, pc.y, pc.z);   // Lyrics
             }
         });
 

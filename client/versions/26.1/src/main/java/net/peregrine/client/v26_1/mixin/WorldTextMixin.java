@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** World Lyrics: text in the world, drawn with the see-through pass after the world (so it blends over water and glass). */
+/** Lyrics: text in the world, drawn with the see-through pass after the world (so it blends over water and glass). */
 @Mixin(net.minecraft.client.renderer.LevelRenderer.class)
 public abstract class WorldTextMixin {
 
