@@ -204,20 +204,19 @@ class LibraryPage(QWidget):
         d = QVBoxLayout(self.details)
         d.setContentsMargins(20, 18, 20, 18)
         d.setSpacing(12)
-        d.addWidget(QLabel("Instance Details", objectName="cardTitle"))
+        d.addWidget(QLabel("Details", objectName="cardTitle"))
         self.rows = QVBoxLayout()
         self.rows.setSpacing(10)
         d.addLayout(self.rows)
         left.addWidget(self.details)
 
         left.addSpacing(6)
-        left.addWidget(QLabel("Quick Actions", objectName="cardTitle"))
         self.play_btn = QPushButton("Play", objectName="bigAccent")
         self.play_btn.setCursor(Qt.PointingHandCursor)
         self.play_btn.setFixedHeight(42)
         self.play_btn.clicked.connect(lambda: self.inst and self.play.emit(self.inst))
         left.addWidget(self.play_btn)
-        for text, sig in (("Update All", self.update_all), ("Add Mods", self.add_mods)):
+        for text, sig in (("Update mods", self.update_all), ("Add mods", self.add_mods)):
             b = QPushButton(text, objectName="bigGhost")
             b.setCursor(Qt.PointingHandCursor)
             b.setFixedHeight(40)
@@ -235,9 +234,9 @@ class LibraryPage(QWidget):
         m.setContentsMargins(20, 18, 20, 18)
         m.setSpacing(12)
         mh = QHBoxLayout()
-        mh.addWidget(QLabel("Active Optimization Mods", objectName="cardTitle"))
+        mh.addWidget(QLabel("Speed mods", objectName="cardTitle"))
         mh.addStretch(1)
-        self.suite = QPushButton("Core Performance Suite  ", objectName="chipBtn")
+        self.suite = QPushButton("All mods  ", objectName="chipBtn")
         self.suite.setCursor(Qt.PointingHandCursor)
         self.suite.setLayoutDirection(Qt.RightToLeft)
         self.suite.setIcon(icon_pixmap_icon("s_gear"))
@@ -275,9 +274,11 @@ class LibraryPage(QWidget):
             self.title.setText("Library")
             self.rows.addWidget(QLabel("No instances yet. Make one to start playing.", objectName="muted"))
             self.play_btn.setEnabled(False)
+            self.mods_card.hide()
             return
+        self.mods_card.show()
         self.play_btn.setEnabled(True)
-        self.title.setText(f"Profile: {inst.name}")
+        self.title.setText(inst.name)
         self.underline.setFixedWidth(max(120, self.title.sizeHint().width()))
         data = inst.data
         loader = data.get("loader", "vanilla")
@@ -289,9 +290,9 @@ class LibraryPage(QWidget):
         if not on:
             perf, color = "Off", Theme.p["muted"]
         elif active >= len(performance.SLUGS) - 1:
-            perf, color = f"Excellent · {active} mods active", "#4ade80"
+            perf, color = f"All {active} on", "#4ade80"
         elif active:
-            perf, color = f"Good · {active} mods active", "#facc15"
+            perf, color = f"{active} of {len(performance.SLUGS)} on", "#facc15"
         else:
             perf, color = "Mods download on the next Play", Theme.p["muted"]
         stats = _stats(inst)
@@ -299,12 +300,12 @@ class LibraryPage(QWidget):
             perf = ("Excellent" if stats["avg_fps"] >= 120 else "Good" if stats["avg_fps"] >= 60 else "Fair") \
                 + f" · {stats['avg_fps']} FPS"
             color = "#4ade80" if stats["avg_fps"] >= 120 else "#facc15" if stats["avg_fps"] >= 60 else "#fb923c"
-        for label, value, col in (("Game Version", data.get("mc_version", "?"), None),
-                                  ("Mod Loader", loader_text, None),
-                                  ("Performance Status", perf, color),
-                                  *([("Last Session", f"{stats['avg_fps']} FPS average · {stats['low_fps']} at its lowest", None)]
+        for label, value, col in (("Minecraft", data.get("mc_version", "?"), None),
+                                  ("Loader", loader_text, None),
+                                  ("Speed mods", perf, color),
+                                  *([("Last session", f"{stats['avg_fps']} FPS on average, {stats['low_fps']} at worst", None)]
                                     if stats else []),
-                                  ("Last Played", last_played(data.get("last_played")).replace("Played ", "").capitalize(), None)):
+                                  ("Last played", last_played(data.get("last_played")).replace("Played ", "").capitalize(), None)):
             box = QVBoxLayout()
             box.setSpacing(1)
             box.addWidget(QLabel(label, objectName="detailLabel"))
@@ -315,7 +316,7 @@ class LibraryPage(QWidget):
             self.rows.addLayout(box)
 
         if loader != "fabric":
-            note = QLabel("Optimization mods need Fabric. Light Client moves this instance to Fabric when you press Play "
+            note = QLabel("Speed mods need Fabric. Light Client moves this instance to Fabric when you press Play "
                           "with Performance mode on.", objectName="muted")
             note.setWordWrap(True)
             self.list.addWidget(note)

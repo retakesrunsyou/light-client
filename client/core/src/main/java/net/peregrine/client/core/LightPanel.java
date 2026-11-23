@@ -8,6 +8,8 @@ final class LightPanel extends MenuPanel {
 
     /** What changed, newest first: {version, title, what it does}. */
     static final String[][] NEWS = {
+        {"2.2.1", "Friends", "Chat and call Light Client friends from the launcher"},
+        {"2.2.1", "Tidier mod menu", "Tabs, an Only on button and an on count"},
         {"2.2.1", "New Lyrics", "3D words around you, overhead or on the floor"},
         {"2.2.1", "Chat and scoreboard", "Move and resize them in Edit HUD"},
         {"2.2.0", "GPU mobs", "Mobs drawn on the graphics card (experimental)"},
