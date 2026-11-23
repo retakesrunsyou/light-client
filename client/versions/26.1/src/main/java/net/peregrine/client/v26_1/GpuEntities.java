@@ -404,7 +404,9 @@ public final class GpuEntities {
         }
         try {
             Model<?> model = submit.model();
-            if (submit.outlineColor() != 0 || submit.crumblingOverlay() != null
+            // chests, signs, beds and shulker boxes (textures from an atlas) stay on the normal path:
+            // their lids and boards came out in the wrong place
+            if (submit.sprite() != null || submit.outlineColor() != 0 || submit.crumblingOverlay() != null
                     || type.hasBlending() || type.isOutline() || RenderSystem.outputColorTextureOverride != null
                     || (model instanceof net.minecraft.client.model.player.PlayerModel && skinLayers() && (buffer == null || meshLookupFailed))
                     || model instanceof net.minecraft.client.model.player.PlayerCapeModel

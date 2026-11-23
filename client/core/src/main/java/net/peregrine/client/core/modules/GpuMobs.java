@@ -39,7 +39,7 @@ public final class GpuMobs extends Module {
 
     public GpuMobs() {
         super("gpu_mobs", "GPU mobs (experimental)",
-                "Draws mobs, players, chests and signs on the GPU",
+                "Draws mobs and players on the GPU",
                 Category.PERFORMANCE, false);
     }
 

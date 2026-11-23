@@ -13,7 +13,7 @@ NOTES = [
     ("2.2.1", "Settings in tabs", "The launcher's settings are split into Appearance, Game, Performance and so on."),
     ("2.2.1", "New Lyrics", "Lyrics are now 3D words in the world: around you, overhead, or on the floor. Pick the font, colours and animations."),
     ("2.2.1", "Move the chat and scoreboard", "Drag and resize both in Edit HUD."),
-    ("2.2.1", "GPU chests and players", "Chests, signs, beds, shulker boxes and players are drawn on the GPU too (GPU mobs)."),
+    ("2.2.1", "GPU players", "Players are drawn on the GPU too (GPU mobs), skin layers included."),
     ("2.2.0", "Light Client", "New name, logo and main menu."),
     ("2.2.0", "GPU mobs", "Mobs drawn on the graphics card for more FPS (experimental)."),
     ("2.2.0", "Faster with lots of items", "Far items, XP, item frames and displays are skipped."),
