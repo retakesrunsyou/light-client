@@ -7,7 +7,7 @@ from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QColorDialog, QComboBox, QFileDialog, QFrame, QGridLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QScrollArea, QSlider,
-    QSpinBox, QVBoxLayout, QWidget,
+    QSpinBox, QStackedWidget, QVBoxLayout, QWidget,
 )
 
 from .. import display
@@ -661,11 +661,13 @@ class SettingsPage(QWidget):
         outer.setContentsMargins(56, 30, 56, 20)
         outer.setSpacing(20)
         outer.addLayout(page_header("Settings", "Changes save as you make them.", chip="Launcher"))
-        body = QWidget()
-        self.body = QVBoxLayout(body)
-        self.body.setContentsMargins(0, 0, 4, 0)
-        self.body.setSpacing(16)
-        outer.addWidget(scroll(body), 1)
+        # one tab per kind of setting, so nothing is more than a click away
+        self.tab_row = QHBoxLayout()
+        self.tab_row.setSpacing(18)
+        outer.addLayout(self.tab_row)
+        self.stack = QStackedWidget()
+        outer.addWidget(self.stack, 1)
+        self.tab = 0
         self.build()
 
     def _window_sizes(self, cfg) -> QComboBox:
@@ -742,8 +744,40 @@ class SettingsPage(QWidget):
         cfg[key] = value
         config.save(cfg)
 
+    TABS = ("Appearance", "Game", "Performance", "Java", "Sounds", "Launcher", "Updates")
+
+    def _page(self, name):
+        """The column a tab's sections go in."""
+        body = QWidget()
+        col = QVBoxLayout(body)
+        col.setContentsMargins(0, 4, 4, 0)
+        col.setSpacing(16)
+        self._pages[name] = col
+        self.stack.addWidget(scroll(body))
+        return col
+
+    def show_tab(self, i):
+        self.tab = i
+        self.stack.setCurrentIndex(i)
+        for j, b in enumerate(self._tab_buttons):
+            b.setChecked(j == i)
+
     def build(self):
-        clear(self.body)
+        clear(self.tab_row)
+        while self.stack.count():
+            w = self.stack.widget(0)
+            self.stack.removeWidget(w)
+            w.deleteLater()
+        self._pages = {}
+        self._tab_buttons = []
+        for i, name in enumerate(self.TABS):
+            b = QPushButton(name, objectName="tab", checkable=True)
+            b.setCursor(Qt.PointingHandCursor)
+            b.clicked.connect(lambda _=False, i=i: self.show_tab(i))
+            self.tab_row.addWidget(b)
+            self._tab_buttons.append(b)
+            self._page(name)
+        self.tab_row.addStretch()
         cfg = config.load()
 
         # ---- appearance
@@ -782,7 +816,7 @@ class SettingsPage(QWidget):
             config.save(c)
         start.changed.connect(set_start)
         look.row("Start page", start, "What the launcher opens on.")
-        self.body.addWidget(look)
+        self._pages["Appearance"].addWidget(look)
 
         # ---- game
         gamesec = Section("Game")
@@ -813,7 +847,7 @@ class SettingsPage(QWidget):
                     "AppleSkin, Enchantment Descriptions, Not Enough Animations, Continuity, "
                     "Simple Voice Chat and Iris on every Fabric instance, kept up to date, with a "
                     "shader pack ready to switch on in Content. Turn any of them off in Content.")
-        self.body.addWidget(gamesec)
+        self._pages["Game"].addWidget(gamesec)
 
         # ---- performance
         perf = Section("Performance", "These make the game itself run faster. Defaults suit most PCs.")
@@ -841,7 +875,7 @@ class SettingsPage(QWidget):
         if game.WINDOWS:
             perf.row("Give the game priority", self._check(cfg, "game_priority"),
                      "Windows gives Minecraft the CPU before background apps, for steadier FPS.")
-        self.body.addWidget(perf)
+        self._pages["Performance"].addWidget(perf)
 
         # ---- java
         java = Section("Java")
@@ -858,7 +892,7 @@ class SettingsPage(QWidget):
         extra.setMinimumWidth(240)
         extra.editingFinished.connect(lambda: self.save("extra_jvm_args", extra.text().strip()))
         java.row("Extra Java arguments", extra)
-        self.body.addWidget(java)
+        self._pages["Java"].addWidget(java)
 
         # ---- launcher
         sounds = Section("Click sounds", "Your own sounds for the in-game Click sounds (turn them on in the game's "
@@ -866,7 +900,7 @@ class SettingsPage(QWidget):
         from .. import click_sounds
         for kind, label in click_sounds.KINDS:
             sounds.row(label, self._click_sound_row(kind))
-        self.body.addWidget(sounds)
+        self._pages["Sounds"].addWidget(sounds)
 
         launcher = Section("Launcher")
         on_launch = QComboBox()
@@ -892,7 +926,7 @@ class SettingsPage(QWidget):
                          "Other Light Client players see the Light Client badge by your name and the cape you picked in game.")
         launcher.row("In-game menu (Right Shift)", self._check(cfg, "ingame_menu"),
                      "Adds Light Client to Fabric instances: HUD, zoom, toggle sprint and more.")
-        self.body.addWidget(launcher)
+        self._pages["Launcher"].addWidget(launcher)
 
         # ---- login (only shown when no client ID is built into this release)
         if CLIENT_ID:
@@ -905,7 +939,7 @@ class SettingsPage(QWidget):
             cid.setMinimumWidth(300)
             cid.editingFinished.connect(lambda: self.save("client_id", cid.text().strip()))
             login.row("Client ID", cid)
-            self.body.addWidget(login)
+            self._pages["Launcher"].addWidget(login)
 
         # ---- updates
         updates = Section("Updates", f"You're on Light Client {VERSION}.")
@@ -919,8 +953,10 @@ class SettingsPage(QWidget):
         news_btn.clicked.connect(lambda: __import__("peregrine.ui.whats_new", fromlist=["x"]).WhatsNewDialog(self.window()).open())
         updates.row("What changed in this version", news_btn)
         updates.row("Look for a new version", check_now)
-        self.body.addWidget(updates)
-        self.body.addStretch()
+        self._pages["Updates"].addWidget(updates)
+        for col in self._pages.values():
+            col.addStretch()
+        self.show_tab(min(self.tab, len(self.TABS) - 1))
 
     def _badge_changed(self, on):
         from .. import auth, profiles
