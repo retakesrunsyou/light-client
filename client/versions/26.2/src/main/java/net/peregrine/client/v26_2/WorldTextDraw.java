@@ -65,7 +65,7 @@ public final class WorldTextDraw {
             pose.last().pose().rotate(Axis.YP.rotationDegrees(180f - yaw));   // face the camera
             if (t.faceUpDown) {
                 float pitch = (float) Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz)));
-                pose.last().pose().rotate(Axis.XP.rotationDegrees(-pitch));
+                pose.last().pose().rotate(Axis.XP.rotationDegrees(pitch));
             }
             if (t.roll != 0) {
                 pose.last().pose().rotate(Axis.ZP.rotationDegrees(t.roll));
