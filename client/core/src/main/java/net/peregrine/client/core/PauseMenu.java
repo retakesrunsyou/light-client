@@ -37,6 +37,7 @@ public final class PauseMenu {
     /** Dragging a button to a new place: which one, where it was grabbed, and where the mouse is. */
     private TitleMenu.Button grabbed;
     private int grabX, grabY, dragX, dragY;
+    private long grabAt;
     private boolean dragging;
 
     private TitleMenu.Button byId(String id) {
@@ -412,6 +413,7 @@ public final class PauseMenu {
                 grabbed = b;
                 grabX = dragX = mx;
                 grabY = dragY = my;
+                grabAt = System.currentTimeMillis();
                 dragging = false;
                 return true;
             }
@@ -426,7 +428,9 @@ public final class PauseMenu {
         }
         dragX = mx;
         dragY = my;
-        if (!dragging && Math.abs(mx - grabX) + Math.abs(my - grabY) > 5) {
+        // only a hold-and-move picks a button up; a click with a bit of wobble is still a click
+        if (!dragging && System.currentTimeMillis() - grabAt > 220
+                && Math.abs(mx - grabX) + Math.abs(my - grabY) > 12) {
             dragging = true;
         }
         return true;
@@ -442,6 +446,9 @@ public final class PauseMenu {
         if (dragging) {
             dragging = false;
             layout(pc.platform());
+            if (b.contains(mx, my)) {
+                return press(b);   // dropped back where it started: that's a click
+            }
             for (TitleMenu.Button o : buttons()) {
                 if (o != b && o.contains(mx, my)) {
                     swap(b, o);

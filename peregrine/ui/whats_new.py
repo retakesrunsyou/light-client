@@ -7,6 +7,8 @@ from .theme import Theme
 
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
+    ("2.2.2", "Pause menu clicks", "Buttons in the pause menu work again if the mouse moves a little while you click. "
+              "To move a button, hold it for a moment and drag."),
     ("2.2.1", "Friends", "Add other Light Client players by their Minecraft name, chat, and call them with voice "
               "and screen sharing. Everything is encrypted so only the two of you can read or hear it."),
     ("2.2.1", "Tidier mod menu", "Modules in tabs (PvP, HUD, World and more), an Only on button, a count of what's on, "
