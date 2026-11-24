@@ -26,11 +26,30 @@ final class PeregrineScreen extends Screen {
         if (net.minecraft.client.Minecraft.getInstance().level == null) {
             Panorama.draw(this, g, partialTick);  // opened from the main menu: show the panorama, not black
         }
-        if (menu.wantsShade()) {
+        if (menu.wantsShade() && !Panel3D.active()) {
             int alpha = Math.round(((Theme.MENU_SHADE >>> 24) & 0xFF) * menu.fade());
             g.fill(0, 0, width, height, (alpha << 24) | (Theme.MENU_SHADE & 0xFFFFFF));
         }
-        menu.render(new GuiDraw(g), mouseX, mouseY);
+        double[] pt = Panel3D.pointer(mouseX, mouseY, width, height);
+        menu.render(new GuiDraw(g), (int) pt[0], (int) pt[1]);
+    }
+
+    // ---- 3D menu: the pointer traced onto the panel, Alt + drag moves it, Ctrl + scroll resizes it
+
+    private boolean movingPanel;
+
+    @Override
+    public void tick() {
+        super.tick();
+        Panel3D.keepPlaying();
+    }
+
+    private int px(MouseButtonEvent e) {
+        return (int) Panel3D.pointer(e.x(), e.y(), width, height)[0];
+    }
+
+    private int py(MouseButtonEvent e) {
+        return (int) Panel3D.pointer(e.x(), e.y(), width, height)[1];
     }
 
     public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
@@ -39,22 +58,47 @@ final class PeregrineScreen extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent e, boolean doubleClick) {
-        return menu.mouseClicked((int) e.x(), (int) e.y(), Screens.button(e.button())) || super.mouseClicked(e, doubleClick);
+        if (Panel3D.active() && !Panel3D.inWorld() && Panel3D.altDown(net.minecraft.client.Minecraft.getInstance())) {
+            movingPanel = true;
+            return true;
+        }
+        return menu.mouseClicked(px(e), py(e), Screens.button(e.button())) || super.mouseClicked(e, doubleClick);
     }
 
     @Override
     public boolean mouseDragged(MouseButtonEvent e, double dragX, double dragY) {
-        return menu.mouseDragged((int) e.x(), (int) e.y()) || super.mouseDragged(e, dragX, dragY);
+        if (movingPanel) {
+            net.peregrine.client.core.modules.Menu3D m = net.peregrine.client.core.modules.Menu3D.get();
+            if (m != null) {
+                m.nudge((float) (dragX / Math.max(1, width) * 2), (float) (-dragY / Math.max(1, height) * 2));
+                Peregrine.get().markDirty();
+            }
+            return true;
+        }
+        return menu.mouseDragged(px(e), py(e)) || super.mouseDragged(e, dragX, dragY);
     }
 
     @Override
     public boolean mouseReleased(MouseButtonEvent e) {
+        if (movingPanel) {
+            movingPanel = false;
+            return true;
+        }
         return menu.mouseReleased() || super.mouseReleased(e);
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        return menu.mouseScrolled(scrollY, (int) mouseX, (int) mouseY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        if (Panel3D.active() && Panel3D.ctrlDown(net.minecraft.client.Minecraft.getInstance())) {
+            net.peregrine.client.core.modules.Menu3D m = net.peregrine.client.core.modules.Menu3D.get();
+            if (m != null) {
+                m.resize((float) scrollY);
+                Peregrine.get().markDirty();
+            }
+            return true;
+        }
+        double[] pointer = Panel3D.pointer(mouseX, mouseY, width, height);
+        return menu.mouseScrolled(scrollY, (int) pointer[0], (int) pointer[1]) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
@@ -66,7 +110,16 @@ final class PeregrineScreen extends Screen {
             onClose();  // the same key closes it
             return true;
         }
+        if (e.key() != InputConstants.KEY_ESCAPE && !menu.wantsTyping()) {
+            Panel3D.passKey(e, true);   // in the world: walk, jump... (not while typing in the search bar)
+        }
         return super.keyPressed(e);  // Esc closes
+    }
+
+    @Override
+    public boolean keyReleased(KeyEvent e) {
+        Panel3D.passKey(e, false);
+        return super.keyReleased(e);
     }
 
     @Override
