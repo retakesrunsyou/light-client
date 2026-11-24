@@ -9,6 +9,7 @@ import net.peregrine.client.core.Module;
 import net.peregrine.client.core.Peregrine;
 import net.peregrine.client.core.Platform;
 import net.peregrine.client.core.settings.ActionSetting;
+import net.peregrine.client.core.settings.BoolSetting;
 
 /**
  * GPU mobs (experimental): mobs are posed by the graphics card instead of rebuilt every frame.
@@ -27,11 +28,15 @@ public final class GpuMobs extends Module {
 
     /** Read by the game hooks. */
     public static volatile boolean on;
+    /** Chests, ender chests and shulker boxes too (opt-in while it's being tested). */
+    public static volatile boolean blockEntities;
     /** Set by the adapter: what it drew last frame, and why it stopped if it did. */
     public static volatile int instances, draws, models, passedBack;
     public static volatile String broken = "";
     /** Time the game spends on its solid models (mobs) so far, added up by the adapter. */
     public static volatile long solidNanos;
+
+    public final BoolSetting chests = add(new BoolSetting("chests", "Chests and shulker boxes (testing)", false));
 
     public final ActionSetting test = add(new ActionSetting("ab_test",
             "Before / after test (creative world)",
@@ -46,6 +51,7 @@ public final class GpuMobs extends Module {
     @Override
     public void tick(Platform p) {
         on = (enabled() || testState != 0) && broken.isEmpty() && (testState == 0 || testOn);
+        blockEntities = on && chests.value;
         if (testState != 0) {
             testTick(p);
         }
@@ -55,6 +61,7 @@ public final class GpuMobs extends Module {
     protected void onDisable() {
         if (testState == 0) {
             on = false;
+            blockEntities = false;
         }
     }
 

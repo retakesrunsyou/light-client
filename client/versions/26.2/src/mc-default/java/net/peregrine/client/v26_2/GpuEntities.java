@@ -348,15 +348,16 @@ public final class GpuEntities {
     }
 
     public static boolean take(ModelFeatureRenderer.Submit<?> submit) {
-        RenderType type = submit.renderType();
+        RenderType type = unwrapType(submit.renderType());
         if (!GpuMobs.on || !GpuMobs.broken.isEmpty() || !inLevel) {
             return false;
         }
         try {
             Model<?> model = submit.model();
-            // chests, signs, beds and shulker boxes (textures from an atlas) stay on the normal path:
-            // their lids and boards came out in the wrong place
-            if (submit.sprite() != null || submit.sheetedDecalPose() != null
+            // textures from an atlas: only chests, ender chests and shulker boxes, and only when
+            // switched on (GPU mobs > Chests and shulker boxes); signs, beds and the rest stay normal
+            if ((submit.sprite() != null && !(GpuMobs.blockEntities && atlasModel(model)))
+                    || submit.sheetedDecalPose() != null
                     || type.hasBlending() || type.isOutline() || RenderSystem.outputColorTextureOverride != null
                     || (model instanceof net.minecraft.client.model.player.PlayerModel && playersStayNormal())
                     || model instanceof net.minecraft.client.model.player.PlayerCapeModel
@@ -421,6 +422,63 @@ public final class GpuEntities {
             fail("a mob couldn't be posed", t);
             return false;
         }
+    }
+
+    private static final Map<Class<?>, Boolean> ATLAS_OK = new IdentityHashMap<Class<?>, Boolean>();
+
+    /** Chest and shulker box models: the atlas-textured ones this path is tested against. */
+    static boolean atlasModel(Model<?> model) {
+        Class<?> c = model.getClass();
+        Boolean ok = ATLAS_OK.get(c);
+        if (ok == null) {
+            String n = c.getName();
+            ok = c == net.minecraft.client.model.object.chest.ChestModel.class
+                    || n.equals("net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer$ShulkerBoxModel");
+            ATLAS_OK.put(c, ok);
+        }
+        return ok;
+    }
+
+    private static final Map<Class<?>, Field> WRAPPED = new IdentityHashMap<Class<?>, Field>();
+
+    /**
+     * The render type underneath another mod's wrapper. Iris wraps chests' and other block
+     * entities' types even with no shader pack on; the wrapper carries a stand-in setup with no
+     * textures, so drawing from it binds the wrong texture. Unwrapped, it's the game's own type.
+     */
+    static RenderType unwrapType(RenderType t) {
+        for (int depth = 0; depth < 4 && t != null && t.getClass() != RenderType.class; depth++) {
+            Class<?> c = t.getClass();
+            Field f;
+            if (WRAPPED.containsKey(c)) {
+                f = WRAPPED.get(c);
+            } else {
+                f = null;
+                for (Class<?> k = c; k != null && k != RenderType.class && f == null; k = k.getSuperclass()) {
+                    for (Field d : k.getDeclaredFields()) {
+                        if (RenderType.class.isAssignableFrom(d.getType()) && !java.lang.reflect.Modifier.isStatic(d.getModifiers())) {
+                            d.setAccessible(true);
+                            f = d;
+                            break;
+                        }
+                    }
+                }
+                WRAPPED.put(c, f);
+            }
+            if (f == null) {
+                return t;
+            }
+            try {
+                RenderType inner = (RenderType) f.get(t);
+                if (inner == null || inner == t) {
+                    return t;
+                }
+                t = inner;
+            } catch (IllegalAccessException e) {
+                return t;
+            }
+        }
+        return t;
     }
 
     /** One part and its children, exactly as ModelPart.render walks them. */
