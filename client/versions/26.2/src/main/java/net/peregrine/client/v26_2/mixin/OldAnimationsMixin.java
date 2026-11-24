@@ -60,4 +60,40 @@ public abstract class OldAnimationsMixin {
             this.applyItemArmAttackTransform(poseStack, arm, peregrine$attack);
         }
     }
+
+    // 1.7 sword blocking: remember what this arm holds, then turn the sword up into the old block
+
+    @Inject(method = "submitArmWithItem", at = @At("HEAD"))
+    private void peregrine$holding(CallbackInfo ci,
+            @com.llamalad7.mixinextras.sugar.Local(argsOnly = true) ItemStack stack,
+            @com.llamalad7.mixinextras.sugar.Local(argsOnly = true) net.minecraft.world.InteractionHand hand) {
+        Hooks.handStack = stack;
+        Hooks.handIsMain = hand == net.minecraft.world.InteractionHand.MAIN_HAND;
+    }
+
+    @Inject(method = "submitArmWithItem", at = @At("RETURN"))
+    private void peregrine$done(CallbackInfo ci) {
+        Hooks.handStack = null;
+    }
+
+    @Inject(method = "applyItemArmAttackTransform", at = @At("TAIL"))
+    private void peregrine$block(PoseStack poseStack, HumanoidArm arm, float swing, CallbackInfo ci) {
+        if (!Hooks.oldBlockHit || !Hooks.handIsMain || !(Hooks.handStack instanceof ItemStack)) {
+            return;
+        }
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.screen != null || !mc.options.keyUse.isDown()) {
+            return;
+        }
+        ItemStack stack = (ItemStack) Hooks.handStack;
+        if (stack.isEmpty() || !net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().endsWith("_sword")) {
+            return;
+        }
+        float side = arm == HumanoidArm.RIGHT ? 1 : -1;
+        poseStack.translate(side * -0.4F, 0.32F, 0.1F);
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(side * 30F));
+        poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(-80F));
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(side * 60F));
+        poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(side * 20F));
+    }
 }

@@ -14,6 +14,7 @@ public abstract class FogAirMixin {
 
     @Inject(method = "setupFog", at = @At("TAIL"))
     private void peregrine$clear(CallbackInfo ci, @Local(argsOnly = true) FogData fog) {
+        Hooks.fogInAir = true;
         if (Hooks.fogOff) {
             if (Hooks.fogHits < 1000) {
                 Hooks.fogHits++;

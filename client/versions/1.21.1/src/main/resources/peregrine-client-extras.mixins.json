@@ -41,6 +41,7 @@
 		"NightVisionMixin",
 		"NightVisionScaleMixin",
 		"OldAnimationsMixin",
+		"OldSneakMixin",
 		"OutlineColorMixin",
 		"OverlayTextureAccessor",
 		"OwnNameLogoMixin",

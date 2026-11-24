@@ -455,6 +455,13 @@ public interface Platform {
 
     // ---- batch 9
 
+    /**
+     * While flying with no movement keys held, stop instead of drifting on.
+     * Up and down stop too when neither jump nor sneak is held.
+     */
+    default void stopFlyDrift() {
+    }
+
     /** Sends a chat message, or a command if it starts with "/". */
     default void sendChat(String message) {
     }

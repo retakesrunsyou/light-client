@@ -794,6 +794,22 @@ final class GamePlatform implements Platform {
     // ---- batch 9
 
     @Override
+    public void stopFlyDrift() {
+        net.minecraft.client.Minecraft mc = mc();
+        net.minecraft.client.player.LocalPlayer pl = mc == null ? null : mc.player;
+        if (pl == null || !pl.getAbilities().flying) {
+            return;
+        }
+        net.minecraft.client.Options o = mc.options;
+        boolean move = o.keyUp.isDown() || o.keyDown.isDown() || o.keyLeft.isDown() || o.keyRight.isDown();
+        boolean upDown = o.keyJump.isDown() || o.keyShift.isDown();
+        if (!move || !upDown) {
+            net.minecraft.world.phys.Vec3 v = pl.getDeltaMovement();
+            pl.setDeltaMovement(move ? v.x : 0, upDown ? v.y : 0, move ? v.z : 0);
+        }
+    }
+
+    @Override
     public void sendChat(String message) {
         if (mc().player == null || mc().getConnection() == null || message == null || message.isEmpty()) {
             return;

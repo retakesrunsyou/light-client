@@ -41,7 +41,7 @@ final class ModuleGroups {
                 "custom_sky", "fog", "fullbright", "ore_outline", "saturation", "static_sky", "time_changer",
                 "tnt_timer", "clean_overlays", "clean_edges", "anti_leak", "waypoints", "area_miner", "hd_look",
                 "lyrics", "stretched", "motion_blur", "skeletons");
-        put(CAMERA, "freelook", "snaplook", "zoom", "no_hurt_cam", "static_fov", "steady_camera",
+        put(CAMERA, "freelook", "snaplook", "zoom", "fly_stop", "no_hurt_cam", "static_fov", "steady_camera",
                 "toggle_sprint", "toggle_sneak", "quick_commands", "anti_afk", "flight_boost");
         put(SOCIAL, "chat", "nick_hider", "cosmetics", "own_nametag", "tab_list", "auto_reconnect", "clips",
                 "click_sounds", "sound_filters", "voice");

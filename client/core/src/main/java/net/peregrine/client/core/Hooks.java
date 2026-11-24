@@ -143,6 +143,8 @@ public final class Hooks {
 
     /** Fog: off, clear water, clear lava, and a color (0 = Minecraft's). */
     public static volatile boolean fogOff;
+    /** Set while the open-air fog is being worked out this frame (not in water, lava or blindness). */
+    public static boolean fogInAir;
     public static volatile boolean clearWater;
     public static volatile boolean clearLava;
     public static volatile int fogColor;
@@ -377,6 +379,11 @@ public final class Hooks {
     // ---- 1.7 animations
     public static volatile boolean oldSwing;     // the hand keeps swinging while you use an item
     public static volatile boolean oldPosition;  // held items sit lower and further out, like 1.7
+    public static volatile boolean oldSneak;     // sneaking drops the camera a little, straight away (1.7)
+    public static volatile boolean oldBlockHit;  // holding use with a sword shows the 1.7 block
+    /** The item and hand the first-person renderer is drawing right now (for the sword block). */
+    public static Object handStack;
+    public static boolean handIsMain;
 
     // ---- Fullbright: also light up places with no light at all (like night vision)
     public static volatile boolean nightVision;

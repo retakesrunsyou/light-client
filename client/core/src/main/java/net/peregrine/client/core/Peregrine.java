@@ -7,6 +7,7 @@ import java.util.Deque;
 import java.util.List;
 
 import net.peregrine.client.core.modules.ArmorHud;
+import net.peregrine.client.core.modules.FlyStop;
 import net.peregrine.client.core.modules.SmoothJoin;
 import net.peregrine.client.core.modules.ParticleControl;
 import net.peregrine.client.core.modules.Hitboxes;
@@ -188,6 +189,7 @@ public final class Peregrine {
         modules.add(new net.peregrine.client.core.modules.AntiAfk());
         modules.add(new InventoryTweaks());
         modules.add(new OldAnimations());
+        modules.add(new FlyStop());
         // Batch 9
         modules.add(new net.peregrine.client.core.modules.NickHider());
         modules.add(new net.peregrine.client.core.modules.TimeChanger());
