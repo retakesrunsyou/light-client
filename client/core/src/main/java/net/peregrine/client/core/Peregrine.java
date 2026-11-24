@@ -363,6 +363,27 @@ public final class Peregrine {
         menuBackground = Math.max(0, Math.min(2, v));
     }
 
+    /** Module rows in the menu: roomy (name and a line about it) or compact (just the name). */
+    private boolean compactRows;
+    /** Menu animations (fades, rows sliding in); off makes everything appear at once. */
+    private boolean animations = true;
+
+    public boolean compactRows() {
+        return compactRows;
+    }
+
+    public void setCompactRows(boolean v) {
+        compactRows = v;
+    }
+
+    public boolean animations() {
+        return animations;
+    }
+
+    public void setAnimations(boolean v) {
+        animations = v;
+    }
+
     /** A menu background color with the chosen see-through-ness applied. */
     public int menuBg(int argb) {
         float k = menuBackground == 0 ? 1f : menuBackground == 1 ? 0.5f : 0f;

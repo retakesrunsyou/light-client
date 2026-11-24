@@ -122,7 +122,7 @@ final class SchematicsPanel extends MenuPanel {
             }
         }
         menu.unclipArea(d);
-        menu.scrollbar(d, listTop, listH, scroll, maxScroll, smooth, a);
+        menu.scrollbar(d, listTop, listH, maxScroll, smooth, a, v -> { scroll = v; smooth = v; });
         lastShown = shown;
     }
 
@@ -304,7 +304,7 @@ final class SchematicsPanel extends MenuPanel {
             d.text(need2, x + w - 16 - d.width(has) - d.width(need2), ry + 5, Theme.MUTED, false);
         }
         menu.unclipArea(d);
-        menu.scrollbar(d, listTop, listH, scroll, maxScroll, smooth, a);
+        menu.scrollbar(d, listTop, listH, maxScroll, smooth, a, v -> { scroll = v; smooth = v; });
     }
 
     // ------------------------------------------------------------------ clicks

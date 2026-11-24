@@ -33,7 +33,7 @@ public final class Menu {
     private static final int TITLE_H = 30;
     private static final int TABBAR_H = 16;
     private static final int SIDE_W = 124;
-    private static final int TILE_GAP = 6;
+    private static final int TILE_GAP = 4;
     private static final int SIDE_ROW = 15;
 
     /** The old tab names, still understood by the self-test ("view:Settings"...). */
@@ -56,6 +56,8 @@ public final class Menu {
     private int chipScroll, chipMax;
     private final List<Hit> chipHits = new ArrayList<Hit>();
     private int onlyX, onlyW, filterY;
+    private float lineX, lineW;
+    private int selX, selW;
     private int scroll;
     private float smoothScroll;
     private int maxScroll;
@@ -342,14 +344,69 @@ public final class Menu {
     }
 
     void scrollbar(Draw d, int top, int viewH, int scrollNow, int max, float smooth, int a) {
+        scrollbar(d, top, viewH, max, smooth, a, null);
+    }
+
+    // The scrollbar drawn this frame, so it can be grabbed and dragged (or its track clicked).
+    private int sbX = -1, sbTop, sbTrack, sbBarH, sbMax;
+    private java.util.function.IntConsumer sbSet;
+    private boolean sbDragging;
+    private int sbGrab, guiMx, guiMy;
+    private float sbGlow;
+
+    /** A scrollbar down the right edge; with set, it can be dragged and its track clicked. */
+    void scrollbar(Draw d, int top, int viewH, int max, float smooth, int a, java.util.function.IntConsumer set) {
         if (max <= 0) {
             return;
         }
         int track = viewH - 4;
-        int barH = Math.max(14, track * viewH / (viewH + max));
-        int barY = top + 2 + Math.round((track - barH) * (smooth / max));
-        d.roundRect(px + pw - 7, top + 2, 3, track, 1, 0x14FFFFFF);
-        d.roundRect(px + pw - 7, barY, 3, barH, 1, Theme.withAlpha(a, 0xB0));
+        int barH = Math.max(18, track * viewH / (viewH + max));
+        int barY = top + 2 + Math.round((track - barH) * (Math.max(0f, Math.min(smooth, max)) / max));
+        int x = px + pw - 8;
+        if (set != null) {
+            sbSmooth = smooth;
+        }
+        boolean hover = set != null && (sbDragging || in(guiMx, guiMy, x - 4, top, 12, viewH));
+        sbGlow += ((hover ? 1f : 0f) - sbGlow) * 0.3f;
+        int w = 3 + Math.round(2 * sbGlow);
+        int bx = x + 2 - w / 2;
+        d.roundRect(bx, top + 2, w, track, 1, Theme.mix(0x14FFFFFF, 0x26FFFFFF, sbGlow));
+        d.roundRect(bx, barY, w, barH, 1, sbDragging ? a : Theme.withAlpha(a, 0xB0 + Math.round(0x4F * sbGlow)));
+        if (set != null) {
+            sbX = x;
+            sbTop = top + 2;
+            sbTrack = track;
+            sbBarH = barH;
+            sbMax = max;
+            sbSet = set;
+        }
+    }
+
+    /** Where the pointer puts the scroll while dragging the scrollbar. */
+    private void sbFollow(int my) {
+        if (sbSet == null || sbTrack <= sbBarH) {
+            return;
+        }
+        float t = (my - sbGrab - sbTop) / (float) (sbTrack - sbBarH);
+        sbSet.accept(Math.round(Math.max(0f, Math.min(1f, t)) * sbMax));
+    }
+
+    /** A click on the scrollbar: grab the thumb, or jump there and grab it. */
+    private boolean sbClicked(int mx, int my) {
+        if (sbX < 0 || sbSet == null || !in(mx, my, sbX - 4, sbTop - 2, 12, sbTrack + 4)) {
+            return false;
+        }
+        int barY = sbTop + Math.round((sbTrack - sbBarH) * (Math.max(0f, Math.min(smoothNow(), sbMax)) / sbMax));
+        sbGrab = my >= barY && my < barY + sbBarH ? my - barY : sbBarH / 2;
+        sbDragging = true;
+        sbFollow(my);
+        return true;
+    }
+
+    private float sbSmooth;
+
+    private float smoothNow() {
+        return sbSmooth;
     }
 
     /** Opens a feature's settings page (the gear on its row, or right-click). */
@@ -521,8 +578,8 @@ public final class Menu {
         int sw = Math.round(p.screenWidth() / k);
         int sh = Math.round(p.screenHeight() / k);
         int fitW = sw - 16, fitH = sh - 16;
-        pw = Math.min(fitW, windowW > 0 ? windowW : clamp(Math.round(sw * 0.64f), 330, 530));
-        ph = Math.min(fitH, windowH > 0 ? windowH : clamp(Math.round(sh * 0.70f), 210, 300));
+        pw = Math.min(fitW, windowW > 0 ? windowW : clamp(Math.round(sw * 0.78f), 330, 600));
+        ph = Math.min(fitH, windowH > 0 ? windowH : clamp(Math.round(sh * 0.78f), 210, 340));
         px = windowX < 0 ? (sw - pw) / 2 : clamp(windowX, 8, sw - pw - 8);
         py = windowY < 0 ? (sh - ph) / 2 : clamp(windowY, 8, sh - ph - 8);
         closeX = px + pw - 23;
@@ -560,7 +617,7 @@ public final class Menu {
         }
         cols = Math.max(1, (listW + TILE_GAP) / (140 + TILE_GAP));
         tileW = (listW - TILE_GAP * (cols - 1)) / cols;
-        tileH = ROW_H;
+        tileH = pc.compactRows() ? ROW_H_COMPACT : ROW_H;
     }
 
     /** Tile i of the grid: x, y, width (menu pixels, scrolled). */
@@ -569,7 +626,12 @@ public final class Menu {
         return new int[] {listX + col * (tileW + TILE_GAP), listY + row * (tileH + TILE_GAP) - Math.round(smoothScroll), tileW};
     }
 
-    private static final int ROW_H = 27;
+    private static final int ROW_H = 27, ROW_H_COMPACT = 20;
+
+    /** With animations off, every fade and slide counts as long finished. */
+    private long anim(long started) {
+        return pc.animations() ? started : 0L;
+    }
 
     /** A row's switch, on the right: x, y, width, height. */
     private int[] toggleAt(int[] c) {
@@ -597,7 +659,7 @@ public final class Menu {
 
     /** How far the opening fade has got, 0-1; adapters use it to fade the background shade too. */
     public float fade() {
-        return FadeDraw.progress(openedAt, 180);
+        return FadeDraw.progress(anim(openedAt), 180);
     }
 
     public void render(Draw raw, int screenMx, int screenMy) {
@@ -605,9 +667,15 @@ public final class Menu {
         k = uiScale(p);
         lastMx = screenMx;
         layout(p);
-        if ((draggingSlider != null || movingWindow || resizingWindow) && p.mouseHeld() == 0) {
+        if ((draggingSlider != null || movingWindow || resizingWindow || sbDragging) && p.mouseHeld() == 0) {
             mouseReleased();   // let go somewhere the menu didn't hear about
         }
+        guiMx = Math.round(screenMx / k);
+        guiMy = Math.round(screenMy / k);
+        if (sbDragging) {
+            sbFollow(guiMy);
+        }
+        sbX = -1;
         if (draggingSlider != null && !editingHud && screenMx > -500) {
             // A held slider follows the pointer the menu is drawn with (flat or 3D), every frame.
             float before = draggingSlider.value;
@@ -730,7 +798,7 @@ public final class Menu {
         }
         if (pn != null) {
             // pages slide in a little from the right when chosen
-            float st = FadeDraw.progress(listShownAt, 220);
+            float st = FadeDraw.progress(anim(listShownAt), 220);
             float se = 1f - (1f - st) * (1f - st);
             int off = Math.round((1f - se) * 10);
             Draw pd = st < 1f ? new FadeDraw(d, 0.2f + 0.8f * st) : d;
@@ -759,7 +827,7 @@ public final class Menu {
                 continue;
             }
             // Cards pop in one after another when the menu (or a new category) opens.
-            float raw = FadeDraw.progress(listShownAt + Math.min(i, 18) * 14L, 240);
+            float raw = FadeDraw.progress(anim(listShownAt + Math.min(i, 18) * 14L), 240);
             float appear = Math.max(0f, Math.min(1f, raw * 1.4f));
             Draw cd = appear < 1f ? new FadeDraw(d, 0.05f + 0.95f * appear) : d;
             if (raw < 1f) {
@@ -827,7 +895,8 @@ public final class Menu {
             float hg = sideGlowOf("chip:" + label, hv, dt);
             if (sel) {
                 d.roundRect(x, cy, w, ch, 4, 0x30FFFFFF);
-                d.rect(x + 4, cy + ch - 1, w - 8, 1, a);
+                selX = x + 4;
+                selW = w - 8;
             } else if (hg > 0.01f) {
                 d.roundRect(x, cy, w, ch, 4, Theme.withAlpha(0xFFFFFF, Math.round(0x14 * hg)));
             }
@@ -835,6 +904,15 @@ public final class Menu {
             chipHits.add(new Hit(g == null ? "" : g, x, cy, w, ch, null));
             x += w + 3;
         }
+        // the underline glides over to the chosen tab instead of jumping
+        if (lineW <= 0) {
+            lineX = selX;
+            lineW = selW;
+        }
+        float ease = Math.min(1f, dt * 14f);
+        lineX += (selX - lineX) * ease;
+        lineW += (selW - lineW) * ease;
+        d.rect(Math.round(lineX), cy + ch - 1, Math.max(2, Math.round(lineW)), 1, a);
         unclipArea(d);
         if (chipMax > 0) {   // a fade at the edge says there's more to the side
             int fx = listX + listW - 10;
@@ -873,17 +951,21 @@ public final class Menu {
         int room = (hover || m.favorite ? st[0] - 3 : tg[0] - 5) - tx;
         boolean warn = hover && m.warning() != null;
         String title = cd.trim(m.name, room);
-        cd.text(title, tx, cy + 5, Theme.TEXT, false);
+        boolean compact = pc.compactRows();
+        int ty = compact ? cy + (tileH - 8) / 2 : cy + 5;
+        cd.text(title, tx, ty, Theme.TEXT, false);
         if (m.key >= 0) {   // its key, after the name
             String key = Keys.name(m.key);
             int kx = tx + cd.width(title) + 4;
             if (kx + cd.width(key) + 4 < tx + room) {
-                cd.roundRect(kx, cy + 4, cd.width(key) + 4, 10, 2, 0x40000000);
-                cd.text(key, kx + 2, cy + 5, Theme.FAINT, false);
+                cd.roundRect(kx, ty - 1, cd.width(key) + 4, 10, 2, 0x40000000);
+                cd.text(key, kx + 2, ty, Theme.FAINT, false);
             }
         }
-        String sub = cd.trim(warn ? m.warning() : m.description, room);
-        cd.text(sub, tx, cy + 15, warn ? Theme.OK : Theme.FAINT, false);
+        if (!compact) {
+            String sub = cd.trim(warn ? m.warning() : m.description, room);
+            cd.text(sub, tx, cy + 15, warn ? Theme.OK : Theme.FAINT, false);
+        }
         if (m.favorite || hover) {
             boolean starHover = hover && in(mx, my, st[0] - 2, st[1] - 2, 15, 15);
             MenuIcons.draw(cd, m.favorite ? "star" : "star_o", st[0], st[1],
@@ -1066,14 +1148,10 @@ public final class Menu {
     }
 
     private void scrollbar(Draw d, int top, int viewH, boolean active, int a) {
-        if (maxScroll <= 0) {
-            return;
-        }
-        int track = viewH - 4;
-        int barH = Math.max(14, track * viewH / (viewH + maxScroll));
-        int barY = top + 2 + Math.round((track - barH) * (smoothScroll / maxScroll));
-        d.roundRect(px + pw - 8, top + 2, 4, track, 0x30FFFFFF);
-        d.roundRect(px + pw - 8, barY, 4, barH, active ? a : Theme.withAlpha(a, 0xB0));
+        scrollbar(d, top, viewH, maxScroll, smoothScroll, a, v -> {
+            scroll = clamp(v, 0, maxScroll);
+            smoothScroll = scroll;
+        });
     }
 
     /**
@@ -1166,6 +1244,28 @@ public final class Menu {
         picker.render(d, mx, my, a);
     }
 
+    /** A label on the left and a few pill buttons on the right; the chosen one is filled in. */
+    private int choiceRow(Draw d, int mx, int my, int a, String id, String label, String[] options, int chosen,
+                          int x, int y, int w) {
+        d.text(label, x + 6, y + 7, Theme.MUTED, false);
+        int bx = x + w - 6;
+        for (int i = options.length - 1; i >= 0; i--) {
+            String o = options[i];
+            int ow = d.width(o) + 12;
+            bx -= ow;
+            boolean on = chosen == i;
+            boolean hv = in(mx, my, bx, y + 3, ow, 16);
+            d.roundRect(bx, y + 3, ow, 16, on ? a : hv ? Theme.CARD_HOVER : Theme.CARD);
+            if (!on) {
+                d.roundOutline(bx, y + 3, ow, 16, Theme.HAIRLINE);
+            }
+            d.text(o, bx + 6, y + 7, on ? Theme.onColor(a) : hv ? Theme.TEXT : Theme.MUTED, false);
+            hit("choice:" + id + ":" + i, bx, y + 3, ow, 16, null);
+            bx -= 3;
+        }
+        return y + SET_H + 2;
+    }
+
     private int settingsRows(Draw d, int mx, int my, float dt, int a, int x, int y, int w) {
         heading(d, "Look", x, y);
         y += 14;
@@ -1222,6 +1322,8 @@ public final class Menu {
             bx -= 3;
         }
         y += SET_H + 2;
+        y = choiceRow(d, mx, my, a, "rows", "Module rows", new String[] {"Roomy", "Compact"}, pc.compactRows() ? 1 : 0, x, y, w);
+        y = choiceRow(d, mx, my, a, "anim", "Animations", new String[] {"On", "Off"}, pc.animations() ? 0 : 1, x, y, w);
         y = moduleRow(d, mx, my, dt, a, "main_menu", "Light Client main menu", x, y, w);
         y = moduleRow(d, mx, my, dt, a, "pause_menu", "Light Client pause menu", x, y, w);
         y = moduleRow(d, mx, my, dt, a, "clean_menus", "Keep resource packs out of menus", x, y, w);
@@ -1376,7 +1478,7 @@ public final class Menu {
     private void renderPage(Draw d, int mx, int my, Platform p, float dt, long now, int a) {
         Module m = page;
         hits.clear();
-        float t = FadeDraw.progress(pageOpenedAt, 160);
+        float t = FadeDraw.progress(anim(pageOpenedAt), 160);
         float e = 1f - (1f - t) * (1f - t);
         int ox = Math.round((1f - e) * 8);  // slides in from the right a little
         int x = listX + ox;
@@ -2344,6 +2446,9 @@ public final class Menu {
                 return true;
             }
         }
+        if (button == 0 && sbClicked(mx, my)) {
+            return true;
+        }
         if (button == 1 && page == null && view == 0 && in(mx, my, listX, listY, listW, listH)) {
             // Right-click a tile to open its options, same as clicking the tile.
             List<Module> mods = visible();
@@ -2494,6 +2599,11 @@ public final class Menu {
                 pc.setAccent(ACCENTS[Integer.parseInt(h.id.substring(7))]);
             } else if (h.id.startsWith("menubg:")) {
                 pc.setMenuBackground(Integer.parseInt(h.id.substring(7)));
+            } else if (h.id.startsWith("choice:rows:")) {
+                pc.setCompactRows(h.id.endsWith(":1"));
+                listShownAt = System.currentTimeMillis();
+            } else if (h.id.startsWith("choice:anim:")) {
+                pc.setAnimations(h.id.endsWith(":0"));
             } else if (h.id.startsWith("module:")) {
                 Module m = pc.module(h.id.substring(7));
                 m.setEnabled(!m.enabled());
@@ -2564,10 +2674,17 @@ public final class Menu {
             dragEventAt = Math.round(screenMx / k);   // the slider itself follows the pointer in render()
             return true;
         }
+        if (sbDragging) {
+            return true;   // followed in render()
+        }
         return editingHud && editor.mouseDragged(screenMx, screenMy);
     }
 
     public boolean mouseReleased() {
+        if (sbDragging) {
+            sbDragging = false;
+            return true;
+        }
         if (movingWindow || resizingWindow) {
             movingWindow = false;
             resizingWindow = false;
@@ -2579,10 +2696,6 @@ public final class Menu {
         }
         picker.release();
         if (draggingSlider != null) {
-            int[] tr = sliderTrack.get(draggingSlider);
-            System.out.println("[Peregrine] slider " + draggingSlider.id + " = " + draggingSlider.text() + " (bar "
-                    + (tr == null ? "?" : tr[0] + "+" + tr[1]) + ", clicked " + dragClickedAt + ", dragged " + dragEventAt
-                    + ", pointer " + dragSeenAt + ", scale " + k + ")");
             styleChanged(draggingSlider);
             draggingSlider = null;
             pc.markDirty();

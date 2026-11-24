@@ -46,6 +46,12 @@ public final class Config {
             if (root.has("menuBackground")) {
                 p.setMenuBackground(root.get("menuBackground").getAsInt());
             }
+            if (root.has("compactRows")) {
+                p.setCompactRows(root.get("compactRows").getAsBoolean());
+            }
+            if (root.has("animations")) {
+                p.setAnimations(root.get("animations").getAsBoolean());
+            }
             // Files from before version 2 used the old defaults (most things on, full size);
             // those switch states are dropped so the new defaults apply once.
             if (root.has("lastServer") && root.get("lastServer").isJsonObject()) {
@@ -199,6 +205,8 @@ public final class Config {
         root.addProperty("version", VERSION);
         root.addProperty("accent", Integer.toHexString(p.userAccent()));
         root.addProperty("menuBackground", p.menuBackground());
+        root.addProperty("compactRows", p.compactRows());
+        root.addProperty("animations", p.animations());
         JsonObject mods = new JsonObject();
         for (Module m : p.modules()) {
             JsonObject o = new JsonObject();

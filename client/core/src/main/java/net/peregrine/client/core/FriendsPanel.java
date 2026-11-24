@@ -143,7 +143,7 @@ final class FriendsPanel extends MenuPanel {
             }
         }
         menu.unclipArea(d);
-        menu.scrollbar(d, listTop, listH, scroll, maxScroll, smooth, a);
+        menu.scrollbar(d, listTop, listH, maxScroll, smooth, a, v -> { scroll = v; smooth = v; });
     }
 
     static String ago(long ms) {

@@ -9,7 +9,8 @@ from .theme import Theme
 NOTES = [
     ("2.2.1", "Friends", "Add other Light Client players by their Minecraft name, chat, and call them with voice "
               "and screen sharing. Everything is encrypted so only the two of you can read or hear it."),
-    ("2.2.1", "Tidier mod menu", "Modules in tabs (PvP, HUD, World and more), an Only on button and a count of what's on."),
+    ("2.2.1", "Tidier mod menu", "Modules in tabs (PvP, HUD, World and more), an Only on button, a count of what's on, "
+              "and a scrollbar you can drag. Pick roomy or compact rows and turn animations off in Settings."),
     ("2.2.1", "Settings in tabs", "The launcher's settings are split into Appearance, Game, Performance and so on."),
     ("2.2.1", "New Lyrics", "Lyrics are now 3D words in the world: around you, overhead, or on the floor. Pick the font, colours and animations."),
     ("2.2.1", "Move the chat and scoreboard", "Drag and resize both in Edit HUD."),

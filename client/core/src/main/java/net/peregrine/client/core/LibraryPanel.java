@@ -207,7 +207,7 @@ final class LibraryPanel extends MenuPanel {
             rd.text(rd.trim(sub, right - tx - 4), tx, ry + 17, Theme.FAINT, false);
         }
         menu.unclipArea(d);
-        menu.scrollbar(d, listTop, listH, scroll, maxScroll, smooth, a);
+        menu.scrollbar(d, listTop, listH, maxScroll, smooth, a, v -> { scroll = v; smooth = v; });
     }
 
     // ------------------------------------------------------------------ browse
@@ -352,7 +352,7 @@ final class LibraryPanel extends MenuPanel {
             }
         }
         menu.unclipArea(d);
-        menu.scrollbar(d, listTop, listH, scroll, maxScroll, smooth, a);
+        menu.scrollbar(d, listTop, listH, maxScroll, smooth, a, v -> { scroll = v; smooth = v; });
     }
 
     // ------------------------------------------------------------------ clicks
