@@ -280,7 +280,7 @@ export class Person {
         return this.accept(to, toName);   // they already asked: that's a yes
       }
       const r = await this.tell(to, "/in/request", {});
-      if (!r) return json({ error: `${toName} hasn't used Light Client friends yet` }, 404);
+      if (!r) return json({ error: "Couldn't send that. Try again." }, 502);
       this.sql.exec("INSERT OR REPLACE INTO requests (uuid, name, incoming, at) VALUES (?, ?, 0, ?)", to, toName, now);
       this.push({ type: "friends" });
       return json({ ok: true, sent: true });
@@ -382,10 +382,12 @@ export class Person {
   async fromFriend(path, from, fromName, body) {
     // The uuid header here is the sender; this Person's own uuid is in its table.
     const me = this.one("SELECT v FROM me WHERE k = 'uuid'");
-    if (!me) return json({ error: "not a Light Client friends user yet" }, 404);
-    this.uuid = me.v;
     const now = Date.now();
     const friend = this.one("SELECT uuid FROM friends WHERE uuid = ?", from);
+    // A request can wait for someone who hasn't opened a launcher with friends yet: it's here
+    // when they do. Everything else needs them signed in at least once.
+    if (!me && path !== "/in/request") return json({ error: "not a Light Client friends user yet" }, 404);
+    if (me) this.uuid = me.v;
     if (path === "/in/request") {
       if (friend) return json({ ok: true });
       if (this.one("SELECT COUNT(*) AS n FROM requests WHERE incoming = 1").n >= 100) return json({ ok: true });

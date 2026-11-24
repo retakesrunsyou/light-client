@@ -523,8 +523,8 @@ class FriendsPage(QWidget):
             if r.get("friends"):
                 self.add_note.setText(f"You and {r.get('name', name)} are friends now.")
             else:
-                self.add_note.setText(f"Request sent to {r.get('name', name)}. They'll see it next time they open "
-                                      "Light Client.")
+                self.add_note.setText(f"Request sent to {r.get('name', name)}. They'll see it in Friends once "
+                                      "they're on Light Client 2.2.1 or newer.")
             self.load()
 
         workers.run(c.add, name, done=ok, failed=lambda m: self.add_note.setText(m))
