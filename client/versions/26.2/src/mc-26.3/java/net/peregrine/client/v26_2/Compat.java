@@ -21,6 +21,14 @@ public final class Compat {
         pose.mulPose(new org.joml.Matrix4f().rotationY((float) Math.toRadians(degrees)));
     }
 
+    public static void rotateX(com.mojang.blaze3d.vertex.PoseStack pose, float degrees) {
+        pose.mulPose(new org.joml.Matrix4f().rotationX((float) Math.toRadians(degrees)));
+    }
+
+    public static void rotateZ(com.mojang.blaze3d.vertex.PoseStack pose, float degrees) {
+        pose.mulPose(new org.joml.Matrix4f().rotationZ((float) Math.toRadians(degrees)));
+    }
+
     /** Whether GPU mobs work on this version. */
     public static final boolean GPU_MOBS = true;
 }

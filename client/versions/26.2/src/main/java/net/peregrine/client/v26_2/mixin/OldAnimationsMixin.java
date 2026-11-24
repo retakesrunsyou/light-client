@@ -82,7 +82,7 @@ public abstract class OldAnimationsMixin {
             return;
         }
         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
-        if (mc.screen != null || !mc.options.keyUse.isDown()) {
+        if (net.peregrine.client.v26_2.Screens.current() != null || !mc.options.keyUse.isDown()) {
             return;
         }
         ItemStack stack = (ItemStack) Hooks.handStack;
@@ -91,9 +91,9 @@ public abstract class OldAnimationsMixin {
         }
         float side = arm == HumanoidArm.RIGHT ? 1 : -1;
         poseStack.translate(side * -0.4F, 0.32F, 0.1F);
-        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(side * 30F));
-        poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(-80F));
-        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(side * 60F));
-        poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(side * 20F));
+        net.peregrine.client.v26_2.Compat.rotateY(poseStack, side * 30F);
+        net.peregrine.client.v26_2.Compat.rotateX(poseStack, -80F);
+        net.peregrine.client.v26_2.Compat.rotateY(poseStack, side * 60F);
+        net.peregrine.client.v26_2.Compat.rotateZ(poseStack, side * 20F);
     }
 }
