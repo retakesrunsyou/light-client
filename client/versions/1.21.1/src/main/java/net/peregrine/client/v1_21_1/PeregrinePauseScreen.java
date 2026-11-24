@@ -34,4 +34,15 @@ public final class PeregrinePauseScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         return menu.mouseClicked((int) mouseX, (int) mouseY, button) || super.mouseClicked(mouseX, mouseY, button);
     }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        return menu.mouseDragged((int) mouseX, (int) mouseY) || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        // the buttons act on release, so this has to reach the menu
+        return menu.mouseReleased((int) mouseX, (int) mouseY) || super.mouseReleased(mouseX, mouseY, button);
+    }
 }

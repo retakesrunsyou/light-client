@@ -7,6 +7,7 @@ from .theme import Theme
 
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
+    ("2.2.3", "Pause menu on every version", "The pause menu buttons work again on 1.21.x and 26.2 and newer, not just 26.1."),
     ("2.2.2", "Pause menu clicks", "Buttons in the pause menu work again if the mouse moves a little while you click. "
               "To move a button, hold it for a moment and drag."),
     ("2.2.1", "Friends", "Add other Light Client players by their Minecraft name, chat, and call them with voice "
