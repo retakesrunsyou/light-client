@@ -553,9 +553,6 @@ final class GamePlatform implements Platform {
 
     @Override
     public boolean supports(String moduleId) {
-        if (moduleId.equals("custom_sky") || moduleId.equals("gpu_mobs") || moduleId.equals("knives") || moduleId.equals("viewmodel_fx") || moduleId.equals("zero_delay") || moduleId.equals("benchmark") || moduleId.equals("boost_world_scale") || moduleId.equals("area_miner") || moduleId.equals("skeletons") || moduleId.equals("pickaxe_look") || moduleId.equals("frame_gen") || moduleId.equals("hd_look") || moduleId.equals("clips") || moduleId.equals("menu_3d") || moduleId.equals("smooth_join") ) {
-            return false;  // these are on 26.1 for now (beta)
-        }
         return !moduleId.equals("chunk_fade") || minecraftVersion().equals("1.21.11");
     }
 
@@ -845,6 +842,57 @@ final class GamePlatform implements Platform {
         }
         o.backgroundForChatOnly().set(true);   // only the chat: name tags keep theirs
         o.textBackgroundOpacity().set((double) Math.max(0f, Math.min(1f, opacity)));
+    }
+
+    @Override
+    public boolean killedSomething() {
+        return ClipCapture.killedSomething();
+    }
+
+    @Override
+    public int shownFps() {
+        return FrameGen.shownFps();
+    }
+
+    @Override
+    public Object botWorld() {
+        return MinerWorld.get();
+    }
+
+    @Override
+    public boolean localWorld() {
+        return mc().hasSingleplayerServer();
+    }
+
+    @Override
+    public int[] lookedAtPos() {
+        if (mc().hitResult instanceof net.minecraft.world.phys.BlockHitResult
+                && mc().hitResult.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) {
+            net.minecraft.core.BlockPos b = ((net.minecraft.world.phys.BlockHitResult) mc().hitResult).getBlockPos();
+            return new int[] {b.getX(), b.getY(), b.getZ()};
+        }
+        return null;
+    }
+
+    @Override
+    public java.util.Map<String, String> nearbyPlayers() {
+        java.util.Map<String, String> out = new java.util.LinkedHashMap<String, String>();
+        var mc = mc();
+        if (mc.level == null) {
+            return out;
+        }
+        for (var pl : mc.level.players()) {
+            if (pl != mc.player) {
+                out.put(pl.getUUID().toString().replace("-", ""), pl.getName().getString());
+            }
+        }
+        return out;
+    }
+
+    @Override
+    public boolean terrainReady() {
+        // Sodium answers this for its own renderer too ("is the terrain render complete")
+        return mc().level == null || mc().levelRenderer.hasRenderedAllSections();
     }
 
     @Override
