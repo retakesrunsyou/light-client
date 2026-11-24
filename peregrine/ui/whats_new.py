@@ -7,6 +7,13 @@ from .theme import Theme
 
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
+    ("2.2.4", "More 1.7", "1.7 animations now has the old sneak (the camera only dips a little, straight away) and sword "
+              "blocking: hold right click with a sword."),
+    ("2.2.4", "No fog means no fog", "Fog off now clears the fog at the edge of your view too, not just the sky."),
+    ("2.2.4", "Fly stop", "When you let go of the keys while flying you stop, instead of sliding on. On by default; "
+              "turn it off in the Camera tab."),
+    ("2.2.4", "More modules on older versions", "Auto reconnect, click sounds, chat tweaks and clean overlays now work on "
+              "1.21.1 to 1.21.11 and 26.2+, not just 26.1."),
     ("2.2.3", "Pause menu on every version", "The pause menu buttons work again on 1.21.x and 26.2 and newer, not just 26.1."),
     ("2.2.2", "Pause menu clicks", "Buttons in the pause menu work again if the mouse moves a little while you click. "
               "To move a button, hold it for a moment and drag."),

@@ -8,6 +8,9 @@ final class LightPanel extends MenuPanel {
 
     /** What changed, newest first: {version, title, what it does}. */
     static final String[][] NEWS = {
+        {"2.2.4", "1.7 animations", "Old sneak and sword blocking"},
+        {"2.2.4", "Fog off", "Clears the fog in front of you too"},
+        {"2.2.4", "Fly stop", "No more sliding when you let go while flying"},
         {"2.2.3", "Pause menu", "Buttons work on every version again"},
         {"2.2.2", "Pause menu", "Clicks work even if the mouse moves a little"},
         {"2.2.1", "Friends", "Chat and call Light Client friends from the launcher"},
