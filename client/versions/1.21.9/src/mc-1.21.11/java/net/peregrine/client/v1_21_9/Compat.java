@@ -44,4 +44,9 @@ public final class Compat {
         g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, net.minecraft.resources.Identifier.parse(id), x, y, u, v, w, h, uw, vh,
                 texSize, texSize, argb);
     }
+
+    /** A sound event for a menu sound by id ("minecraft:ui.button.click"). */
+    public static net.minecraft.sounds.SoundEvent uiSound(String id) {
+        return net.minecraft.sounds.SoundEvent.createVariableRangeEvent(net.minecraft.resources.Identifier.parse(id));
+    }
 }

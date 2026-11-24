@@ -151,7 +151,7 @@ final class GamePlatform implements Platform {
 
     @Override
     public boolean supports(String moduleId) {
-        if (moduleId.equals("custom_sky") || (moduleId.equals("gpu_mobs") && !net.peregrine.client.v26_2.Compat.GPU_MOBS) || moduleId.equals("knives") || moduleId.equals("viewmodel_fx") || moduleId.equals("zero_delay") || moduleId.equals("benchmark") || moduleId.equals("boost_world_scale") || moduleId.equals("auto_reconnect") || moduleId.equals("area_miner") || moduleId.equals("skeletons") || moduleId.equals("pickaxe_look") || moduleId.equals("frame_gen") || moduleId.equals("click_sounds") || moduleId.equals("hd_look") || moduleId.equals("clips") || moduleId.equals("menu_3d") || moduleId.equals("smooth_join") || moduleId.equals("chat") || moduleId.equals("clean_overlays")) {
+        if (moduleId.equals("custom_sky") || (moduleId.equals("gpu_mobs") && !net.peregrine.client.v26_2.Compat.GPU_MOBS) || moduleId.equals("knives") || moduleId.equals("viewmodel_fx") || moduleId.equals("zero_delay") || moduleId.equals("benchmark") || moduleId.equals("boost_world_scale") || moduleId.equals("area_miner") || moduleId.equals("skeletons") || moduleId.equals("pickaxe_look") || moduleId.equals("frame_gen") || moduleId.equals("hd_look") || moduleId.equals("clips") || moduleId.equals("menu_3d") || moduleId.equals("smooth_join")) {
             return false;  // these are on 26.1 for now (beta)
         }
         return true;
@@ -779,6 +779,61 @@ final class GamePlatform implements Platform {
     }
 
     // ---- batch 9
+
+    private static final java.util.Map<String, net.minecraft.sounds.SoundEvent> UI_SOUNDS = new java.util.HashMap<>();
+
+    @Override
+    public void playUiSound(String id, float volume, float pitch) {
+        Minecraft mc = mc();
+        if (mc == null || mc.getSoundManager() == null) {
+            return;
+        }
+        net.minecraft.sounds.SoundEvent e = UI_SOUNDS.computeIfAbsent(id,
+                k -> net.minecraft.sounds.SoundEvent.createVariableRangeEvent(net.minecraft.resources.Identifier.parse(k)));
+        mc.getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(e, pitch, volume));
+    }
+
+    @Override
+    public void showMessage(String text) {
+        Minecraft mc = mc();
+        mc.execute(() -> {
+            if (mc.gui != null && mc.gui.hud != null) {
+                mc.gui.hud.getChat().addClientSystemMessage(net.minecraft.network.chat.Component.literal(text));
+            }
+        });
+    }
+
+    @Override
+    public int windowWidth() {
+        return mc().getWindow().getWidth();
+    }
+
+    @Override
+    public int windowHeight() {
+        return mc().getWindow().getHeight();
+    }
+
+    private double savedChatBg = -1;
+    private boolean savedChatOnly;
+
+    @Override
+    public void setChatBackground(float opacity) {
+        net.minecraft.client.Options o = mc().options;
+        if (opacity < 0) {
+            if (savedChatBg >= 0) {
+                o.textBackgroundOpacity().set(savedChatBg);
+                o.backgroundForChatOnly().set(savedChatOnly);
+                savedChatBg = -1;
+            }
+            return;
+        }
+        if (savedChatBg < 0) {
+            savedChatBg = o.textBackgroundOpacity().get();
+            savedChatOnly = o.backgroundForChatOnly().get();
+        }
+        o.backgroundForChatOnly().set(true);   // only the chat: name tags keep theirs
+        o.textBackgroundOpacity().set((double) Math.max(0f, Math.min(1f, opacity)));
+    }
 
     @Override
     public void stopFlyDrift() {
