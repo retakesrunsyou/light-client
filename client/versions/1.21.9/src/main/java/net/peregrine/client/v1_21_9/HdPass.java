@@ -86,7 +86,7 @@ public final class HdPass {
             setup(w, h);
             // copy the world aside
             GlStateManager._disableScissorTest();
-            GlStateManager._colorMask(15);
+            GlStateManager._colorMask(true, true, true, true);
             GL45.glNamedFramebufferTexture(readFbo, GL30.GL_COLOR_ATTACHMENT0, src, 0);
             GL45.glBlitNamedFramebuffer(readFbo, copyFbo, 0, 0, w, h, 0, 0, w, h, GL11.GL_COLOR_BUFFER_BIT, GL11.GL_NEAREST);
             // draw it back, sharpened

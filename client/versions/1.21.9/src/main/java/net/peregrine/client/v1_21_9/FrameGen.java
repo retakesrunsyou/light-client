@@ -162,7 +162,7 @@ public final class FrameGen {
             }
             Slot s = slot(t.width, t.height);
             GlStateManager._disableScissorTest();
-            GlStateManager._colorMask(15);
+            GlStateManager._colorMask(true, true, true, true);
             copy(((GlTexture) t.getColorTexture()).glId(), s.fboWorld, s.w, s.h);
             s.hasWorld = true;
             worldDone = true;
@@ -205,7 +205,7 @@ public final class FrameGen {
             }
             Slot s = slot(view.getWidth(0), view.getHeight(0));
             GlStateManager._disableScissorTest();
-            GlStateManager._colorMask(15);
+            GlStateManager._colorMask(true, true, true, true);
             copy(((GlTexture) view.texture()).glId(), s.fboFinal, s.w, s.h);
             if (!worldDone) {   // no world this frame (a menu): show it as it is
                 s.hasWorld = false;

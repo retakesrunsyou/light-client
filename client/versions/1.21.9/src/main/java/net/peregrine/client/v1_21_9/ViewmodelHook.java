@@ -23,7 +23,7 @@ public final class ViewmodelHook {
         if (inGhost) {
             return false;
         }
-        SubmitNodeCollector real = collector instanceof FxCollector ? ((FxCollector) collector).root() : collector;
+        SubmitNodeCollector real = FxCollector.is(collector) ? FxCollector.root(collector) : collector;
         if (KnifeHand.draw(player, partial, hand, swing, stack, pose, real, light)) {
             return true;
         }
@@ -43,7 +43,7 @@ public final class ViewmodelHook {
                 }
                 float bright = 0.45f * (1 - k / 4f);
                 ((ItemInHandAccessor) renderer).peregrine$renderArmWithItem(player, partial, pitch, hand, s, stack, equip, pose,
-                        new FxCollector(real, bright, skin), light);
+                        FxCollector.of(real, bright, skin), light);
             }
         } catch (Throwable e) {
             broken = true;
@@ -57,13 +57,13 @@ public final class ViewmodelHook {
     /** The collector Minecraft draws this hand into: wrapped when viewmodel effects are on. */
     public static SubmitNodeCollector collector(SubmitNodeCollector c, AbstractClientPlayer player, InteractionHand hand, ItemStack stack) {
         KnifeView kv = KnifeView.INSTANCE;
-        if (c instanceof FxCollector || inGhost || kv.fx == KnifeView.FX_OFF) {
+        if (FxCollector.is(c) || inGhost || kv.fx == KnifeView.FX_OFF) {
             return c;
         }
         if (hand == InteractionHand.MAIN_HAND && kv.wants(KnifeHand.isSword(stack))) {
             return c;   // the knife draws itself, with the effects
         }
-        return new FxCollector(c, -1f, skin(player));
+        return FxCollector.of(c, -1f, skin(player));
     }
 
     private static boolean swings(int mode, ItemStack stack) {

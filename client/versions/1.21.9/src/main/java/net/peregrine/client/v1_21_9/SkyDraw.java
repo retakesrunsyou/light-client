@@ -64,7 +64,7 @@ public final class SkyDraw {
                 return;
             }
             Skies.weather = mc.level.getRainLevel(1f);
-            List<Skies.Quad> qs = Skies.build(System.currentTimeMillis() - START, mc.level.getOverworldClockTime());
+            List<Skies.Quad> qs = Skies.build(System.currentTimeMillis() - START, mc.level.getDayTime());
             if (qs.isEmpty()) {
                 return;
             }

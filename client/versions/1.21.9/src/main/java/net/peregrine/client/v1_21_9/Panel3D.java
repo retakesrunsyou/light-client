@@ -129,7 +129,7 @@ public final class Panel3D {
         GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, drawFbo);
         GlStateManager._viewport(0, 0, w, h);
         GlStateManager._disableScissorTest();
-        GlStateManager._colorMask(15);
+        GlStateManager._colorMask(true, true, true, true);
         GlStateManager._disableDepthTest();
         GlStateManager._depthMask(false);
         GlStateManager._disableCull();

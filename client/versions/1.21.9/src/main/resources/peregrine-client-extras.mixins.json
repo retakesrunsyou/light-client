@@ -105,7 +105,6 @@
 		"PickaxeLookThirdMixin",
 		"SkeletonHandMixin",
 		"SkeletonRenderMixin",
-		"SkyStateMixin",
 		"WorldScaleMixin",
 		"WorldScaleTargetMixin",
 		"ZeroDelayClickMixin",

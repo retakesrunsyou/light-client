@@ -553,6 +553,9 @@ final class GamePlatform implements Platform {
 
     @Override
     public boolean supports(String moduleId) {
+        if (moduleId.equals("viewmodel_fx")) {
+            return false;  // held items are submitted differently before 26.1; the effects need their own version
+        }
         return !moduleId.equals("chunk_fade") || minecraftVersion().equals("1.21.11");
     }
 

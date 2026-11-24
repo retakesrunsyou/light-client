@@ -14,7 +14,7 @@ public abstract class KnifeKeyMixin {
 
     @Inject(method = "keyPress(JILnet/minecraft/client/input/KeyEvent;)V", at = @At("HEAD"), cancellable = true, require = 0)
     private void peregrine$inspect(long window, int action, KeyEvent event, CallbackInfo ci) {
-        if (net.peregrine.client.v1_21_9.Screens.current() != null) {
+        if (net.minecraft.client.Minecraft.getInstance().screen != null) {
             return;
         }
         KnifeView kv = KnifeView.INSTANCE;

@@ -99,7 +99,7 @@ public final class KnifeHand {
         int block = (light >> 4) & 15, sky = (light >> 20) & 15;
         float day = 1f;
         if (mc.level != null) {
-            long t = mc.level.getOverworldClockTime() % 24000L;
+            long t = mc.level.getDayTime() % 24000L;
             double sun = Math.cos((t / 24000.0 - 0.25) * 2 * Math.PI);
             day = (float) Math.max(0.15, Math.min(1, sun * 2.5 + 0.5));
         }

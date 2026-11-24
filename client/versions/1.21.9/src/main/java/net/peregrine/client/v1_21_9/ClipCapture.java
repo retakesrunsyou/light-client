@@ -62,7 +62,7 @@ public final class ClipCapture {
             next = (next + 1) % SLOTS;
             // scale down and flip upright in one copy
             GlStateManager._disableScissorTest();
-            GlStateManager._colorMask(15);
+            GlStateManager._colorMask(true, true, true, true);
             GL45.glNamedFramebufferTexture(readFbo, GL30.GL_COLOR_ATTACHMENT0, ((GlTexture) t.getColorTexture()).glId(), 0);
             GL45.glBlitNamedFramebuffer(readFbo, fbo, 0, 0, t.width, t.height, 0, h, w, 0, GL11.GL_COLOR_BUFFER_BIT, GL11.GL_LINEAR);
             // start reading it back into a pixel buffer (finishes in the background)
