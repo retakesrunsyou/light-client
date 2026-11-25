@@ -8,6 +8,9 @@ final class LightPanel extends MenuPanel {
 
     /** What changed, newest first: {version, title, what it does}. */
     static final String[][] NEWS = {
+        {"3.0.0", "Every version", "Knives, clips, skeletons and more on older versions"},
+        {"3.0.0", "26.3", "Knives, clips, sky, world scale and HD look"},
+        {"3.0.0", "Fixes", "Fog off crash on 1.21.6-1.21.11 fixed"},
         {"2.2.4", "1.7 animations", "Old sneak and sword blocking"},
         {"2.2.4", "Fog off", "Clears the fog in front of you too"},
         {"2.2.4", "Fly stop", "No more sliding when you let go while flying"},
