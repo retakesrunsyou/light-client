@@ -574,7 +574,7 @@ final class GamePlatform implements Platform {
 
     @Override
     public boolean supports(String moduleId) {
-        if (moduleId.equals("custom_sky") || moduleId.equals("gpu_mobs") || moduleId.equals("knives") || moduleId.equals("viewmodel_fx") || moduleId.equals("boost_world_scale") || moduleId.equals("area_miner") || moduleId.equals("skeletons") || moduleId.equals("pickaxe_look") || moduleId.equals("frame_gen") || moduleId.equals("hd_look") || moduleId.equals("clips") || moduleId.equals("menu_3d")) {
+        if (moduleId.equals("custom_sky") || moduleId.equals("gpu_mobs") || moduleId.equals("knives") || moduleId.equals("viewmodel_fx") || moduleId.equals("boost_world_scale") || moduleId.equals("skeletons") || moduleId.equals("pickaxe_look") || moduleId.equals("frame_gen") || moduleId.equals("hd_look") || moduleId.equals("clips") || moduleId.equals("menu_3d")) {
             return false;  // these are on 26.1 for now (beta)
         }
         return !moduleId.equals("chunk_fade");  // Minecraft added the fade-in in 1.21.11
@@ -871,6 +871,26 @@ final class GamePlatform implements Platform {
     public boolean terrainReady() {
         // Sodium answers this for its own renderer too ("is the terrain render complete")
         return mc().level == null || mc().levelRenderer.hasRenderedAllSections();
+    }
+
+    @Override
+    public Object botWorld() {
+        return MinerWorld.get();
+    }
+
+    @Override
+    public boolean localWorld() {
+        return mc().hasSingleplayerServer();
+    }
+
+    @Override
+    public int[] lookedAtPos() {
+        if (mc().hitResult instanceof net.minecraft.world.phys.BlockHitResult
+                && mc().hitResult.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) {
+            net.minecraft.core.BlockPos b = ((net.minecraft.world.phys.BlockHitResult) mc().hitResult).getBlockPos();
+            return new int[] {b.getX(), b.getY(), b.getZ()};
+        }
+        return null;
     }
 
     @Override

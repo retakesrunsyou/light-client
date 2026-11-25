@@ -208,7 +208,11 @@ public final class ZeroDelayHooks {
         }
         try {
             MinecraftInputAccessor acc = (MinecraftInputAccessor) mc;
-            // hotbar keys stay with Minecraft here: the slot field changed hands across 1.21.2-1.21.5
+            for (int i = 0; i < mc.options.keyHotbarSlots.length; i++) {
+                if (!mc.player.isSpectator() && mc.options.keyHotbarSlots[i].consumeClick()) {
+                    ((net.peregrine.client.v1_21_2.mixin.InventorySlotAccessor) mc.player.getInventory()).peregrine$setSelected(i);
+                }
+            }
             if (mc.player.isUsingItem()) {
                 return;   // Minecraft handles these on its tick while you use an item
             }
