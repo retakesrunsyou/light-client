@@ -576,20 +576,32 @@ class MainWindow(QMainWindow):
             self.game_started = _t.time()
             self.game_where = "Starting up"
             self._discord_playing()
-            mode = config.load()["on_launch"]
-            if mode == "minimize":
-                self.showMinimized()
-            elif mode in ("hide", "tray"):
-                if self.tray is not None:
-                    self.hide()  # back with a click on the tray icon
-                else:
-                    self.showMinimized()  # no tray here: minimizing is the way back
+            self._opened_while_playing = False
+            self._tuck_away()
+            from PySide6.QtCore import QTimer
+            for ms in (4000, 12000):   # again while the game window opens (it can bring the launcher back up)
+                QTimer.singleShot(ms, self._tuck_away)
             self.update_tray()
             return
         self.bar.show()
         self.bar.setMaximum(max(total, 1))
         self.bar.setValue(done if total else 1)
         self.say(f"{msg}  {done} of {total}" if total else msg)
+
+    def _tuck_away(self):
+        """Gets the launcher out of the way of the game, as set in Settings (When the game starts).
+        Called when Minecraft starts and again once its window is up: on Windows the new game
+        window can pull the launcher back to the front while it opens."""
+        if not (self.game_task and self.game_task.isRunning()) or getattr(self, "_opened_while_playing", False):
+            return   # not playing, or you brought the launcher back yourself
+        mode = config.load().get("on_launch", "tray")
+        if mode == "keep":
+            return
+        if mode in ("hide", "tray") and self.tray is not None:
+            if self.isVisible():
+                self.hide()  # back with a click on the tray icon
+        elif not self.isMinimized():
+            self.setWindowState(self.windowState() | Qt.WindowMinimized)  # no tray here: minimizing is the way back
 
     def _discord_playing(self):
         inst = self.game_inst
@@ -610,6 +622,7 @@ class MainWindow(QMainWindow):
             self.bar.setMaximum(1)
             if self.game_inst:
                 self.say(f"Playing {self.game_inst.name}")
+            self._tuck_away()   # the game window is up now; make sure the launcher stayed out of its way
 
     def on_failed(self, msg):
         tell(self, "Something went wrong", msg, "error")
@@ -619,6 +632,8 @@ class MainWindow(QMainWindow):
         from PySide6.QtCore import QEvent
         if e.type() == QEvent.WindowStateChange and not self.isMinimized() and self.isVisible():
             self._morph()
+            if self.game_task and self.game_task.isRunning():
+                self._opened_while_playing = True   # restored from the taskbar: leave it open
         if e.type() in (QEvent.WindowStateChange, QEvent.ActivationChange):
             # The sky only moves while you're looking at the launcher.
             playing = bool(self.game_task and self.game_task.isRunning())
@@ -742,6 +757,7 @@ class MainWindow(QMainWindow):
                 self.bring_back()
 
     def bring_back(self):
+        self._opened_while_playing = bool(self.game_task and self.game_task.isRunning())
         self.showNormal()
         self.raise_()
         self.activateWindow()
@@ -879,9 +895,17 @@ class MainWindow(QMainWindow):
 
 
 def app_icon():
-    """The falcon icon at several sizes, for the window, taskbar and dock."""
+    """The Light Client icon at several sizes, for the window, taskbar and dock. Uses the same
+    .ico the Windows app is built with when it's there, so the taskbar matches the shortcut."""
+    from pathlib import Path
     from PySide6.QtGui import QIcon
     from .theme import render_app_icon
+    base = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[2]))
+    ico = base / "assets" / "peregrine.ico"
+    if ico.is_file():
+        ic = QIcon(str(ico))
+        if not ic.isNull():
+            return ic
     ic = QIcon()
     for size in (16, 24, 32, 48, 64, 128, 256):
         ic.addPixmap(render_app_icon(size))

@@ -422,22 +422,14 @@ def avatar_pixmap(skin_path, name: str, size: int = 32, dpr: float = 2.0) -> QPi
     return out
 
 
-APP_ICON_SVG = (
+APP_ICON_SVG = (   # the Light Client prism, matching assets/peregrine.ico
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">'
-    '<defs>'
-    '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">'
-    '<stop offset="0" stop-color="#2a2150"/>'
-    '<stop offset="1" stop-color="#0f1118"/>'
-    '</linearGradient>'
-    '<linearGradient id="falcon" x1="0" y1="0" x2="0" y2="1">'
-    '<stop offset="0" stop-color="#ffd27a"/>'
-    '<stop offset="1" stop-color="#f08a24"/>'
-    '</linearGradient>'
-    '</defs>'
-    '<rect width="128" height="128" rx="28" fill="url(#bg)"/>'
-    '<rect x="2" y="2" width="124" height="124" rx="26" fill="none" stroke="#7c5cff" stroke-opacity="0.32" stroke-width="2"/>'
-    '<path d="M64 104 L54 62 L18 40 L56 48 L64 22 L72 48 L110 40 L74 62 Z" fill="url(#falcon)"/>'
-    '<path d="M64 22 L68 36 L60 36 Z" fill="#fff1d6"/>'
+    '<rect x="6.5" y="6.5" width="115" height="115" rx="24" fill="#121722" stroke="#525d73" stroke-width="1.5"/>'
+    '<g transform="translate(22 24) scale(5)">'
+    '<path fill="#fff0cf" d="M12 0h3L7 16H4Z"/>'
+    '<path fill="#e6a04f" d="m11.5 7 5 9H7Z"/>'
+    '<path fill="#efad49" d="M0 11h6l-.5 1H0zm2-2h5l-.5 1H2z"/>'
+    '</g>'
     '</svg>'
 )
 

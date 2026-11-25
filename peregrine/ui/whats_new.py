@@ -12,7 +12,8 @@ NOTES = [
               "now work on far more versions than just 26.1. A few still need newer versions; the launcher only shows what "
               "your version can run."),
     ("3.0.0", "New font", "The launcher now uses Inter everywhere, with even-width numbers so stats don't jump around."),
-    ("3.0.0", "Fixes", "Fog off no longer crashes 1.21.6 to 1.21.11, and saturation no longer turns the screen black on 1.21.1."),
+    ("3.0.0", "Fixes", "Fog off no longer crashes 1.21.6 to 1.21.11, saturation no longer turns the screen black on 1.21.1, "
+              "the taskbar shows the new Light Client icon, and on Windows the launcher gets out of the way when the game starts."),
     ("2.2.4", "More 1.7", "1.7 animations now has the old sneak (the camera only dips a little, straight away) and sword "
               "blocking: hold right click with a sword."),
     ("2.2.4", "No fog means no fog", "Fog off now clears the fog at the edge of your view too, not just the sky."),
