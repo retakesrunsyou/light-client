@@ -884,8 +884,7 @@ final class GamePlatform implements Platform {
     @Override
     public int mouseHeld() {
         try {
-            long window = mc().getWindow().handle();
-            return window == 0 ? -1 : org.lwjgl.glfw.GLFW.glfwGetMouseButton(window, 0) == org.lwjgl.glfw.GLFW.GLFW_PRESS ? 1 : 0;
+            return mc().mouseHandler.isLeftPressed() ? 1 : 0;
         } catch (Throwable e) {
             return -1;
         }
