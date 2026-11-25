@@ -7,11 +7,13 @@ from .theme import Theme
 
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
-    ("3.0.1", "Launcher refresh", "A clearer navigation rail, simpler controls and a redesigned Home page."),
-    ("3.0.1", "In-game menu", "Simpler panels and controls, with the same motion and shortcuts."),
-    ("3.0.1", "Inter throughout", "Inter is used in the launcher, installer, Minecraft menus and lyrics."),
-    ("3.0.1", "Pause menu input", "Clicks follow the visible buttons during animations and on supported 3D pause panels."),
-    ("3.0.1", "Skeleton Look", "Skeleton player models and first-person arms now work on Minecraft 1.21 and 1.21.1."),
+    ("4.0.0", "Graphical Linux setup", "A standalone installer and graphical updates with download progress."),
+    ("4.0.0", "Textured buttons", "Classic beveled buttons in the launcher and in-game menus."),
+    ("4.0.0", "Launcher refresh", "A clearer navigation rail, simpler controls and a redesigned Home page."),
+    ("4.0.0", "In-game menu", "Simpler panels and controls, with the same motion and shortcuts."),
+    ("4.0.0", "Inter throughout", "Inter is used in the launcher, installer, Minecraft menus and lyrics."),
+    ("4.0.0", "Pause menu input", "Clicks follow the visible buttons during animations and on supported 3D pause panels."),
+    ("4.0.0", "Skeleton Look", "Skeleton player models and first-person arms now work on Minecraft 1.21 and 1.21.1."),
     ("3.0.0", "Everything on every version", "Knives, viewmodel effects, skeletons, pickaxe looks, clips, zero delay, "
               "the benchmark, area miner, smooth join, world scale, HD look, frame generation, the 3D menu and custom skies "
               "now work on far more versions than just 26.1. A few still need newer versions; the launcher only shows what "
