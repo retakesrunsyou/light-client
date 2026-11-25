@@ -25,6 +25,7 @@ public final class WorldScale {
     private static RenderTarget real;
     private static int irisCheck;
     private static boolean irisShaders;
+    private static int readFbo, drawFbo;
 
     private WorldScale() {
     }
@@ -64,13 +65,25 @@ public final class WorldScale {
         }
         active = false;
         try {
-            CommandEncoder enc = RenderSystem.getDevice().createCommandEncoder();
-            try (RenderPass pass = enc.createRenderPass(() -> "Light Client world upscale", real.getColorTextureView(), OptionalInt.empty())) {
-                pass.setPipeline(RenderPipelines.TRACY_BLIT);
-                RenderSystem.bindDefaultUniforms(pass);
-                Compat.bindLinear(pass, "InSampler", small.getColorTextureView());
-                pass.draw(0, 3);
+            // a plain smoothed copy between the two pictures (1.21.6-1.21.8 have no shared blit pass to borrow)
+            int from = ((com.mojang.blaze3d.opengl.GlTexture) small.getColorTexture()).glId();
+            int to = ((com.mojang.blaze3d.opengl.GlTexture) real.getColorTexture()).glId();
+            if (readFbo == 0) {
+                readFbo = org.lwjgl.opengl.GL30.glGenFramebuffers();
+                drawFbo = org.lwjgl.opengl.GL30.glGenFramebuffers();
             }
+            int oldRead = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL30.GL_READ_FRAMEBUFFER_BINDING);
+            int oldDraw = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL30.GL_DRAW_FRAMEBUFFER_BINDING);
+            org.lwjgl.opengl.GL30.glBindFramebuffer(org.lwjgl.opengl.GL30.GL_READ_FRAMEBUFFER, readFbo);
+            org.lwjgl.opengl.GL30.glFramebufferTexture2D(org.lwjgl.opengl.GL30.GL_READ_FRAMEBUFFER, org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0,
+                    org.lwjgl.opengl.GL11.GL_TEXTURE_2D, from, 0);
+            org.lwjgl.opengl.GL30.glBindFramebuffer(org.lwjgl.opengl.GL30.GL_DRAW_FRAMEBUFFER, drawFbo);
+            org.lwjgl.opengl.GL30.glFramebufferTexture2D(org.lwjgl.opengl.GL30.GL_DRAW_FRAMEBUFFER, org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0,
+                    org.lwjgl.opengl.GL11.GL_TEXTURE_2D, to, 0);
+            org.lwjgl.opengl.GL30.glBlitFramebuffer(0, 0, small.width, small.height, 0, 0, real.width, real.height,
+                    org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT, org.lwjgl.opengl.GL11.GL_LINEAR);
+            org.lwjgl.opengl.GL30.glBindFramebuffer(org.lwjgl.opengl.GL30.GL_READ_FRAMEBUFFER, oldRead);
+            org.lwjgl.opengl.GL30.glBindFramebuffer(org.lwjgl.opengl.GL30.GL_DRAW_FRAMEBUFFER, oldDraw);
         } catch (Throwable e) {
             off(e);
         }
