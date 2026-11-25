@@ -49,4 +49,17 @@ public final class Compat {
     public static net.minecraft.sounds.SoundEvent uiSound(String id) {
         return net.minecraft.sounds.SoundEvent.createVariableRangeEvent(net.minecraft.resources.Identifier.parse(id));
     }
+
+    public static float camYaw(net.minecraft.client.Camera c) {
+        return c.yRot();
+    }
+
+    public static float camPitch(net.minecraft.client.Camera c) {
+        return c.xRot();
+    }
+
+    /** Binds a texture to a shader input, smoothly filtered. */
+    public static void bindLinear(com.mojang.blaze3d.systems.RenderPass pass, String name, com.mojang.blaze3d.textures.GpuTextureView view) {
+        pass.bindTexture(name, view, com.mojang.blaze3d.systems.RenderSystem.getSamplerCache().getClampToEdge(com.mojang.blaze3d.textures.FilterMode.LINEAR));
+    }
 }

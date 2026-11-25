@@ -1,0 +1,32 @@
+package net.peregrine.client.v1_21_9.mixin;
+
+import net.minecraft.client.renderer.GameRenderer;
+import net.peregrine.client.v1_21_9.WorldScale;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+/** World resolution: the world (not the hand or HUD) is drawn smaller and scaled up. */
+@Mixin(GameRenderer.class)
+public abstract class WorldScaleMixin {
+
+    @Inject(method = "renderLevel", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/renderer/LevelRenderer;renderLevel(Lcom/mojang/blaze3d/resource/GraphicsResourceAllocator;Lnet/minecraft/client/DeltaTracker;ZLnet/minecraft/client/Camera;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;Lorg/joml/Vector4f;Z)V"),
+            require = 0)
+    private void peregrine$smaller(CallbackInfo ci) {
+        WorldScale.before();
+    }
+
+    @Inject(method = "renderLevel", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/renderer/LevelRenderer;renderLevel(Lcom/mojang/blaze3d/resource/GraphicsResourceAllocator;Lnet/minecraft/client/DeltaTracker;ZLnet/minecraft/client/Camera;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;Lorg/joml/Vector4f;Z)V",
+            shift = At.Shift.AFTER), require = 0)
+    private void peregrine$scaleUp(CallbackInfo ci) {
+        WorldScale.after();
+    }
+
+    @Inject(method = "renderLevel", at = @At("RETURN"), require = 0)
+    private void peregrine$safety(CallbackInfo ci) {
+        WorldScale.after();   // in case the world drawing returned early
+    }
+}

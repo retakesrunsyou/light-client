@@ -29,6 +29,19 @@ public final class Compat {
         pose.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(degrees));
     }
 
+    /** Modules that need more work on this version (26.3 draws hands, the sky and the frame differently). */
+    public static boolean notYet(String moduleId) {
+        if (!false) {
+            return false;
+        }
+        switch (moduleId) {
+            case "custom_sky": case "boost_world_scale": case "knives": case "viewmodel_fx": case "frame_gen": case "hd_look": case "clips":
+                return true;
+            default:
+                return false;
+        }
+    }
+
     /** Whether GPU mobs work on this version. */
     public static final boolean GPU_MOBS = true;
 }

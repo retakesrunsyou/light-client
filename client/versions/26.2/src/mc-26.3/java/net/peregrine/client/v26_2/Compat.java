@@ -29,6 +29,19 @@ public final class Compat {
         pose.mulPose(new org.joml.Matrix4f().rotationZ((float) Math.toRadians(degrees)));
     }
 
+    /** Modules that need more work on this version (26.3 draws hands, the sky and the frame differently). */
+    public static boolean notYet(String moduleId) {
+        if (!true) {
+            return false;
+        }
+        switch (moduleId) {
+            case "frame_gen":
+                return true;
+            default:
+                return false;
+        }
+    }
+
     /** Whether GPU mobs work on this version. */
     public static final boolean GPU_MOBS = true;
 }
