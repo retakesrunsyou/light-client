@@ -179,7 +179,7 @@ public final class Panel3D {
     private static void placeInWorld(Minecraft mc, Menu3D m, float aspect, float[] clip, float[] pointer) {
         Camera cam = mc.gameRenderer.getMainCamera();
         Vec3 e = cam.position();
-        float camYaw = cam.yRot(), camPitch = cam.xRot();
+        float camYaw = Compat.camYaw(cam), camPitch = Compat.camPitch(cam);
         boolean carry = altDown(mc);
         if (anchoredFor != mc.screen || carry) {
             anchoredFor = mc.screen;

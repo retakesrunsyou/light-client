@@ -168,7 +168,7 @@ public final class FrameGen {
             worldDone = true;
             Camera c = mc.gameRenderer.getMainCamera();
             long now = System.nanoTime();
-            float yaw = c.yRot(), pitch = c.xRot();
+            float yaw = Compat.camYaw(c), pitch = Compat.camPitch(c);
             if (lastTime != 0) {
                 float dt = Math.max(1e-4f, (now - lastTime) / 1e9f);
                 float dy = wrap(yaw - lastYaw), dp = pitch - lastPitch;

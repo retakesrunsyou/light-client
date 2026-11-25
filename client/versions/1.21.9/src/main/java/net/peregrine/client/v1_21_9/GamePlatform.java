@@ -553,6 +553,9 @@ final class GamePlatform implements Platform {
 
     @Override
     public boolean supports(String moduleId) {
+        if (moduleId.equals("custom_sky") && !minecraftVersion().equals("1.21.11")) {
+            return false;  // the custom sky needs 1.21.11's way of drawing
+        }
         if (moduleId.equals("viewmodel_fx")) {
             return false;  // held items are submitted differently before 26.1; the effects need their own version
         }

@@ -68,7 +68,7 @@ public final class WorldScale {
             try (RenderPass pass = enc.createRenderPass(() -> "Light Client world upscale", real.getColorTextureView(), OptionalInt.empty())) {
                 pass.setPipeline(RenderPipelines.TRACY_BLIT);
                 RenderSystem.bindDefaultUniforms(pass);
-                pass.bindTexture("InSampler", small.getColorTextureView(), RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR));
+                Compat.bindLinear(pass, "InSampler", small.getColorTextureView());
                 pass.draw(0, 3);
             }
         } catch (Throwable e) {
