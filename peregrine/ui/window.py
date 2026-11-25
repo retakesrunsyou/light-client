@@ -978,6 +978,8 @@ def main():
     app.setApplicationDisplayName(f"{NAME} Launcher")
     app.setDesktopFileName("peregrine")
     app.setWindowIcon(app_icon())
+    from .theme import load_fonts
+    load_fonts(app)
     from .. import single
     if "--smoke" not in sys.argv and single.already_running():
         # another launcher is open: it has been brought to the front instead

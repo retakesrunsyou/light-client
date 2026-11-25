@@ -35,6 +35,35 @@ class Theme:
         cls.p = THEMES[cls.name]
 
 
+_FONT_LOADED = False
+
+
+def load_fonts(app) -> None:
+    """Make Inter the launcher's font. Falls back to the system font if the files are missing."""
+    global _FONT_LOADED
+    if _FONT_LOADED:
+        return
+    _FONT_LOADED = True
+    import sys
+    from pathlib import Path
+    from PySide6.QtGui import QFont, QFontDatabase
+    base = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent.parent)) / "assets" / "fonts"
+    family = None
+    for weight in ("Regular", "Medium", "SemiBold", "Bold"):
+        fid = QFontDatabase.addApplicationFont(str(base / f"Inter-{weight}.ttf"))
+        if fid >= 0 and family is None:
+            fams = QFontDatabase.applicationFontFamilies(fid)
+            family = fams[0] if fams else None
+    if not family:
+        print("[peregrine] Inter isn't there; using the system font")
+        return
+    f = QFont(family)
+    f.setPointSizeF(max(9.5, app.font().pointSizeF()))
+    f.setHintingPreference(QFont.PreferNoHinting)   # Inter is drawn to be read unhinted
+    f.setStyleStrategy(QFont.PreferAntialias)
+    app.setFont(f)
+
+
 def rgba(hex_color: str, alpha: float) -> str:
     c = hex_color.lstrip("#")
     r, g, b = int(c[0:2], 16), int(c[2:4], 16), int(c[4:6], 16)

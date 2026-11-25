@@ -809,6 +809,8 @@ class UninstallerWindow(Shell):
 def _app(argv):
     app = QApplication.instance() or QApplication(argv[:1])
     app.setApplicationDisplayName("Light Client")
+    from .theme import load_fonts
+    load_fonts(app)
     from PySide6.QtGui import QIcon, QPixmap
     pm = QPixmap(render_app_icon(256))
     app.setWindowIcon(QIcon(pm))
