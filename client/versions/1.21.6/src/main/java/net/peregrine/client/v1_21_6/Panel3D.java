@@ -289,12 +289,12 @@ public final class Panel3D {
     }
 
     public static boolean altDown(Minecraft mc) {
-        long win = mc.getWindow().handle();
+        long win = mc.getWindow().getWindow();
         return GLFW.glfwGetKey(win, GLFW.GLFW_KEY_LEFT_ALT) == GLFW.GLFW_PRESS || GLFW.glfwGetKey(win, GLFW.GLFW_KEY_RIGHT_ALT) == GLFW.GLFW_PRESS;
     }
 
     public static boolean ctrlDown(Minecraft mc) {
-        long win = mc.getWindow().handle();
+        long win = mc.getWindow().getWindow();
         return GLFW.glfwGetKey(win, GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS || GLFW.glfwGetKey(win, GLFW.GLFW_KEY_RIGHT_CONTROL) == GLFW.GLFW_PRESS;
     }
 
@@ -308,7 +308,7 @@ public final class Panel3D {
         Minecraft mc = Minecraft.getInstance();
         if (!mc.mouseHandler.isMouseGrabbed() && mc.isWindowActive()) {
             // captured without closing the menu (Minecraft's own capture would close it)
-            InputConstants.grabOrReleaseMouse(mc.getWindow(), GLFW.GLFW_CURSOR_DISABLED,
+            InputConstants.grabOrReleaseMouse(mc.getWindow().getWindow(), GLFW.GLFW_CURSOR_DISABLED,
                     mc.getWindow().getScreenWidth() / 2.0, mc.getWindow().getScreenHeight() / 2.0);
             ((net.peregrine.client.v1_21_6.mixin.MouseGrabAccessor) mc.mouseHandler).peregrine$setGrabbed(true);
             net.minecraft.client.KeyMapping.setAll();
@@ -316,9 +316,9 @@ public final class Panel3D {
     }
 
     /** A key the menu didn't use goes to the game (walking, jumping...) while the panel is in the world. */
-    public static void passKey(net.minecraft.client.input.KeyEvent e, boolean down) {
+    public static void passKey(int key, int scancode, boolean down) {
         if (inWorld()) {
-            net.minecraft.client.KeyMapping.set(InputConstants.getKey(e), down);
+            net.minecraft.client.KeyMapping.set(InputConstants.getKey(key, scancode), down);
         }
     }
 

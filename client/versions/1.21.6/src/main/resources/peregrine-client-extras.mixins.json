@@ -47,6 +47,7 @@
 		"NightVisionScaleMixin",
 		"OldAnimationsMixin",
 		"OldSneakMixin",
+		"MouseGrabAccessor",
 		"FrameGenWindowMixin",
 		"FrameGenEncoderMixin",
 		"FrameGenFlipMixin",
