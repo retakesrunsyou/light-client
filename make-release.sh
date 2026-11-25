@@ -10,7 +10,7 @@ VERSION="$(sed -n 's/^VERSION = "\(.*\)"/\1/p' peregrine/__init__.py)"
 OUT="$(pwd)/../peregrine-launcher.zip"
 STAGE="$(mktemp -d)"
 mkdir "$STAGE/peregrine"
-cp -r peregrine .gitignore install.sh make-release.sh requirements.txt README.md peregrine.svg "$STAGE/peregrine/"
+cp -r peregrine assets .gitignore install.sh make-release.sh requirements.txt README.md peregrine.svg "$STAGE/peregrine/"
 find "$STAGE" -name __pycache__ -prune -exec rm -rf {} +
 rm -f "$OUT"
 (cd "$STAGE" && zip -qr "$OUT" peregrine)

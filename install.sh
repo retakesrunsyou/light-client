@@ -59,6 +59,9 @@ cp -r "$SRC/peregrine" "$APP/peregrine.new"
 rm -rf "$APP/peregrine"
 mv "$APP/peregrine.new" "$APP/peregrine"
 cp "$SRC/requirements.txt" "$APP/"
+if [ -d "$SRC/assets" ]; then
+  cp -r "$SRC/assets" "$APP/"
+fi
 
 # ---- Python environment (rebuilt if an earlier attempt left it broken)
 if [ ! -x "$APP/venv/bin/pip" ] || ! "$APP/venv/bin/python" -c "pass" 2>/dev/null; then
