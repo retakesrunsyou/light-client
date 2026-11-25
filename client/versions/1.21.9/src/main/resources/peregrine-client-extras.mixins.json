@@ -89,7 +89,6 @@
 		"CustomSkyMixin",
 		"EntityRemovedAccessor",
 		"FrameGenDeviceMixin",
-		"FrameGenWindowMixin",
 		"FrameGenFlipMixin",
 		"FrameGenEncoderMixin",
 		"FrameGenWindowMixin",
