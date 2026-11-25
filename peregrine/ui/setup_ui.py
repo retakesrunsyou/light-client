@@ -292,10 +292,11 @@ class LinkButton(QAbstractButton):
 class Shell(QWidget):
     """Frameless rounded window with a shadow, the sky, a drag area and page slides."""
 
-    def __init__(self, title):
+    def __init__(self, title, setup_theme=True):
         super().__init__()
-        Theme.set("midnight", ACCENT)
-        QApplication.instance().setStyleSheet(stylesheet())
+        if setup_theme:
+            Theme.set("midnight", ACCENT)
+            QApplication.instance().setStyleSheet(stylesheet())
         self.setWindowTitle(title)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
         self.setAttribute(Qt.WA_TranslucentBackground)
@@ -380,6 +381,12 @@ class Shell(QWidget):
                            lambda v: (self.setWindowOpacity(v), self.move(start + QPoint(0, int(10 * (1 - v))))),
                            done=lambda: QWidget.close(self))
         return True
+
+    def closeEvent(self, event):
+        if self.current == "installing":
+            event.ignore()
+        else:
+            super().closeEvent(event)
 
     # ---- dragging the window by its top
 
@@ -517,8 +524,10 @@ def _run_in_thread(owner, fn, on_progress, on_done):
 class InstallerWindow(Shell):
 
     def __init__(self, version, payload, target=None, desktop=True, startup=False, auto=False, launch_after=True,
-                 backend=None):
-        super().__init__("Light Client Setup")
+                 backend=None, updating=False):
+        super().__init__("Light Client Update" if updating else "Light Client Setup", setup_theme=not updating)
+        self.updating = updating
+        self.menu_name = "Start menu" if sys.platform == "win32" else "app menu"
         from .. import winsetup
         from .modern import PillButton
         self.version, self.payload = version, payload
@@ -562,7 +571,7 @@ class InstallerWindow(Shell):
         opts.setSpacing(26)
         opts.addStretch()
         self.opt_desktop = _option("Desktop shortcut", desktop)
-        self.opt_startup = _option("Start with Windows", startup)
+        self.opt_startup = _option("Start with Windows" if sys.platform == "win32" else "Start at login", startup)
         opts.addWidget(self.opt_desktop)
         opts.addWidget(self.opt_startup)
         opts.addStretch()
@@ -578,6 +587,9 @@ class InstallerWindow(Shell):
         where.addWidget(change)
         where.addStretch()
         v.addLayout(where)
+        if updating:
+            for control in (self.opt_desktop, self.opt_startup, self.where, change):
+                control.hide()
         self._show_where()
         self.add_page("welcome", pg)
 
@@ -590,7 +602,7 @@ class InstallerWindow(Shell):
         self.logos.append(self.work_logo)
         v.addWidget(self.work_logo, 0, Qt.AlignHCenter)
         v.addSpacing(10)
-        v.addWidget(_title("INSTALLING", 30, 3.0))
+        v.addWidget(_title("UPDATING" if updating else "INSTALLING", 30, 3.0))
         v.addSpacing(6)
         self.status = _sub("Getting ready")
         v.addWidget(self.status)
@@ -622,7 +634,7 @@ class InstallerWindow(Shell):
         v.addSpacing(6)
         v.addWidget(_title("YOU'RE ALL SET", 30, 3.0))
         v.addSpacing(8)
-        v.addWidget(_sub("Light Client Launcher is installed. It's in your Start menu"
+        v.addWidget(_sub(f"Light Client Launcher is installed. It's in your {self.menu_name}"
                          + (" and on your desktop." if desktop else ".")))
         self.done_sub = v.itemAt(v.count() - 1).widget()
         v.addStretch(1)
@@ -687,8 +699,12 @@ class InstallerWindow(Shell):
         self._pct_timer.start()
         self.show_page("installing")
         desktop, startup = self.opt_desktop.toggle.isChecked(), self.opt_startup.toggle.isChecked()
-        self.done_sub.setText("Light Client Launcher is installed. It's in your Start menu"
-                              + (" and on your desktop." if desktop else "."))
+        if self.updating:
+            self.done_sub.setText(f"Light Client {self.version} is ready. Restart to use the update.")
+            self.launch_btn.setText("RESTART LIGHT CLIENT")
+        else:
+            self.done_sub.setText(f"Light Client Launcher is installed. It's in your {self.menu_name}"
+                                  + (" and on your desktop." if desktop else "."))
 
         def work(progress):
             self.backend.install(self.payload, self.target, self.version, desktop, startup, progress)
@@ -829,30 +845,57 @@ def run_uninstaller(app_dir, quiet=False) -> int:
     return 0
 
 
-def run_installer(version, payload, args) -> int:
+def run_installer(version, payload, args, backend=None) -> int:
     """args: the installer's command line (the /SILENT style switches it understands)."""
-    from .. import winsetup
+    if backend is None:
+        from .. import winsetup as backend
     flags = {a.split("=", 1)[0].upper(): (a.split("=", 1)[1] if "=" in a else "") for a in args}
     tasks = flags.get("/TASKS", "desktopicon").lower().split(",") if "/TASKS" in flags else ["desktopicon"]
     target = flags.get("/DIR") or None
     relaunch = "/RESTARTAPPLICATIONS" in flags or "/LAUNCH" in flags
     if "/VERYSILENT" in flags:
         try:
-            winsetup.install(payload, Path(target) if target else (winsetup.installed().get("dir") or winsetup.default_dir()),
+            backend.install(payload, Path(target) if target else (backend.installed().get("dir") or backend.default_dir()),
                              version, "desktopicon" in tasks, "startup" in tasks)
         except Exception as e:
             print(f"install failed: {e}", file=sys.stderr)
             return 1
         if relaunch:
-            winsetup.launch(Path(target) if target else (winsetup.installed().get("dir") or winsetup.default_dir()))
+            backend.launch(Path(target) if target else (backend.installed().get("dir") or backend.default_dir()))
         return 0
     app = _app(sys.argv)
     win = InstallerWindow(version, payload, target, "desktopicon" in tasks, "startup" in tasks,
-                          auto="/SILENT" in flags)
+                          auto="/SILENT" in flags, backend=backend)
     win.auto_launch = "/SILENT" in flags and relaunch
     win.show()
     app.exec()
     return 0 if win.ok or not ("/SILENT" in flags) else 1
+
+
+def update_window(update):
+    """Use the setup progress and completion screens for a Linux launcher update."""
+    from .. import VERSION, updater
+
+    class UpdateBackend:
+        @staticmethod
+        def installed():
+            return {"version": VERSION, "dir": updater.installed_app_dir() or Path(sys.executable).parent}
+
+        @staticmethod
+        def install(payload, target, version, desktop, startup, progress):
+            def report(done, total, message):
+                progress(min(0.98, done / total) if total else 0.1, message)
+
+            updater.apply(payload, report)
+
+        @staticmethod
+        def launch(target):
+            updater.restart()
+
+    win = InstallerWindow(update["version"], update, auto=True, backend=UpdateBackend(), updating=True)
+    win.setWindowModality(Qt.ApplicationModal)
+    win.setAttribute(Qt.WA_DeleteOnClose)
+    return win
 
 
 def screenshots(out: Path, version="1.0.0") -> None:

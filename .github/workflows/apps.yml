@@ -181,6 +181,31 @@ jobs:
           chmod +x appimagetool
           ARCH=x86_64 ./appimagetool --appimage-extract-and-run "$app" Peregrine-x86_64.AppImage 2>&1 | tail -n 20 > log/appimagetool.txt
           ls -la Peregrine-x86_64.AppImage
+      - name: Build the standalone Linux installer
+        run: |
+          mkdir -p payload
+          cp Peregrine-x86_64.AppImage payload/Light-Client.AppImage
+          pyinstaller --noconfirm --onefile --name Light-Client-Linux-Setup \
+            --add-data "payload/Light-Client.AppImage:." \
+            --add-data "assets/fonts:assets/fonts" --add-data "assets/peregrine-512.png:assets" \
+            --paths . --exclude-module tkinter packaging/setup_linux.py
+      - name: Install and reinstall from the Linux executable
+        env:
+          QT_QPA_PLATFORM: offscreen
+          XDG_DATA_HOME: ${{ runner.temp }}/linux-setup-data
+          XDG_CONFIG_HOME: ${{ runner.temp }}/linux-setup-config
+        run: |
+          install_dir="$RUNNER_TEMP/Light Client"
+          for round in 1 2; do
+            dist/Light-Client-Linux-Setup --quiet --no-desktop-shortcut --install-dir "$install_dir"
+            cmp Peregrine-x86_64.AppImage "$install_dir/Light-Client.AppImage"
+          done
+          test -x "$install_dir/Light-Client.AppImage"
+          desktop-file-validate "$XDG_DATA_HOME/applications/peregrine.desktop"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-installer
+          path: dist/Light-Client-Linux-Setup
       - name: The AppImage starts and quits cleanly
         env:
           QT_QPA_PLATFORM: offscreen
@@ -200,5 +225,5 @@ jobs:
         run: |
           cp Peregrine-x86_64.AppImage Light-Client-x86_64.AppImage
           gh release upload "${{ github.event.release.tag_name }}" Peregrine-x86_64.AppImage Light-Client-x86_64.AppImage \
-            packaging/Light-Client-Linux-Installer.sh --clobber
+            dist/Light-Client-Linux-Setup packaging/Light-Client-Linux-Installer.sh --clobber
 

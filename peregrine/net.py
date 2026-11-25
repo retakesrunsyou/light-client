@@ -140,7 +140,7 @@ class Download:
         return self.sha1 is None or checked_sha1(self.path) == self.sha1
 
 
-def fetch(d: Download, retries: int = 3) -> None:
+def fetch(d: Download, retries: int = 3, progress=None) -> None:
     d.path.parent.mkdir(parents=True, exist_ok=True)
     tmp = d.path.with_name(d.path.name + ".part")
     last_err = None
@@ -148,9 +148,15 @@ def fetch(d: Download, retries: int = 3) -> None:
         try:
             with _get_session().get(d.url, stream=True, timeout=60) as r:
                 r.raise_for_status()
+                total = r.headers.get("Content-Length", "")
+                total = int(total) if total.isdecimal() else 0
+                downloaded = 0
                 with open(tmp, "wb") as f:
                     for chunk in r.iter_content(1 << 16):
                         f.write(chunk)
+                        downloaded += len(chunk)
+                        if progress:
+                            progress(downloaded, total)
             if d.sha1 and sha1_of(tmp) != d.sha1:
                 raise IOError(f"checksum mismatch for {d.url}")
             os.replace(tmp, d.path)

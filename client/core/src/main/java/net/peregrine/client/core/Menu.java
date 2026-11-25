@@ -771,7 +771,7 @@ public final class Menu {
         drawSidebar(d, mx, my, dt, a);
         boolean editHover = in(mx, my, editX, editY, editW, editH);
         float eg = sideGlowOf("edit", editHover, dt);
-        MenuStyle.button(d, editX, editY, editW, editH, false, eg, a);
+        MenuStyle.button(d, editX, editY, editW, editH, false, eg, a, editHover && p.mouseHeld() == 1);
         MenuIcons.draw(d, "hud", editX + 8, editY + 4, Theme.MUTED);
         String edit = "Edit HUD";
         d.text(edit, editX + (editW - d.width(edit)) / 2 + 5, editY + 5, Theme.TEXT, false);
@@ -1225,10 +1225,7 @@ public final class Menu {
             bx -= ow;
             boolean on = chosen == i;
             boolean hv = in(mx, my, bx, y + 3, ow, 16);
-            d.roundRect(bx, y + 3, ow, 16, on ? a : hv ? Theme.CARD_HOVER : Theme.CARD);
-            if (!on) {
-                d.roundOutline(bx, y + 3, ow, 16, Theme.HAIRLINE);
-            }
+            MenuStyle.button(d, bx, y + 3, ow, 16, on, hv ? 1f : 0f, a, hv && pc.platform().mouseHeld() == 1);
             d.text(o, bx + 6, y + 7, on ? Theme.onColor(a) : hv ? Theme.TEXT : Theme.MUTED, false);
             hit("choice:" + id + ":" + i, bx, y + 3, ow, 16, null);
             bx -= 3;
@@ -1283,10 +1280,7 @@ public final class Menu {
             bx -= ow;
             boolean on = pc.menuBackground() == i;
             boolean hv = in(mx, my, bx, y + 3, ow, 16);
-            d.roundRect(bx, y + 3, ow, 16, on ? a : hv ? Theme.CARD_HOVER : Theme.CARD);
-            if (!on) {
-                d.roundOutline(bx, y + 3, ow, 16, Theme.HAIRLINE);
-            }
+            MenuStyle.button(d, bx, y + 3, ow, 16, on, hv ? 1f : 0f, a, hv && pc.platform().mouseHeld() == 1);
             d.text(o, bx + 6, y + 7, on ? Theme.onColor(a) : hv ? Theme.TEXT : Theme.MUTED, false);
             hit("menubg:" + i, bx, y + 3, ow, 16, null);
             bx -= 3;

@@ -244,12 +244,13 @@ account that owns it.
    If Windows says it protected your PC, click **More info**, then **Run anyway** (the app isn't signed yet).
 2. Open **Peregrine Launcher** from the desktop shortcut or the Start menu. No admin rights needed.
 
-**Linux** (any distro)
+**Linux** (64-bit Intel or AMD)
 
-1. Download `Peregrine-x86_64.AppImage` from the
+1. Download `Light-Client-Linux-Setup` from the
    [latest release](https://github.com/retakesrunsyou/light-client/releases/latest).
-2. Make it runnable (right-click > Properties > Permissions > *Allow executing*, or `chmod +x Peregrine-x86_64.AppImage`) and open it.
-   The first start adds Peregrine to your app menu and puts a shortcut on your desktop.
+2. Allow the file to execute in its Properties, or run `chmod +x Light-Client-Linux-Setup`. Open it to choose the install folder and shortcuts.
+
+For a portable copy, run `Light-Client-x86_64.AppImage` directly.
 
 Or with the installer script: download `peregrine-launcher.zip`, unzip it, open a terminal in the folder and run
 `bash install.sh`. On Ubuntu, Mint or Debian it may ask you to install a couple of packages first and prints the exact command.

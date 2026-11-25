@@ -4,7 +4,7 @@ from PySide6.QtCore import (
     Property, QEasingCurve, QPointF, QPropertyAnimation, QRect, QRectF, QSize, Qt, QTimer,
     QVariantAnimation, Signal,
 )
-from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPainterPath, QPen, QPixmap
+from PySide6.QtGui import QColor, QFont, QIcon, QImage, QPainter, QPainterPath, QPen, QPixmap
 from PySide6.QtWidgets import (QBoxLayout,
     QAbstractButton, QFrame, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QToolButton, QVBoxLayout, QWidget,
 )
@@ -15,6 +15,11 @@ from .theme import Theme, icon_pixmap, on_color
 
 def animations_on() -> bool:
     return bool(config.load().get("animations", True))
+
+
+def _mix(a: QColor, b: QColor, t: float) -> QColor:
+    return QColor(round(a.red() + (b.red() - a.red()) * t), round(a.green() + (b.green() - a.green()) * t),
+                  round(a.blue() + (b.blue() - a.blue()) * t), round(a.alpha() + (b.alpha() - a.alpha()) * t))
 
 
 def dark() -> bool:
@@ -33,49 +38,196 @@ def heavy_font(px: int, weight=QFont.Black, spacing: float = 0) -> QFont:
 # ------------------------------------------------------------------ buttons
 
 class PillButton(QPushButton):
-    """An action button with an optional leading icon."""
+    """A Minecraft-style block button: 'primary' (accent), 'ghost' (stone grey) or 'danger',
+    with an optional icon on the left. Lights up on hover, pushes in on press."""
 
     def __init__(self, text: str, icon_name: str = None, kind: str = "primary", big: bool = False, parent=None):
-        super().__init__(text, parent)
+        super().__init__(text.upper() if big else text, parent)
         self.kind, self.icon_name, self.big = kind, icon_name, big
+        self._hover = 0.0
         self.setCursor(Qt.PointingHandCursor)
+        self.setFont(heavy_font(17 if big else 14, QFont.Black if big else QFont.Bold, 0.4 if big else 0.0))
+        self._anim = QVariantAnimation(self)
+        self._anim.setDuration(150)
+        self._anim.setEasingCurve(QEasingCurve.OutCubic)
+        self._anim.valueChanged.connect(self._set_hover)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        # press: the pill dips a little and a ripple spreads from where it was clicked
+        self._press = 0.0
+        self._ripple = None  # (x, y, t 0..1)
+        self._press_anim = QVariantAnimation(self)
+        self._press_anim.valueChanged.connect(self._set_press)
+        self._ripple_anim = QVariantAnimation(self, duration=520, startValue=0.0, endValue=1.0,
+                                              easingCurve=QEasingCurve.OutCubic)
+        self._ripple_anim.valueChanged.connect(self._set_ripple)
+
+    def _set_press(self, v):
+        self._press = float(v)
+        self.update()
+
+    def _set_ripple(self, v):
+        if self._ripple is not None:
+            self._ripple = (self._ripple[0], self._ripple[1], float(v))
+            self.update()
+
+    def _press_to(self, to, ms):
+        if not animations_on():
+            self._set_press(to)
+            return
+        self._press_anim.stop()
+        self._press_anim.setDuration(ms)
+        self._press_anim.setEasingCurve(QEasingCurve.OutCubic if to else QEasingCurve.OutBack)
+        self._press_anim.setStartValue(self._press)
+        self._press_anim.setEndValue(to)
+        self._press_anim.start()
+
+    def mousePressEvent(self, e):
+        if e.button() == Qt.LeftButton and self.isEnabled():
+            self._press_to(1.0, 70)
+            if animations_on():
+                self._ripple = (0.0, 0.0, 0.0)   # the click flash
+                self._ripple_anim.stop()
+                self._ripple_anim.setDuration(240)
+                self._ripple_anim.start()
+        super().mousePressEvent(e)
+
+    def mouseReleaseEvent(self, e):
+        self._press_to(0.0, 260)
+        super().mouseReleaseEvent(e)
+
+    def _set_hover(self, v):
+        self._hover = float(v)
+        self.update()
+
+    def _fade(self, to: float):
+        if not animations_on():
+            self._set_hover(to)
+            return
+        self._anim.stop()
+        self._anim.setStartValue(self._hover)
+        self._anim.setEndValue(to)
+        self._anim.start()
+
+    def enterEvent(self, e):
+        self._fade(1.0)
+        super().enterEvent(e)
+
+    def leaveEvent(self, e):
+        self._fade(0.0)
+        super().leaveEvent(e)
 
     def sizeHint(self):
-        icon_space = 27 if self.icon_name else 0
-        return QSize(self.fontMetrics().horizontalAdvance(self.text()) + 32 + icon_space, 44 if self.big else 36)
+        h = 62 if self.big else 34
+        badge = (h - 22) if self.icon_name else 0
+        w = self.fontMetrics().horizontalAdvance(self.text()) + (h * 0.75) + badge + (14 if badge else 0)
+        return QSize(int(w), h)
 
     def minimumSizeHint(self):
         return self.sizeHint()
 
+    _GRAIN = {}
+
+    @classmethod
+    def _grain(cls, w: int, h: int) -> QPixmap:
+        """Stone grain: 2 px cells, each a touch lighter or darker, like a Minecraft button's face."""
+        key = (w, h)
+        pm = cls._GRAIN.get(key)
+        if pm is None:
+            import random
+            rng = random.Random(w * 7919 + h)
+            img = QImage(max(1, w), max(1, h), QImage.Format_ARGB32_Premultiplied)
+            img.fill(Qt.transparent)
+            gp = QPainter(img)
+            for y in range(0, h, 2):
+                for x in range(0, w, 2):
+                    v = rng.random()
+                    if v < 0.28:
+                        gp.fillRect(x, y, 2, 2, QColor(0, 0, 0, 16 + int(v * 30)))
+                    elif v > 0.74:
+                        gp.fillRect(x, y, 2, 2, QColor(255, 255, 255, 10 + int((v - 0.74) * 40)))
+            gp.end()
+            pm = QPixmap.fromImage(img)
+            if len(cls._GRAIN) > 64:
+                cls._GRAIN.clear()
+            cls._GRAIN[key] = pm
+        return pm
+
     def paintEvent(self, _):
+        """Drawn like a Minecraft button: a square stone block with a dark outline, a light top
+        edge and a dark bottom edge. Hovering lifts it a little and lights the outline; pressing
+        pushes it down (and it springs back up), with a quick flash."""
         p = QPainter(self)
-        p.setRenderHint(QPainter.Antialiasing)
-        palette = Theme.p
-        fill, edge, text = palette["raised"], palette["border"], palette["text"]
-        if self.isEnabled():
-            if self.kind in ("primary", "danger"):
-                fill = palette["danger"] if self.kind == "danger" else Theme.accent
-                edge, text = fill, on_color(fill)
-            color = QColor(fill)
-            if self.isDown():
-                color = color.darker(116)
-            elif self.underMouse():
-                color = color.lighter(112) if dark() else color.darker(105)
-            fill = color.name()
+        enabled = self.isEnabled()
+        press = max(self._press, 1.0 if self.isDown() and not animations_on() else 0.0)
+        hover = (self._hover if enabled else 0.0) * (1 - press)
+        o = 2                                   # outline thickness
+        bev_top = 3 if self.big else 2
+        bev_bot = 4 if self.big else 3
+        r = self.rect().adjusted(0, 0, -1, -1)
+        # the block stands 2 px tall: up to 4 px when hovered, flat when pressed
+        top = round(2 - 2 * hover + 2 * press)
+        depth = max(1, round(bev_bot + 1 * hover - (bev_bot - 1) * press))
+        block = r.adjusted(0, top, 0, 0)
+        accent = QColor(Theme.p["danger"]) if self.kind == "danger" else QColor(Theme.accent)
+        if self.kind in ("primary", "danger"):
+            base = QColor(accent)
+            text_color = QColor(on_color(accent.name()))
         else:
-            fill, text = palette["surface"], palette["muted"]
-        p.setBrush(QColor(fill))
-        p.setPen(QPen(QColor(palette["text"] if self.hasFocus() else edge), 1))
-        p.drawRoundedRect(QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5), 6, 6)
-        x = 16
+            base = QColor(Theme.p["raised"]).lighter(128) if dark() else QColor(214, 216, 222)
+            text_color = QColor(Theme.p["text"])
+        if not enabled:
+            g = int(base.red() * 0.3 + base.green() * 0.59 + base.blue() * 0.11)
+            base = QColor(g, g, g).darker(150 if dark() else 110)
+            text_color = QColor(Theme.p["faint"])
+        base = _mix(base, base.lighter(114), hover)
+        hi, lo = base.lighter(140), base.darker(170)
+        if press > 0.5:
+            hi = base.darker(118)
+        # outline: near-black, lit up on hover
+        edge = QColor(0, 0, 0, 235)
+        if hover > 0 or self.hasFocus():
+            lit = QColor(255, 255, 255) if dark() else QColor(accent).darker(130)
+            edge = _mix(edge, lit, max(hover, 0.75 if self.hasFocus() else 0))
+        p.fillRect(block, edge)
+        inner = block.adjusted(o, o, -o + 1, -o + 1)
+        p.fillRect(inner, base)
+        if inner.width() > 4 and inner.height() > 4:
+            p.setOpacity(0.55 if self.kind in ("primary", "danger") else 1.0)
+            p.drawPixmap(inner.topLeft(), self._grain(inner.width(), inner.height()))
+            p.setOpacity(1.0)
+        p.fillRect(inner.x(), inner.y(), inner.width(), bev_top, hi)
+        p.fillRect(inner.x(), inner.y(), 2, inner.height() - depth, hi)
+        p.fillRect(inner.x(), inner.bottom() - depth + 1, inner.width(), depth, lo)
+        p.fillRect(inner.right() - 1, inner.y() + bev_top, 2, inner.height() - depth - bev_top, base.darker(118))
+        # a quick flash when clicked
+        if self._ripple is not None and self._ripple[2] < 1.0:
+            p.fillRect(inner, QColor(255, 255, 255, int(70 * (1 - self._ripple[2]))))
+        face = QRectF(inner.adjusted(0, bev_top, 0, -depth))
+        p.setRenderHint(QPainter.Antialiasing)
+        p.setRenderHint(QPainter.TextAntialiasing)
+        x = face.left() + face.height() * 0.42 + 4
+        # Minecraft's hard text shadow: dark under light text, a soft light edge under dark text
+        if text_color.lightness() > 140:
+            shadow = QColor(0, 0, 0, 120 if enabled else 40)
+        else:
+            shadow = QColor(255, 255, 255, 150 if enabled else 60)
         if self.icon_name:
-            size = 17
-            p.drawPixmap(x, (self.height() - size) // 2, icon_pixmap(self.icon_name, text, size))
-            x += 27
+            size = int(min(face.height() - 8, 26 if self.big else 20))
+            pm = icon_pixmap(self.icon_name, text_color.name(), size)
+            sh = icon_pixmap(self.icon_name, shadow.name(), size)
+            y = face.top() + (face.height() - size) / 2
+            p.setOpacity(shadow.alphaF())
+            p.drawPixmap(QPointF(x + 1.5, y + 1.5), sh)
+            p.setOpacity(1.0)
+            p.drawPixmap(QPointF(x, y), pm)
+            x += size + 10
         p.setFont(self.font())
-        p.setPen(QColor(text))
-        p.drawText(QRectF(x, 0, self.width() - x - 12, self.height()), Qt.AlignVCenter | Qt.AlignLeft, self.text())
+        tr = QRectF(x, face.top(), face.right() - x - face.height() * 0.3, face.height())
+        p.setPen(shadow)
+        off = 1.5 if shadow.lightness() < 128 else 1.0
+        p.drawText(tr.translated(off, off), Qt.AlignVCenter | Qt.AlignLeft, self.text())
+        p.setPen(text_color)
+        p.drawText(tr, Qt.AlignVCenter | Qt.AlignLeft, self.text())
         p.end()
 
 

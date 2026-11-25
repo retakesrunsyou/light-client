@@ -86,6 +86,24 @@ def check() -> Optional[dict]:
             "notes": (release.get("body") or "").strip()}
 
 
+def _download(update, path, progress):
+    message = f"Downloading Light Client {update['version']}"
+    if progress:
+        progress(0, 100, message)
+
+    last_percent = 0
+
+    def report(downloaded, total):
+        nonlocal last_percent
+        if total:
+            percent = min(85, downloaded * 85 // total)
+            if percent > last_percent:
+                progress(percent, 100, message)
+                last_percent = percent
+
+    net.fetch(net.Download(update["url"], path), progress=report if progress else None)
+
+
 def apply(update: dict, progress=None) -> None:
     """Download the release and run its installer. Restart the app afterwards."""
     how = kind()
@@ -98,10 +116,8 @@ def apply(update: dict, progress=None) -> None:
                            "Download the new version and run install.sh.")
     work = Path(tempfile.mkdtemp(prefix="peregrine-update-"))
     try:
-        if progress:
-            progress(0, 1, f"Downloading Light Client {update['version']}")
         zip_path = work / ASSET_NAME
-        net.fetch(net.Download(update["url"], zip_path))
+        _download(update, zip_path, progress)
         out = work / "src"
         with zipfile.ZipFile(zip_path) as z:
             for member in z.namelist():
@@ -138,11 +154,17 @@ def _apply_appimage(update: dict, progress=None) -> None:
     """Swap the AppImage file for the new one (the running copy keeps going until restart)."""
     current = Path(os.environ["APPIMAGE"])
     new = current.with_name(current.name + ".new")
-    if progress:
-        progress(0, 1, f"Downloading Light Client {update['version']}")
-    net.fetch(net.Download(update["url"], new))
-    new.chmod(0o755)
-    os.replace(new, current)
+    try:
+        _download(update, new, progress)
+        if progress:
+            progress(95, 100, "Installing update")
+        new.chmod(0o755)
+        os.replace(new, current)
+    finally:
+        new.unlink(missing_ok=True)
+    marker = current.with_suffix(".version")
+    if marker.is_file():
+        marker.write_text(update["version"])
 
 
 def restart() -> None:
@@ -155,7 +177,11 @@ def restart() -> None:
     if how == "windows":
         os._exit(0)  # the installer starts the new version
     if how == "appimage":
-        os.execv(os.environ["APPIMAGE"], [os.environ["APPIMAGE"]])
+        from .linuxsetup import command
+        args = command(os.environ["APPIMAGE"])
+        env = dict(os.environ, PYINSTALLER_RESET_ENVIRONMENT="1")
+        env.pop("LD_LIBRARY_PATH", None)
+        os.execve(args[0], args, env)
     if getattr(sys, "frozen", False):
         os.execv(sys.executable, [sys.executable])
     os.execv(sys.executable, [sys.executable, "-m", "peregrine"])

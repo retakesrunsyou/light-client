@@ -381,29 +381,27 @@ public final class TitleMenu {
         d.rect(x + 2, y + 9, 5, 1, Theme.mix(accent, 0xFFFFFFFF, 0.35f));
     }
 
-    /** A floating glass tile: dark and see-through, an accent bar and a lift when hovered. */
-    private static void drawAction(Draw d, Button button, int mx, int my, float dt, int accent) {
-        button.glow = Glass.ease(button.glow, button.contains(mx, my), dt);
+    /** A textured button that lifts on hover and sinks on press. */
+    private void drawAction(Draw d, Button button, int mx, int my, float dt, int accent) {
+        boolean hover = button.contains(mx, my);
+        button.glow = Glass.ease(button.glow, hover, dt);
         float g = button.glow;
         int x = button.x, y = button.y - Math.round(g), w = button.w, h = button.h;
-        d.shadow(x, y, w, h);
-        int bg = button.primary ? Theme.mix(Theme.withAlpha(accent, 0x58), Theme.withAlpha(accent, 0x80), g)
-                : Theme.mix(0xA8141822, 0xD0222936, g);
-        d.roundRect(x, y, w, h, 4, bg);
-        d.roundOutline(x, y, w, h, 4, button.primary ? Theme.withAlpha(accent, Math.round(0x90 + 0x60 * g))
-                : Theme.mix(0x26FFFFFF, Theme.withAlpha(accent, 0xA0), g));
+        boolean pressed = hover && pc.platform().mouseHeld() == 1;
+        MenuStyle.button(d, x, y, w, h, button.primary, g, accent, pressed);
+        y += pressed ? 1 : 0;
         if (g > 0.01f && !button.primary) {   // the accent bar grows in from the middle
             int bh = Math.round((h - 8) * g);
             d.rect(x + 1, y + (h - bh) / 2, 2, bh, Theme.withAlpha(accent, Math.round(0xFF * g)));
         }
-        int fg = Theme.mix(0xFFDDE0E8, 0xFFFFFFFF, g);
+        int fg = button.primary ? Theme.onColor(accent) : Theme.mix(0xFFDDE0E8, 0xFFFFFFFF, g);
         boolean iconOnly = w < 24;
         int iy = y + (h - 9) / 2;
         if (iconOnly) {
             MenuIcons.draw(d, button.icon, x + (w - 9) / 2, iy, fg);
             return;
         }
-        MenuIcons.draw(d, button.icon, x + 7, iy, button.primary ? Theme.mix(accent, 0xFFFFFFFF, 0.5f) : fg);
+        MenuIcons.draw(d, button.icon, x + 7, iy, fg);
         boolean chevron = h >= 19 && w > 90;
         d.text(d.trim(button.label, w - (chevron ? 34 : 24)), x + 21 + Math.round(g * 2), y + (h - d.lineHeight()) / 2 + 1, fg, true);
         if (chevron) {

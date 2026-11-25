@@ -801,6 +801,13 @@ class MainWindow(QMainWindow):
         if not self.pending_update or self.busy():
             return
         self.update_btn.setEnabled(False)
+        if sys.platform.startswith("linux"):
+            from .setup_ui import update_window
+
+            self.update_window = update_window(self.pending_update)
+            self.update_window.destroyed.connect(lambda: self.update_btn.setEnabled(True))
+            self.update_window.show()
+            return
         task = workers.Task(updater.apply, self.pending_update, with_progress=True)
         task.progress.connect(lambda d, t, m: self.say(m))
         task.done.connect(self.update_installed)
@@ -866,36 +873,12 @@ def appimage_integration():
     if not appimage:
         return
     from pathlib import Path
-    data = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share")
-    apps, icons = data / "applications", data / "icons/hicolor/512x512/apps"
+    from .. import linuxsetup
+
     try:
-        apps.mkdir(parents=True, exist_ok=True)
-        icons.mkdir(parents=True, exist_ok=True)
-        icon = Path(getattr(sys, "_MEIPASS", ".")) / "assets" / "peregrine-512.png"
-        if icon.is_file():
-            import shutil
-            shutil.copyfile(icon, icons / "peregrine.png")
-        entry = ("[Desktop Entry]\nType=Application\nName=Light Client Launcher\nGenericName=Minecraft Launcher\n"
-                 "Comment=Launch and speed up Minecraft: Java Edition\n"
-                 f'Exec="{appimage}" %U\nIcon=peregrine\nStartupWMClass=peregrine\nStartupNotify=true\n'
-                 "Categories=Game;\nKeywords=minecraft;launcher;mods;fabric;\nTerminal=false\n")
-        (apps / "peregrine.desktop").write_text(entry)
         cfg = config.load()
+        linuxsetup.register(Path(appimage), desktop=not cfg.get("desktop_shortcut_made"))
         if not cfg.get("desktop_shortcut_made"):
-            import subprocess
-            try:
-                desk = subprocess.run(["xdg-user-dir", "DESKTOP"], capture_output=True, text=True).stdout.strip()
-            except OSError:
-                desk = ""
-            desk = Path(desk) if desk else Path.home() / "Desktop"
-            if desk.is_dir() and desk != Path.home():
-                shortcut = desk / "peregrine.desktop"
-                shortcut.write_text(entry)
-                shortcut.chmod(0o755)
-                try:
-                    subprocess.run(["gio", "set", str(shortcut), "metadata::trusted", "true"], capture_output=True)
-                except OSError:
-                    pass
             config.save(dict(cfg, desktop_shortcut_made=True))
     except OSError as e:
         print(f"[peregrine] couldn't add the app menu entry: {e}")
