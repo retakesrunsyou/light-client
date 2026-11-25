@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Gui.class)
 public abstract class Panel3DHudMixin {
 
-    @Inject(method = "extractRenderState", at = @At("HEAD"), cancellable = true, require = 0)
+    @Inject(method = "render", at = @At("HEAD"), cancellable = true, require = 0)
     private void peregrine$hide(CallbackInfo ci) {
         if (Panel3D.active()) {
             ci.cancel();

@@ -28,7 +28,7 @@ public abstract class SkeletonRenderMixin {
 
     private static final String SUBMIT = "submit(Lnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;"
             + "Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;"
-            + "Lnet/minecraft/client/renderer/state/level/CameraRenderState;)V";
+            + "Lnet/minecraft/client/renderer/state/CameraRenderState;)V";
 
     @WrapOperation(method = SUBMIT, require = 0, at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;"
@@ -40,6 +40,22 @@ public abstract class SkeletonRenderMixin {
         if ((Object) this instanceof AvatarRenderer && SkeletonLook.on() && model instanceof PlayerModel
                 && state instanceof AvatarRenderState
                 && SkeletonDraw.player((PlayerModel) model, (AvatarRenderState) state, pose, collector, light, overlay, tint)) {
+            return;
+        }
+        original.call(collector, model, state, pose, type, light, overlay, tint, sprite, outline, crumbling);
+    }
+
+    // the same, when the model goes through the ordered collector
+    @WrapOperation(method = SUBMIT, require = 0, at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/renderer/OrderedSubmitNodeCollector;submitModel(Lnet/minecraft/client/model/Model;Ljava/lang/Object;"
+                    + "Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/rendertype/RenderType;IIILnet/minecraft/client/renderer/texture/TextureAtlasSprite;"
+                    + "ILnet/minecraft/client/renderer/feature/ModelFeatureRenderer$CrumblingOverlay;)V"))
+    private void peregrine$bonesOrdered(net.minecraft.client.renderer.OrderedSubmitNodeCollector collector, Model<?> model, Object state, PoseStack pose, RenderType type,
+                                 int light, int overlay, int tint, TextureAtlasSprite sprite, int outline,
+                                 ModelFeatureRenderer.CrumblingOverlay crumbling, Operation<Void> original) {
+        if ((Object) this instanceof AvatarRenderer && SkeletonLook.on() && model instanceof PlayerModel
+                && state instanceof AvatarRenderState && collector instanceof SubmitNodeCollector
+                && SkeletonDraw.player((PlayerModel) model, (AvatarRenderState) state, pose, (SubmitNodeCollector) collector, light, overlay, tint)) {
             return;
         }
         original.call(collector, model, state, pose, type, light, overlay, tint, sprite, outline, crumbling);
