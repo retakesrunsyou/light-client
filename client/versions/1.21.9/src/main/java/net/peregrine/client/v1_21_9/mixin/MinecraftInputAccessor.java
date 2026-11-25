@@ -13,7 +13,4 @@ public interface MinecraftInputAccessor {
 
     @Invoker("startUseItem")
     void peregrine$startUseItem();
-
-    @Invoker("pick")
-    void peregrine$pick(float partial);
 }

@@ -51,7 +51,7 @@ public final class ZeroDelayHooks {
             HIDDEN.put(id, new Object[] {target, System.currentTimeMillis()});
             mc.level.removeEntity(id, Entity.RemovalReason.KILLED);
             // look again straight away, so a crystal can be placed where it was in this same frame
-            ((MinecraftInputAccessor) mc).peregrine$pick(1f);
+            ((net.peregrine.client.v1_21_9.mixin.GameRendererPickAccessor) mc.gameRenderer).peregrine$pick(1f);
         } catch (Throwable e) {
             crystalsBroken = true;
             System.err.println("[Peregrine] zero delay crystals turned off: " + e);
