@@ -88,6 +88,17 @@ def shade(hex_color: str, factor: int) -> str:
     return (c.lighter(factor) if factor >= 100 else c.darker(int(10000 / factor))).name()
 
 
+def button_bevel(fill: str, pressed: bool = False) -> tuple[str, str]:
+    """Top and bottom edges of the same solid button face."""
+    return (shade(fill, 62), shade(fill, 110)) if pressed else (shade(fill, 143), shade(fill, 53))
+
+
+def _button_edges(fill: str, pressed: bool = False) -> str:
+    top, bottom = button_bevel(fill, pressed)
+    return (f"border-top: {3 if pressed else 1}px solid {top}; "
+            f"border-bottom: {1 if pressed else 3}px solid {bottom};")
+
+
 def round_menu(menu):
     """A menu with rounded corners (the stylesheet draws it; the window itself goes see-through)."""
     menu.setWindowFlags(menu.windowFlags() | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint)
@@ -100,6 +111,10 @@ def stylesheet() -> str:
     on_a = on_color(a)
     dark = Theme.name != "light"
     hover_a = shade(a, 112 if dark else 94)
+    button_fill = p["raised"]
+    button_hover = shade(button_fill, 116 if dark else 94)
+    button_pressed = shade(button_fill, 88)
+    accent_pressed = shade(a, 88)
     rail = shade(p["bg"], 90) if dark else p["surface"]
     edge_hi = p["border"]
     glass_pill = p["surface"]
@@ -131,20 +146,23 @@ def stylesheet() -> str:
     #card, #row {{ background: {p['surface']}; border: 1px solid {p['border']}; border-radius: 8px; }}
     #emptyIcon {{ background: {tint(a, 0.12)}; border-radius: 8px; }}
 
-    QPushButton {{ background: {p['raised']}; border: 1px solid {p['border']}; border-radius: 6px;
-                   padding: 7px 13px; color: {p['text']}; font-weight: 600; }}
-    QPushButton:hover {{ background: {shade(p['raised'], 112 if dark else 95)}; }}
-    QPushButton:pressed {{ background: {p['surface']}; }}
-    QPushButton:focus {{ border-color: {a}; }}
+    QPushButton {{ background: {button_fill}; border: 1px solid {p['border']}; border-radius: 4px;
+                   {_button_edges(button_fill)} padding: 7px 13px; color: {p['text']}; font-weight: 600; }}
+    QPushButton:hover {{ background: {button_hover}; {_button_edges(button_hover)} }}
+    QPushButton:pressed {{ background: {button_pressed}; {_button_edges(button_pressed, True)} }}
+    QPushButton:focus {{ border-left-color: {a}; border-right-color: {a}; }}
     QPushButton:disabled {{ background: {p['surface']}; color: {p['faint']}; border-color: {p['border']}; }}
-    QPushButton#accent, QPushButton#bigAccent {{ background: {a}; color: {on_a}; border-color: {a}; }}
-    QPushButton#accent:hover, QPushButton#bigAccent:hover {{ background: {hover_a}; }}
-    QPushButton#accent:pressed, QPushButton#bigAccent:pressed {{ background: {shade(a, 86)}; }}
+    QPushButton#accent, QPushButton#bigAccent {{ background: {a}; color: {on_a}; border-color: {shade(a, 72)};
+                                                {_button_edges(a)} }}
+    QPushButton#accent:hover, QPushButton#bigAccent:hover {{ background: {hover_a}; {_button_edges(hover_a)} }}
+    QPushButton#accent:pressed, QPushButton#bigAccent:pressed {{
+        background: {accent_pressed}; {_button_edges(accent_pressed, True)} color: {on_color(accent_pressed)}; }}
     QPushButton#accent:disabled, QPushButton#bigAccent:disabled {{
         background: {p['surface']}; color: {p['faint']}; border-color: {p['border']}; }}
-    QPushButton#accent:focus, QPushButton#bigAccent:focus {{ border-color: {p['text']}; }}
-    QPushButton#outline {{ background: {rgba(a, 0.06)}; color: {a}; border: 1px solid {rgba(a, 0.45)}; }}
+    QPushButton#accent:focus, QPushButton#bigAccent:focus {{ border-left-color: {p['text']}; border-right-color: {p['text']}; }}
+    QPushButton#outline {{ background: {rgba(a, 0.06)}; color: {a}; border: 1px solid {rgba(a, 0.45)}; border-bottom-width: 3px; }}
     QPushButton#outline:hover {{ background: {rgba(a, 0.14)}; border-color: {a}; }}
+    QPushButton#outline:pressed {{ border-top-width: 3px; border-bottom-width: 1px; }}
     QPushButton#icon {{ background: transparent; border: none; padding: 6px; border-radius: 5px; }}
     QPushButton#icon:hover {{ background: {p['raised']}; }}
     QPushButton#swatch {{ border-radius: 6px; padding: 0; min-width: 28px; max-width: 28px;
@@ -175,7 +193,7 @@ def stylesheet() -> str:
     QPushButton#segment {{ background: transparent; border: none; border-radius: 5px;
                            padding: 6px 14px; color: {p['muted']}; font-weight: 600; }}
     QPushButton#segment:hover {{ color: {p['text']}; }}
-    QPushButton#segment:checked {{ background: {a}; color: {on_a}; }}
+    QPushButton#segment:checked {{ background: {a}; color: {on_a}; {_button_edges(a, True)} }}
     QPushButton#segment:disabled {{ color: {p['faint']}; }}
     #badge {{ background: {tint(a, 0.16)}; color: {a}; border-radius: 4px; padding: 2px 7px;
               font-size: 12px; font-weight: 600; }}

@@ -282,33 +282,26 @@ public final class PauseMenu {
             }
             boolean hover = b.contains(mx, my - offset) || (dragging && b == grabbed);
             b.glow = Glass.ease(b.glow, hover, dt);
+            boolean pressed = b == grabbed && hover && !dragging;
+            int contentY = by + (pressed ? 1 : 0);
             if (b == resume) {
-                Glass.pill(bd, b.x, by, b.w, b.h, true, b.glow, a);
-                MenuIcons.draw(bd, "play", b.x + b.w / 2 - bd.width(b.label) / 2 - 8, by + 8, Theme.onColor(a));
-                bd.text(b.label, b.x + (b.w - bd.width(b.label)) / 2 + 6, by + 8, Theme.onColor(a), false);
+                MenuStyle.button(bd, b.x, by, b.w, b.h, true, b.glow, a, pressed);
+                MenuIcons.draw(bd, "play", b.x + b.w / 2 - bd.width(b.label) / 2 - 8, contentY + 8, Theme.onColor(a));
+                bd.text(b.label, b.x + (b.w - bd.width(b.label)) / 2 + 6, contentY + 8, Theme.onColor(a), false);
             } else if (b == leave) {
-                int col = Theme.mix(Theme.withAlpha(Theme.BAD, 0x90), Theme.BAD, b.glow);
-                if (b.glow > 0.01f) {
-                    bd.glow(b.x + 4, by + 3, b.w - 8, b.h - 4, Theme.withAlpha(Theme.BAD, Math.round(0x40 * b.glow)));
-                }
-                bd.roundRect(b.x, by, b.w, b.h, 6, Theme.withAlpha(Theme.BAD, Math.round(0x18 + 0x50 * b.glow)));
-                bd.roundOutline(b.x, by, b.w, b.h, 6, col);
-                MenuIcons.draw(bd, "leave", b.x + b.w / 2 - bd.width(b.label) / 2 - 8, by + 5, Theme.mix(0xFFE8B4B4, 0xFFFFFFFF, b.glow));
-                bd.text(b.label, b.x + (b.w - bd.width(b.label)) / 2 + 6, by + 5, Theme.mix(0xFFE8B4B4, 0xFFFFFFFF, b.glow), false);
+                int buttonFace = Theme.mix(MenuStyle.ROW, Theme.BAD, 0.15f + 0.2f * b.glow);
+                int fg = Theme.mix(0xFFE8B4B4, 0xFFFFFFFF, b.glow);
+                MenuStyle.bevel(bd, b.x, by, b.w, b.h, buttonFace, pressed);
+                MenuIcons.draw(bd, "leave", b.x + b.w / 2 - bd.width(b.label) / 2 - 8, contentY + 5, fg);
+                bd.text(b.label, b.x + (b.w - bd.width(b.label)) / 2 + 6, contentY + 5, fg, false);
             } else {
-                if (b.glow > 0.01f) {
-                    bd.glow(b.x + 4, by + 5, b.w - 8, b.h - 6, Theme.withAlpha(a, Math.round(0x38 * b.glow)));
-                }
-                Glass.pane(bd, b.x, by, b.w, b.h, 6, Theme.mix(Glass.PANE, Glass.PANE_HOVER, b.glow));
-                if (b.glow > 0.01f) {
-                    bd.roundOutline(b.x, by, b.w, b.h, 6, Theme.withAlpha(a, Math.round(0xB0 * b.glow)));
-                }
-                bd.roundRect(b.x + 7, by + (b.h - 22) / 2, 22, 22, 11, Theme.mix(0x24FFFFFF, Theme.withAlpha(a, 0x70), b.glow));
-                MenuIcons.draw(bd, b.icon, b.x + 13, by + (b.h - 11) / 2, 11, Theme.mix(0xFFD3D6DE, 0xFFFFFFFF, b.glow));
+                MenuStyle.button(bd, b.x, by, b.w, b.h, false, b.glow, a, pressed);
+                bd.roundRect(b.x + 7, contentY + (b.h - 22) / 2, 22, 22, 11, Theme.mix(0x24FFFFFF, Theme.withAlpha(a, 0x70), b.glow));
+                MenuIcons.draw(bd, b.icon, b.x + 13, contentY + (b.h - 11) / 2, 11, Theme.mix(0xFFD3D6DE, 0xFFFFFFFF, b.glow));
                 String label = b == more ? "More" : b.label;
-                bd.text(bd.trim(label, b.w - 40), b.x + 35, by + b.h / 2 - 7, Theme.TEXT, false);
+                bd.text(bd.trim(label, b.w - 40), b.x + 35, contentY + b.h / 2 - 7, Theme.TEXT, false);
                 String sub = b == modules ? "Right Shift" : b == options ? "Video, sound..." : b == locker ? "Capes, skins" : "Stats, LAN...";
-                bd.text(bd.trim(sub, b.w - 40), b.x + 35, by + b.h / 2 + 3, Theme.FAINT, false);
+                bd.text(bd.trim(sub, b.w - 40), b.x + 35, contentY + b.h / 2 + 3, Theme.FAINT, false);
             }
             b.x = bx0;
         }

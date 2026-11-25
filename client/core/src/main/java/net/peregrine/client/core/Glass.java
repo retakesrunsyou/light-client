@@ -132,25 +132,6 @@ public final class Glass {
         logo(d, x, y, scale, argb);
     }
 
-    /** A pill button: glass, or the accent when primary; glow 0..1 for hover. */
-    public static void pill(Draw d, int x, int y, int w, int h, boolean primary, float glow, int accent) {
-        int r = Math.min(h / 2, 7);
-        if (primary) {
-            d.glow(x + 2, y + 3, w - 4, h - 4, Theme.withAlpha(accent, Math.round(0x40 * glow)));
-            d.roundRect(x, y, w, h, r, Theme.mix(accent, Theme.mix(accent, 0xFFFFFFFF, 0.2f), glow));
-            sheen(d, x, y, w, h, r, 0x22);
-            line(d, x + r, y, w - 2 * r, 0x60FFFFFF);
-            if (glow > 0) {
-                d.roundOutline(x - 1, y - 1, w + 2, h + 2, r + 1, Theme.withAlpha(accent, Math.round(0x70 * glow)));
-            }
-        } else {
-            pane(d, x, y, w, h, r, Theme.mix(PANE, PANE_HOVER, glow));
-            if (glow > 0) {
-                d.roundOutline(x, y, w, h, r, Theme.withAlpha(accent, Math.round(0xB0 * glow)));
-            }
-        }
-    }
-
     /** A small switch: a rounded track with a sliding dot, filled with the accent when on. 18 x 10. */
     public static void toggle(Draw d, int x, int y, float on, int accent, boolean hover) {
         int track = Theme.mix(hover ? 0x60FFFFFF : 0x38FFFFFF, accent, on);

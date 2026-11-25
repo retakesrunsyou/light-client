@@ -7,6 +7,7 @@ from .theme import Theme
 
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
+    ("3.0.1", "Raised buttons", "Minecraft-inspired button depth in the launcher and in-game menus."),
     ("3.0.1", "Launcher refresh", "A clearer navigation rail, simpler controls and a redesigned Home page."),
     ("3.0.1", "In-game menu", "Simpler panels and controls, with the same motion and shortcuts."),
     ("3.0.1", "Inter throughout", "Inter is used in the launcher, installer, Minecraft menus and lyrics."),

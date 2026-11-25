@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (QBoxLayout,
 )
 
 from .. import config
-from .theme import Theme, icon_pixmap, on_color
+from .theme import Theme, button_bevel, icon_pixmap, on_color
 
 
 def animations_on() -> bool:
@@ -63,19 +63,36 @@ class PillButton(QPushButton):
             elif self.underMouse():
                 color = color.lighter(112) if dark() else color.darker(105)
             fill = color.name()
+            if self.kind in ("primary", "danger"):
+                text = on_color(fill)
         else:
             fill, text = palette["surface"], palette["muted"]
-        p.setBrush(QColor(fill))
+        pressed = self.isEnabled() and self.isDown()
+        top, bottom = button_bevel(fill, pressed)
+        if not self.isEnabled():
+            top = bottom = edge
+        rect = QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5)
+        shape = QPainterPath()
+        shape.addRoundedRect(rect, 4, 4)
+        p.save()
+        p.setClipPath(shape)
+        p.fillRect(rect, QColor(fill))
+        p.fillRect(QRectF(rect.left(), rect.top(), rect.width(), 3 if pressed else 1), QColor(top))
+        p.fillRect(QRectF(rect.left(), rect.bottom() - (1 if pressed else 3),
+                          rect.width(), 1 if pressed else 3), QColor(bottom))
+        p.restore()
         p.setPen(QPen(QColor(palette["text"] if self.hasFocus() else edge), 1))
-        p.drawRoundedRect(QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5), 6, 6)
+        p.setBrush(Qt.NoBrush)
+        p.drawPath(shape)
+        offset = 1 if pressed else -1
         x = 16
         if self.icon_name:
             size = 17
-            p.drawPixmap(x, (self.height() - size) // 2, icon_pixmap(self.icon_name, text, size))
+            p.drawPixmap(x, (self.height() - size) // 2 + offset, icon_pixmap(self.icon_name, text, size))
             x += 27
         p.setFont(self.font())
         p.setPen(QColor(text))
-        p.drawText(QRectF(x, 0, self.width() - x - 12, self.height()), Qt.AlignVCenter | Qt.AlignLeft, self.text())
+        p.drawText(QRectF(x, offset, self.width() - x - 12, self.height()), Qt.AlignVCenter | Qt.AlignLeft, self.text())
         p.end()
 
 

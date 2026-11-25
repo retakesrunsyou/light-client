@@ -17,10 +17,28 @@ final class MenuStyle {
     }
 
     static void button(Draw d, int x, int y, int w, int h, boolean primary, float hover, int accent) {
-        if (primary) {
-            d.roundRect(x, y, w, h, 3, Theme.mix(accent, 0xFFFFFFFF, hover * 0.14f));
-        } else {
-            panel(d, x, y, w, h, Theme.mix(ROW, ROW_HOVER, hover));
+        button(d, x, y, w, h, primary, hover, accent, false);
+    }
+
+    static void button(Draw d, int x, int y, int w, int h, boolean primary, float hover, int accent, boolean pressed) {
+        int face = primary ? Theme.mix(accent, 0xFFFFFFFF, hover * 0.14f) : Theme.mix(ROW, ROW_HOVER, hover);
+        bevel(d, x, y, w, h, face, pressed);
+    }
+
+    static void bevel(Draw d, int x, int y, int w, int h, int face, boolean pressed) {
+        if (w < 6 || h < 6) {
+            d.rect(x, y, w, h, face);
+            return;
+        }
+        int alpha = face >>> 24;
+        int light = Theme.withAlpha(0xFFFFFF, alpha);
+        int dark = Theme.withAlpha(0, alpha);
+        int edge = Theme.mix(face, dark, 0.48f);
+        d.roundRect(x, y, w, h, 2, edge);
+        d.roundRect(x + 1, y + (pressed ? 2 : 1), w - 2, h - 3, 1,
+                pressed ? Theme.mix(face, dark, 0.12f) : face);
+        if (!pressed) {
+            d.rect(x + 2, y + 1, w - 4, 1, Theme.mix(face, light, 0.24f));
         }
     }
 
@@ -29,6 +47,6 @@ final class MenuStyle {
         d.roundRect(x, y, w, h, 3, track);
         int knob = h - 4;
         int kx = x + 2 + Math.round(on * (w - h));
-        d.roundRect(kx, y + 2, knob, knob, 2, 0xFFF1F2F5);
+        bevel(d, kx, y + 2, knob, knob, 0xFFF1F2F5, false);
     }
 }
