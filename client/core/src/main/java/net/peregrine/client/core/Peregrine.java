@@ -355,7 +355,7 @@ public final class Peregrine {
 
     /** The in-game menu's background: 0 = solid, 1 = see-through, 2 = none (fully transparent). */
     private int menuBackground;
-    public static final String[] MENU_BACKGROUNDS = {"Solid", "See-through", "None"};
+    public static final String[] MENU_BACKGROUNDS = {"Solid", "50%", "None"};
 
     public int menuBackground() {
         return menuBackground;

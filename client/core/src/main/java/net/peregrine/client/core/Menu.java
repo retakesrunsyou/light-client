@@ -1218,7 +1218,6 @@ public final class Menu {
     /** A label on the left and a few pill buttons on the right; the chosen one is filled in. */
     private int choiceRow(Draw d, int mx, int my, int a, String id, String label, String[] options, int chosen,
                           int x, int y, int w) {
-        d.text(label, x + 6, y + 7, Theme.MUTED, false);
         int bx = x + w - 6;
         for (int i = options.length - 1; i >= 0; i--) {
             String o = options[i];
@@ -1234,6 +1233,7 @@ public final class Menu {
             hit("choice:" + id + ":" + i, bx, y + 3, ow, 16, null);
             bx -= 3;
         }
+        d.text(d.trim(label, bx - x - 9), x + 6, y + 7, Theme.MUTED, false);
         return y + SET_H + 2;
     }
 
@@ -1276,7 +1276,6 @@ public final class Menu {
         a = drawA;
         y += SET_H + 4;
         // menu background: solid, see-through or none
-        d.text("Menu background", x + 6, y + 7, Theme.MUTED, false);
         int bx = x + w - 6;
         for (int i = Peregrine.MENU_BACKGROUNDS.length - 1; i >= 0; i--) {
             String o = Peregrine.MENU_BACKGROUNDS[i];
@@ -1292,6 +1291,7 @@ public final class Menu {
             hit("menubg:" + i, bx, y + 3, ow, 16, null);
             bx -= 3;
         }
+        d.text(d.trim("Menu opacity", bx - x - 9), x + 6, y + 7, Theme.MUTED, false);
         y += SET_H + 2;
         y = choiceRow(d, mx, my, a, "rows", "Module rows", new String[] {"Roomy", "Compact"}, pc.compactRows() ? 1 : 0, x, y, w);
         y = choiceRow(d, mx, my, a, "anim", "Animations", new String[] {"On", "Off"}, pc.animations() ? 0 : 1, x, y, w);
