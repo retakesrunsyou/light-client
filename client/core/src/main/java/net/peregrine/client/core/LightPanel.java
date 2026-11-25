@@ -8,7 +8,6 @@ final class LightPanel extends MenuPanel {
 
     /** What changed, newest first: {version, title, what it does}. */
     static final String[][] NEWS = {
-        {"3.0.1", "Raised buttons", "Minecraft-inspired depth in the launcher and menus"},
         {"3.0.1", "In-game menu", "Simpler controls and panels with the same motion"},
         {"3.0.1", "Inter", "One typeface for the launcher, in-game menus and lyrics"},
         {"3.0.1", "Pause menu", "Clicks follow animated buttons and 3D panels"},

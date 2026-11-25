@@ -771,12 +771,10 @@ public final class Menu {
         drawSidebar(d, mx, my, dt, a);
         boolean editHover = in(mx, my, editX, editY, editW, editH);
         float eg = sideGlowOf("edit", editHover, dt);
-        boolean editPressed = editHover && p.mouseHeld() == 1;
-        MenuStyle.button(d, editX, editY, editW, editH, false, eg, a, editPressed);
-        int editOffset = editPressed ? 1 : 0;
-        MenuIcons.draw(d, "hud", editX + 8, editY + 4 + editOffset, Theme.MUTED);
+        MenuStyle.button(d, editX, editY, editW, editH, false, eg, a);
+        MenuIcons.draw(d, "hud", editX + 8, editY + 4, Theme.MUTED);
         String edit = "Edit HUD";
-        d.text(edit, editX + (editW - d.width(edit)) / 2 + 5, editY + 5 + editOffset, Theme.TEXT, false);
+        d.text(edit, editX + (editW - d.width(edit)) / 2 + 5, editY + 5, Theme.TEXT, false);
 
         if (page != null) {
             renderPage(d, mx, my, p, dt, now, a);
@@ -863,10 +861,10 @@ public final class Menu {
 
         boolean oh = in(mx, my, onlyX, filterY, onlyW, TABBAR_H);
         float og = sideGlowOf("onlyon", oh, dt);
-        boolean onlyPressed = oh && pc.platform().mouseHeld() == 1;
-        MenuStyle.button(d, onlyX, filterY, onlyW, TABBAR_H, onlyOn, og, a, onlyPressed);
+        d.roundRect(onlyX, filterY, onlyW, TABBAR_H, 3, onlyOn ? Theme.withAlpha(a, 0x50) : Theme.mix(0x18FFFFFF, 0x2CFFFFFF, og));
+        d.roundOutline(onlyX, filterY, onlyW, TABBAR_H, 3, onlyOn ? Theme.withAlpha(a, 0xC0) : 0x1CFFFFFF);
         String ol = "Only on";
-        d.text(ol, onlyX + (onlyW - d.width(ol)) / 2, filterY + 4 + (onlyPressed ? 1 : 0), onlyOn ? Theme.onColor(a) : Theme.mix(Theme.MUTED, Theme.TEXT, og), false);
+        d.text(ol, onlyX + (onlyW - d.width(ol)) / 2, filterY + 4, onlyOn ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, og), false);
 
         int cy = filterY + TABBAR_H + 5, ch = 14;
         chipHits.clear();
@@ -1227,9 +1225,11 @@ public final class Menu {
             bx -= ow;
             boolean on = chosen == i;
             boolean hv = in(mx, my, bx, y + 3, ow, 16);
-            boolean pressed = hv && pc.platform().mouseHeld() == 1;
-            MenuStyle.button(d, bx, y + 3, ow, 16, on, hv ? 1f : 0f, a, pressed);
-            d.text(o, bx + 6, y + 7 + (pressed ? 1 : 0), on ? Theme.onColor(a) : hv ? Theme.TEXT : Theme.MUTED, false);
+            d.roundRect(bx, y + 3, ow, 16, on ? a : hv ? Theme.CARD_HOVER : Theme.CARD);
+            if (!on) {
+                d.roundOutline(bx, y + 3, ow, 16, Theme.HAIRLINE);
+            }
+            d.text(o, bx + 6, y + 7, on ? Theme.onColor(a) : hv ? Theme.TEXT : Theme.MUTED, false);
             hit("choice:" + id + ":" + i, bx, y + 3, ow, 16, null);
             bx -= 3;
         }
@@ -1283,9 +1283,11 @@ public final class Menu {
             bx -= ow;
             boolean on = pc.menuBackground() == i;
             boolean hv = in(mx, my, bx, y + 3, ow, 16);
-            boolean pressed = hv && pc.platform().mouseHeld() == 1;
-            MenuStyle.button(d, bx, y + 3, ow, 16, on, hv ? 1f : 0f, a, pressed);
-            d.text(o, bx + 6, y + 7 + (pressed ? 1 : 0), on ? Theme.onColor(a) : hv ? Theme.TEXT : Theme.MUTED, false);
+            d.roundRect(bx, y + 3, ow, 16, on ? a : hv ? Theme.CARD_HOVER : Theme.CARD);
+            if (!on) {
+                d.roundOutline(bx, y + 3, ow, 16, Theme.HAIRLINE);
+            }
+            d.text(o, bx + 6, y + 7, on ? Theme.onColor(a) : hv ? Theme.TEXT : Theme.MUTED, false);
             hit("menubg:" + i, bx, y + 3, ow, 16, null);
             bx -= 3;
         }
@@ -1371,9 +1373,9 @@ public final class Menu {
         int bw = d.width(button) + 16;
         int bx = x + w - 6 - bw;
         boolean bh = in(mx, my, bx, y + 3, bw, 16);
-        boolean pressed = bh && pc.platform().mouseHeld() == 1;
-        MenuStyle.button(d, bx, y + 3, bw, 16, bh, bh ? 1f : 0f, a, pressed);
-        d.text(button, bx + 8, y + 7 + (pressed ? 1 : 0), bh ? Theme.onColor(a) : a, false);
+        d.roundRect(bx, y + 3, bw, 16, Theme.withAlpha(a, bh ? 0xFF : 0x2A));
+        d.roundOutline(bx, y + 3, bw, 16, Theme.withAlpha(a, 0xA0));
+        d.text(button, bx + 8, y + 7, bh ? Theme.onColor(a) : Theme.withAlpha(a, 0xFF), false);
         hit(id, bx, y + 3, bw, 16, null);
         return y + SET_H + 2;
     }
@@ -1383,9 +1385,9 @@ public final class Menu {
         int bw = d.width(button) + 16;
         int bx = x + w - 6 - bw;
         boolean bh = in(mx, my, bx, y + 3, bw, 16);
-        boolean pressed = bh && pc.platform().mouseHeld() == 1;
-        MenuStyle.bevel(d, bx, y + 3, bw, 16, bh ? Theme.mix(MenuStyle.ROW, Theme.BAD, 0.3f) : MenuStyle.ROW, pressed);
-        d.text(button, bx + 8, y + 7 + (pressed ? 1 : 0), bh ? Theme.TEXT : Theme.MUTED, false);
+        d.roundRect(bx, y + 3, bw, 16, bh ? Theme.withAlpha(Theme.BAD, 0x50) : Theme.CARD);
+        d.roundOutline(bx, y + 3, bw, 16, bh ? Theme.BAD : Theme.HAIRLINE);
+        d.text(button, bx + 8, y + 7, bh ? Theme.TEXT : Theme.MUTED, false);
         hit(id, bx, y + 3, bw, 16, null);
         return y + SET_H + 2;
     }
@@ -1720,13 +1722,14 @@ public final class Menu {
                 int bx = right - pw2;
                 boolean ph2 = inView && in(mx, my, bx, y + 3, pw2, 16) && dropdown == null;
                 boolean open = !action && dropdown == st;
-                boolean pressed = ph2 && p.mouseHeld() == 1;
-                int offset = pressed ? 1 : 0;
-                MenuStyle.button(d, bx, y + 3, pw2, 16, action && ph2, ph2 || open ? 1f : 0f, a, pressed);
-                int tc = action ? (ph2 ? Theme.onColor(a) : a) : Theme.TEXT;
-                d.text(val, bx + 7, y + 7 + offset, tc, false);
-                if (!action) {
-                    arrowDown(d, bx + pw2 - 11, y + 9 + offset, ph2 || open ? a : Theme.FAINT);
+                d.roundRect(bx, y + 3, pw2, 16, action ? Theme.withAlpha(a, ph2 ? 0xFF : 0x2A)
+                        : ph2 || open ? Theme.ROW_HOVER : Theme.FIELD);
+                d.roundOutline(bx, y + 3, pw2, 16, action ? Theme.withAlpha(a, 0xA0)
+                        : ph2 || open ? Theme.withAlpha(a, 0xC0) : Theme.HAIRLINE);
+                int tc = action ? (ph2 ? 0xFF15171C : Theme.withAlpha(a, 0xFF)) : Theme.TEXT;
+                d.text(val, bx + 7, y + 7, tc, false);
+                if (!action) {  // a small arrow: opens the list of options
+                    arrowDown(d, bx + pw2 - 11, y + 9, ph2 || open ? a : Theme.FAINT);
                 }
                 hit(id, bx, y + 3, pw2, 16, st);
             }
@@ -1741,9 +1744,9 @@ public final class Menu {
             int rw = d.width(reset) + 14;
             int ry = y + 6;
             boolean rh = inView && in(mx, my, x, ry, rw, 14);
-            boolean pressed = rh && p.mouseHeld() == 1;
-            MenuStyle.button(d, x, ry, rw, 14, false, rh ? 1f : 0f, a, pressed);
-            d.text(reset, x + 7, ry + 3 + (pressed ? 1 : 0), rh ? Theme.TEXT : Theme.MUTED, false);
+            d.roundRect(x, ry, rw, 14, rh ? Theme.ROW_HOVER : 0x00000000);
+            d.roundOutline(x, ry, rw, 14, rh ? Theme.MUTED : Theme.HAIRLINE);
+            d.text(reset, x + 7, ry + 3, rh ? Theme.TEXT : Theme.MUTED, false);
             hit("reset", x, ry, rw, 14, null);
         }
         d.popScale();
