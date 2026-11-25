@@ -35,7 +35,7 @@ public final class Compat {
             return false;
         }
         switch (moduleId) {
-            case "custom_sky": case "boost_world_scale": case "knives": case "viewmodel_fx": case "frame_gen": case "hd_look": case "clips":
+            case "frame_gen":
                 return true;
             default:
                 return false;
