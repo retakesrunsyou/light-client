@@ -257,7 +257,7 @@ final class GamePlatform implements Platform {
 
     @Override
     public boolean supports(String moduleId) {
-        if (moduleId.equals("custom_sky") || moduleId.equals("gpu_mobs") || moduleId.equals("knives") || moduleId.equals("viewmodel_fx") || moduleId.equals("zero_delay") || moduleId.equals("benchmark") || moduleId.equals("boost_world_scale") || moduleId.equals("area_miner") || moduleId.equals("skeletons") || moduleId.equals("pickaxe_look") || moduleId.equals("frame_gen") || moduleId.equals("hd_look") || moduleId.equals("clips") || moduleId.equals("menu_3d") || moduleId.equals("smooth_join")) {
+        if (moduleId.equals("custom_sky") || moduleId.equals("gpu_mobs") || moduleId.equals("knives") || moduleId.equals("viewmodel_fx") || moduleId.equals("boost_world_scale") || moduleId.equals("area_miner") || moduleId.equals("skeletons") || moduleId.equals("pickaxe_look") || moduleId.equals("frame_gen") || moduleId.equals("hd_look") || moduleId.equals("clips") || moduleId.equals("menu_3d")) {
             return false;  // these are on 26.1 for now (beta)
         }
         if (moduleId.equals("motion_blur") || moduleId.equals("saturation")) {
@@ -874,6 +874,12 @@ final class GamePlatform implements Platform {
         }
         o.backgroundForChatOnly().set(true);   // only the chat: name tags keep theirs
         o.textBackgroundOpacity().set((double) Math.max(0f, Math.min(1f, opacity)));
+    }
+
+    @Override
+    public boolean terrainReady() {
+        // Sodium answers this for its own renderer too ("is the terrain render complete")
+        return mc().level == null || mc().levelRenderer.hasRenderedAllSections();
     }
 
     @Override
