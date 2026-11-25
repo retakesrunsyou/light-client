@@ -149,7 +149,7 @@ public final class MinerWorld implements BotWorld {
         bestTool(s, pos);
         LocalPlayer p = me();
         Vec3 eye = p.getEyePosition();
-        Direction face = Direction.getApproximateNearest(eye.x - (x + 0.5), eye.y - (y + 0.5), eye.z - (z + 0.5));
+        Direction face = Direction.getNearest(eye.x - (x + 0.5), eye.y - (y + 0.5), eye.z - (z + 0.5));
         mc().gameMode.continueDestroyBlock(pos, face);
         p.swing(InteractionHand.MAIN_HAND);
         return level().getBlockState(pos).isAir() || !present(x, y, z);
