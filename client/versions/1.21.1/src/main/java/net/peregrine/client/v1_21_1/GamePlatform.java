@@ -577,6 +577,9 @@ final class GamePlatform implements Platform {
         if (moduleId.equals("custom_sky") || moduleId.equals("gpu_mobs") || moduleId.equals("viewmodel_fx") || moduleId.equals("boost_world_scale") || moduleId.equals("skeletons") || moduleId.equals("frame_gen") || moduleId.equals("hd_look") || moduleId.equals("clips") || moduleId.equals("menu_3d")) {
             return false;  // these are on 26.1 for now (beta)
         }
+        if (moduleId.equals("saturation")) {
+            return false;  // 1.21.1's post shaders can't load it from Light Client's own folder (the screen goes black)
+        }
         return !moduleId.equals("chunk_fade");  // Minecraft added the fade-in in 1.21.11
     }
 
