@@ -103,7 +103,7 @@ public final class KnifeHand {
             day = (float) Math.max(0.15, Math.min(1, sun * 2.5 + 0.5));
         }
         f.light = Math.max(block / 15f, sky / 15f * day);
-        f.pitch = (float) Math.toRadians(-player.getXRot(partial));
+        f.pitch = (float) Math.toRadians(-player.getViewXRot(partial));
     }
 
     private static void submit(PoseStack pose, MultiBufferSource buffers, int light) {
