@@ -15,7 +15,7 @@ DISCORD_APP_ID = "1557771317699149895"
 
 # GitHub repository that hosts releases, as "owner/repo".
 # Set this once you've made the repo; leave empty to turn update checks off.
-UPDATE_REPO = "retakesrunsyou/peregrine-launcher"
+UPDATE_REPO = "retakesrunsyou/light-client"
 
 # The Peregrine profiles service (a free Cloudflare Worker, see profiles/README.md).
 # Leave empty to hide profiles until it's set up.

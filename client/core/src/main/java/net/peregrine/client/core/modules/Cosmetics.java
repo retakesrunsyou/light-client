@@ -183,7 +183,7 @@ public final class Cosmetics extends Module {
         return file + "_" + (System.currentTimeMillis() / FRAME_MS) % n;
     }
     public static final String REGISTRY =
-            "https://raw.githubusercontent.com/retakesrunsyou/peregrine-launcher/main/cosmetics.json";
+            "https://raw.githubusercontent.com/retakesrunsyou/light-client/main/cosmetics.json";
     static final long REFRESH_MS = 30 * 60_000L;
     /** The Peregrine service (passed in by the launcher), or null. */
     public static final String SERVICE = System.getProperty("peregrine.service");

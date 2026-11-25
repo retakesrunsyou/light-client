@@ -4,7 +4,7 @@
 # your instances, worlds and settings are kept. Remove it with: --uninstall
 set -euo pipefail
 
-REPO="retakesrunsyou/peregrine-launcher"
+REPO="retakesrunsyou/light-client"
 DIR="$HOME/Applications"
 APP="$DIR/Light-Client.AppImage"
 DATA="${XDG_DATA_HOME:-$HOME/.local/share}"

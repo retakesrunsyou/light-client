@@ -240,14 +240,14 @@ account that owns it.
 **Windows**
 
 1. Download `Peregrine-Setup.exe` from the
-   [latest release](https://github.com/retakesrunsyou/peregrine-launcher/releases/latest) and run it.
+   [latest release](https://github.com/retakesrunsyou/light-client/releases/latest) and run it.
    If Windows says it protected your PC, click **More info**, then **Run anyway** (the app isn't signed yet).
 2. Open **Peregrine Launcher** from the desktop shortcut or the Start menu. No admin rights needed.
 
 **Linux** (any distro)
 
 1. Download `Peregrine-x86_64.AppImage` from the
-   [latest release](https://github.com/retakesrunsyou/peregrine-launcher/releases/latest).
+   [latest release](https://github.com/retakesrunsyou/light-client/releases/latest).
 2. Make it runnable (right-click > Properties > Permissions > *Allow executing*, or `chmod +x Peregrine-x86_64.AppImage`) and open it.
    The first start adds Peregrine to your app menu and puts a shortcut on your desktop.
 
@@ -267,7 +267,7 @@ installs and restarts. Your instances, worlds, accounts and settings are kept.
 | `Permission denied` | Run `bash install.sh` instead of `./install.sh` |
 | AppImage won't open | Install `libfuse2` (`sudo apt install libfuse2`), or run it with `--appimage-extract-and-run` |
 | `peregrine: command not found` | Log out and back in once, or open it from the app menu |
-| Something else | [Open an issue](https://github.com/retakesrunsyou/peregrine-launcher/issues) with the last lines the installer printed |
+| Something else | [Open an issue](https://github.com/retakesrunsyou/light-client/issues) with the last lines the installer printed |
 
 ## Where your stuff lives
 

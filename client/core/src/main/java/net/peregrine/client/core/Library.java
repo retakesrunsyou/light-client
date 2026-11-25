@@ -88,7 +88,7 @@ public final class Library {
     }
 
     static final String API = "https://api.modrinth.com/v2";
-    static final String UA = "retakesrunsyou/peregrine-launcher (Light Client in game)";
+    static final String UA = "retakesrunsyou/light-client (Light Client in game)";
 
     private static final Map<Kind, List<Item>> INSTALLED = new ConcurrentHashMap<Kind, List<Item>>();
     private static final Map<Kind, Long> SCANNED = new ConcurrentHashMap<Kind, Long>();

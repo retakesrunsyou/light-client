@@ -228,7 +228,7 @@ def register(app_dir: Path, version: str):
                             ("DisplayIcon", f"{exe},0"), ("InstallLocation", str(app_dir)),
                             ("UninstallString", f'"{exe}" --uninstall'),
                             ("QuietUninstallString", f'"{exe}" --uninstall --quiet'),
-                            ("URLInfoAbout", "https://github.com/retakesrunsyou/peregrine-launcher")):
+                            ("URLInfoAbout", "https://github.com/retakesrunsyou/light-client")):
             winreg.SetValueEx(k, name, 0, winreg.REG_SZ, value)
         for name, value in (("NoModify", 1), ("NoRepair", 1), ("EstimatedSize", _dir_size_kb(app_dir))):
             winreg.SetValueEx(k, name, 0, winreg.REG_DWORD, value)

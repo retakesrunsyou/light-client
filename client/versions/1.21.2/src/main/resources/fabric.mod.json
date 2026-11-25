@@ -6,8 +6,8 @@
 	"description": "Light Client's in-game menu: press Right Shift for HUD, zoom, toggle sprint and more.",
 	"authors": ["Peregrine"],
 	"contact": {
-		"homepage": "https://github.com/retakesrunsyou/peregrine-launcher",
-		"sources": "https://github.com/retakesrunsyou/peregrine-launcher"
+		"homepage": "https://github.com/retakesrunsyou/light-client",
+		"sources": "https://github.com/retakesrunsyou/light-client"
 	},
 	"license": "MIT",
 	"icon": "assets/peregrine-client/icon.png",

@@ -420,7 +420,7 @@ public final class LyricsSource {
         HttpURLConnection c = (HttpURLConnection) URI.create(API + path).toURL().openConnection();
         c.setConnectTimeout(8000);
         c.setReadTimeout(10000);
-        c.setRequestProperty("User-Agent", "Light Client (https://github.com/retakesrunsyou/peregrine-launcher)");
+        c.setRequestProperty("User-Agent", "Light Client (https://github.com/retakesrunsyou/light-client)");
         int code = c.getResponseCode();
         if (code == 404) {
             return null;

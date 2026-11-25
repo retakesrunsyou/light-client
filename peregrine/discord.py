@@ -19,10 +19,10 @@ from . import DISCORD_APP_ID, NAME
 
 OP_HANDSHAKE, OP_FRAME, OP_CLOSE = 0, 1, 2
 
-_ASSETS = "https://raw.githubusercontent.com/retakesrunsyou/peregrine-launcher/main/assets/discord/"
+_ASSETS = "https://raw.githubusercontent.com/retakesrunsyou/light-client/main/assets/discord/"
 LOGO = _ASSETS + "peregrine.png"
 GAME = _ASSETS + "minecraft.png"
-SITE = "https://github.com/retakesrunsyou/peregrine-launcher"
+SITE = "https://github.com/retakesrunsyou/light-client"
 
 # Where Discord puts its socket: normal installs, Flatpak, Snap, and Vesktop.
 _SUBDIRS = ["", "app/com.discordapp.Discord", "app/com.discordapp.DiscordCanary",
