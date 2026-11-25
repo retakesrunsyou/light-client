@@ -10,6 +10,8 @@ import net.minecraft.client.gui.screens.options.OptionsScreen;
 
 /** Opening and reading screens, which moved from Minecraft to Gui in 26.2. */
 public final class Screens {
+    private static boolean leftButtonHeld;
+
     private Screens() {}
 
     public static Screen current() {
@@ -35,6 +37,19 @@ public final class Screens {
             return 2;
         }
         return 3 + raw;
+    }
+
+    public static void recordMouseButton(int button, int action) {
+        if (button == 0) {
+            leftButtonHeld = action == InputConstants.PRESS;
+        }
+    }
+
+    public static boolean leftButtonHeld() {
+        if (!Minecraft.getInstance().isWindowActive()) {
+            leftButtonHeld = false;
+        }
+        return leftButtonHeld;
     }
 
     /** True while F1 has hidden the HUD. */

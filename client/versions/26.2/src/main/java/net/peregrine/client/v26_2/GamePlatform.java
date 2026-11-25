@@ -883,11 +883,8 @@ final class GamePlatform implements Platform {
 
     @Override
     public int mouseHeld() {
-        try {
-            return mc().mouseHandler.isLeftPressed() ? 1 : 0;
-        } catch (Throwable e) {
-            return -1;
-        }
+        // Minecraft's mouse flags are updated only during gameplay.
+        return Screens.leftButtonHeld() ? 1 : 0;
     }
 
     @Override
