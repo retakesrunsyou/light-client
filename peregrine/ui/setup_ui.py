@@ -884,7 +884,7 @@ def update_window(update):
         @staticmethod
         def install(payload, target, version, desktop, startup, progress):
             def report(done, total, message):
-                progress(min(0.98, done / total) if total else 0.1, message)
+                progress(min(98, done * 100 / total) if total else 10, 100, message)
 
             updater.apply(payload, report)
 

@@ -73,7 +73,7 @@ def install(payload, target, version, desktop, startup, progress=lambda *_: None
     target = target.expanduser().resolve()
     target.mkdir(parents=True, exist_ok=True)
     app = target / IMAGE_NAME
-    progress(0.2, "Installing Light Client")
+    progress(20, 100, "Installing Light Client")
     with tempfile.NamedTemporaryFile(dir=target, prefix=".light-client-", delete=False) as stage:
         staged = Path(stage.name)
         try:
@@ -81,14 +81,14 @@ def install(payload, target, version, desktop, startup, progress=lambda *_: None
                 shutil.copyfileobj(source, stage)
             stage.flush()
             staged.chmod(0o755)
-            progress(0.8, "Adding shortcuts")
+            progress(80, 100, "Adding shortcuts")
             register(app, desktop, startup)
             os.replace(staged, app)
         finally:
             staged.unlink(missing_ok=True)
     app.with_suffix(".version").write_text(version or VERSION)
     config.save(dict(config.load(), desktop_shortcut_made=True, linux_install_dir=str(target)))
-    progress(1.0, "Done")
+    progress(100, 100, "Done")
 
 
 def launch(target):
