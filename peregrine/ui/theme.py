@@ -95,46 +95,24 @@ def round_menu(menu):
     return menu
 
 
-def _block(base: str, pressed: bool = False) -> str:
-    """A Minecraft-style bevel as a QSS gradient: a light top edge, the face, a dark bottom edge."""
-    hi, lo = shade(base, 138), shade(base, 60)
-    if pressed:
-        hi, lo = lo, shade(base, 120)
-    return (f"qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {hi}, stop:0.09 {hi}, stop:0.091 {base}, "
-            f"stop:0.86 {base}, stop:0.861 {lo}, stop:1 {lo})")
-
-
-
 def stylesheet() -> str:
     p, a = Theme.p, Theme.accent
     on_a = on_color(a)
-    hover_a = shade(a, 112)
-    # Frosted panels (header, sidebar, footer): the night sky shows through a little.
-    glass = rgba(p["surface"], 0.12 if Theme.name != "light" else 0.40)
     dark = Theme.name != "light"
-    # Cards are lightly see-through too, so the sky glows faintly behind them.
-    card_top = rgba(shade(p["surface"], 108), 0.86 if dark else 0.94)
-    card_bot = rgba(p["surface"], 0.80 if dark else 0.92)
-    edge_hi = "rgba(255, 255, 255, 0.07)" if dark else "rgba(255, 255, 255, 0.9)"
-    a_top, a_bot, a_edge = shade(a, 114), a, shade(a, 82)
-    btn_top, btn_bot = rgba(shade(p["raised"], 112), 0.92), rgba(p["raised"], 0.92)
-    rail = shade(p["bg"], 78) if dark else p["surface"]
-    glass_pill = "rgba(255, 255, 255, 0.055)" if dark else "rgba(20, 24, 40, 0.045)"
-    glass_hover = "rgba(255, 255, 255, 0.085)" if dark else "rgba(20, 24, 40, 0.07)"
-    glass_edge = "rgba(255, 255, 255, 0.09)" if dark else "rgba(20, 24, 40, 0.09)"
-    # Minecraft-style buttons: stone grey blocks with a near-black outline that lights up on hover
-    stone = shade(p["raised"], 128) if dark else "#d6d8de"
-    stone_off = shade(p["raised"], 92) if dark else "#c4c6cc"
-    mc_edge = "#050608" if dark else "#2a2c33"
-    mc_lit = "#ffffff" if dark else shade(a, 75)
+    hover_a = shade(a, 112 if dark else 94)
+    rail = shade(p["bg"], 90) if dark else p["surface"]
+    edge_hi = p["border"]
+    glass_pill = p["surface"]
+    glass_hover = p["raised"]
+    glass_edge = p["border"]
     return f"""
     QWidget {{ color: {p['text']}; font-size: 14px; }}
     QMainWindow, QDialog {{ background: {p['bg']}; }}
     #page {{ background: transparent; }}
     QScrollArea, #scrollBody {{ background: transparent; border: none; }}
 
-    #header {{ background: {glass}; border-bottom: 1px solid {p['border']}; }}
-    #nav {{ background: {glass}; border-right: 1px solid {p['border']}; }}
+    #header {{ background: {p['surface']}; border-bottom: 1px solid {p['border']}; }}
+    #nav {{ background: {p['surface']}; border-right: 1px solid {p['border']}; }}
     #appName {{ font-size: 18px; font-weight: 700; }}
     #h1 {{ font-size: 28px; font-weight: 700; }}
     #h2 {{ font-size: 16px; font-weight: 650; }}
@@ -145,31 +123,26 @@ def stylesheet() -> str:
                   border-radius: 7px; padding: 10px 12px; text-align: left; color: {p['muted']};
                   font-weight: 600; }}
     #navButton:hover {{ background: {rgba(p['raised'], 0.55)}; color: {p['text']}; }}
-    #navButton:checked {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                              stop:0 {rgba(a, 0.24)}, stop:1 {rgba(a, 0.04)});
-                          border-left: 3px solid {a}; color: {a}; }}
+    #navButton:checked {{ background: {rgba(a, 0.15)}; border-left: 3px solid {a}; color: {p['text']}; }}
 
     #accountChip {{ background: transparent; border: none; border-radius: 6px; padding: 4px 8px; }}
     #accountChip:hover {{ background: {p['raised']}; }}
 
-    #card {{ background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {card_top}, stop:1 {card_bot});
-             border: 1px solid {p['border']}; border-top-color: {edge_hi}; border-radius: 18px; }}
-    #card:hover {{ border-color: {rgba(a, 0.55)}; }}
-    #row {{ background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {card_top}, stop:1 {card_bot});
-            border: 1px solid {p['border']}; border-top-color: {edge_hi}; border-radius: 14px; }}
-    #row:hover {{ border-color: {rgba(a, 0.45)}; }}
-    #emptyIcon {{ background: {tint(a, 0.12)}; border-radius: 16px; }}
+    #card, #row {{ background: {p['surface']}; border: 1px solid {p['border']}; border-radius: 8px; }}
+    #emptyIcon {{ background: {tint(a, 0.12)}; border-radius: 8px; }}
 
-    QPushButton {{ background: {_block(stone)}; border: 2px solid {mc_edge}; border-radius: 1px;
-                   padding: 8px 16px; color: {p['text']}; font-weight: 700; }}
-    QPushButton:hover {{ background: {_block(shade(stone, 114))}; border-color: {mc_lit}; }}
-    QPushButton:pressed {{ background: {_block(stone, True)}; padding-top: 9px; padding-bottom: 7px; }}
-    QPushButton:disabled {{ background: {_block(stone_off)}; color: {p['faint']}; border-color: {mc_edge}; }}
-    QPushButton:focus {{ border-color: {mc_lit}; }}
-    QPushButton#accent {{ background: {_block(a)}; color: {on_a}; border: 2px solid {mc_edge}; font-weight: 800; }}
-    QPushButton#accent:hover {{ background: {_block(hover_a)}; border-color: {mc_lit}; }}
-    QPushButton#accent:pressed {{ background: {_block(a, True)}; padding-top: 9px; padding-bottom: 7px; }}
-    QPushButton#accent:disabled {{ background: {_block(stone_off)}; color: {p['faint']}; border-color: {mc_edge}; }}
+    QPushButton {{ background: {p['raised']}; border: 1px solid {p['border']}; border-radius: 6px;
+                   padding: 7px 13px; color: {p['text']}; font-weight: 600; }}
+    QPushButton:hover {{ background: {shade(p['raised'], 112 if dark else 95)}; }}
+    QPushButton:pressed {{ background: {p['surface']}; }}
+    QPushButton:focus {{ border-color: {a}; }}
+    QPushButton:disabled {{ background: {p['surface']}; color: {p['faint']}; border-color: {p['border']}; }}
+    QPushButton#accent, QPushButton#bigAccent {{ background: {a}; color: {on_a}; border-color: {a}; }}
+    QPushButton#accent:hover, QPushButton#bigAccent:hover {{ background: {hover_a}; }}
+    QPushButton#accent:pressed, QPushButton#bigAccent:pressed {{ background: {shade(a, 86)}; }}
+    QPushButton#accent:disabled, QPushButton#bigAccent:disabled {{
+        background: {p['surface']}; color: {p['faint']}; border-color: {p['border']}; }}
+    QPushButton#accent:focus, QPushButton#bigAccent:focus {{ border-color: {p['text']}; }}
     QPushButton#outline {{ background: {rgba(a, 0.06)}; color: {a}; border: 1px solid {rgba(a, 0.45)}; }}
     QPushButton#outline:hover {{ background: {rgba(a, 0.14)}; border-color: {a}; }}
     QPushButton#icon {{ background: transparent; border: none; padding: 6px; border-radius: 5px; }}
@@ -181,7 +154,7 @@ def stylesheet() -> str:
     QPushButton#tab:checked {{ color: {p['text']}; border-bottom-color: {a}; }}
 
     QLineEdit, QComboBox, QSpinBox, QPlainTextEdit {{
-        background: {rgba(p['bg'], 0.78)}; border: 1px solid {p['border']}; border-radius: 12px;
+        background: {rgba(p['bg'], 0.78)}; border: 1px solid {p['border']}; border-radius: 6px;
         padding: 8px 12px; selection-background-color: {rgba(a, 0.45)}; }}
     QLineEdit:focus, QComboBox:focus, QSpinBox:focus {{ border-color: {a}; }}
     QLineEdit:hover, QComboBox:hover, QSpinBox:hover {{ border-color: {p['faint']}; }}
@@ -202,8 +175,7 @@ def stylesheet() -> str:
     QPushButton#segment {{ background: transparent; border: none; border-radius: 5px;
                            padding: 6px 14px; color: {p['muted']}; font-weight: 600; }}
     QPushButton#segment:hover {{ color: {p['text']}; }}
-    QPushButton#segment:checked {{ background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                       stop:0 {a_top}, stop:1 {a_bot}); color: {on_a}; }}
+    QPushButton#segment:checked {{ background: {a}; color: {on_a}; }}
     QPushButton#segment:disabled {{ color: {p['faint']}; }}
     #badge {{ background: {tint(a, 0.16)}; color: {a}; border-radius: 4px; padding: 2px 7px;
               font-size: 12px; font-weight: 600; }}
@@ -222,61 +194,45 @@ def stylesheet() -> str:
     QProgressBar::chunk {{ background: {a}; border-radius: 2px; }}
     #console {{ background: {p['bg']}; border: none; border-top: 1px solid {p['border']};
                 border-radius: 0; font-family: monospace; font-size: 12px; color: {p['muted']}; }}
-    #footer {{ background: {glass}; border-top: 1px solid {p['border']}; }}
+    #footer {{ background: {p['surface']}; border-top: 1px solid {p['border']}; }}
     QScrollBar:vertical {{ background: transparent; width: 10px; }}
     QScrollBar::handle:vertical {{ background: {p['border']}; border-radius: 4px; min-height: 30px; }}
     QScrollBar::add-line, QScrollBar::sub-line {{ height: 0; }}
-    QMenu {{ background: {p['surface']}; border: 1px solid {p['border']}; border-radius: 12px; padding: 6px; }}
+    QMenu {{ background: {p['surface']}; border: 1px solid {p['border']}; border-radius: 6px; padding: 6px; }}
     QMenu::item {{ padding: 8px 22px 8px 14px; border-radius: 8px; color: {p['text']}; background: transparent; }}
     QMenu::item:selected {{ background: {tint(a, 0.22)}; color: {p['text']}; }}
     QMenu::item:disabled {{ color: {p['faint']}; }}
     QMenu::separator {{ height: 1px; background: {p['border']}; margin: 5px 8px; }}
     QToolTip {{ background: {p['raised']}; color: {p['text']}; border: 1px solid {p['border']}; }}
 
-    /* ---- 1.1 look: a solid icon rail, floating glass pills, big heavy titles */
-    #rail {{ background: {rail}; border: none; }}
+    #rail {{ background: {rail}; border: none; border-right: 1px solid {p['border']}; }}
     #railGroup {{ background: {glass_pill}; border: 1px solid {glass_edge}; border-radius: 26px; }}
     #profileTitle {{ font-size: 30px; font-weight: 800; }}
     #cardTitle {{ font-size: 17px; font-weight: 750; }}
     #detailLabel {{ font-size: 12px; color: {p['muted']}; }}
     #detailValue {{ font-size: 14px; font-weight: 600; }}
-    #modRow {{ background: {rgba(p['raised'], 0.55 if dark else 0.9)}; border: 1px solid {edge_hi}; border-radius: 12px; }}
+    #modRow {{ background: {rgba(p['raised'], 0.55 if dark else 0.9)}; border: 1px solid {edge_hi}; border-radius: 6px; }}
     #modRow:hover {{ border-color: {rgba(a, 0.45)}; }}
     #modName {{ font-size: 15px; font-weight: 700; }}
     #modAbout {{ font-size: 12px; color: {p['muted']}; }}
     #modVersion {{ font-size: 12px; color: {p['muted']}; }}
-    QPushButton#bigAccent {{ background: {_block(a)}; color: {on_a}; border: 2px solid {mc_edge}; border-radius: 1px;
-        font-size: 15px; font-weight: 800; }}
-    QPushButton#bigAccent:hover {{ background: {_block(hover_a)}; border-color: {mc_lit}; }}
-    QPushButton#bigAccent:pressed {{ background: {_block(a, True)}; }}
-    QPushButton#bigAccent:disabled {{ background: {_block(stone_off)}; color: {p['faint']}; }}
-    QPushButton#bigGhost {{ background: {_block(stone)}; color: {p['text']};
-        border: 2px solid {mc_edge}; border-radius: 1px; font-size: 14px; font-weight: 700; }}
-    QPushButton#bigGhost:hover {{ background: {_block(shade(stone, 114))}; border-color: {mc_lit}; }}
-    QPushButton#bigGhost:pressed {{ background: {_block(stone, True)}; }}
-    QPushButton#ghostSmall, QPushButton#chipBtn {{ background: {_block(stone)};
-        color: {p['text']}; border: 2px solid {mc_edge}; border-radius: 1px; padding: 5px 12px; font-size: 13px; font-weight: 700; }}
-    QPushButton#ghostSmall:hover, QPushButton#chipBtn:hover {{ background: {_block(shade(stone, 114))}; border-color: {mc_lit}; }}
-    QPushButton#ghostSmall:pressed, QPushButton#chipBtn:pressed {{ background: {_block(stone, True)}; }}
-    #railBrand {{ font-size: 15px; font-weight: 800; letter-spacing: 0.5px; }}
+    #railBrand {{ font-size: 15px; font-weight: 700; }}
     #railLine {{ background: {glass_edge}; border: none; }}
     #railAccount {{ background: transparent; border: none; }}
     #railName {{ font-size: 13px; font-weight: 700; }}
     #railSub {{ font-size: 11px; color: {p['muted']}; }}
-    #pill {{ background: {glass_pill}; border: 1px solid {glass_edge}; border-radius: 24px; }}
-    #pill:hover {{ border-color: {rgba(a, 0.55)}; background: {glass_hover}; }}
-    #chip {{ background: {glass_pill}; border: 1px solid {glass_edge}; border-radius: 14px; }}
-    #chipText {{ font-size: 13px; font-weight: 800; color: {p['text']}; }}
+    #chip {{ background: {glass_pill}; border: 1px solid {glass_edge}; border-radius: 6px; }}
+    #chipText {{ font-size: 12px; font-weight: 600; color: {p['text']}; }}
     #pillTitle {{ font-size: 15px; font-weight: 750; }}
     #pillSub {{ font-size: 12px; color: {p['muted']}; }}
-    #heroTitle {{ font-size: 64px; font-weight: 900; color: {p['text']}; }}
-    #pageTitle {{ font-size: 40px; font-weight: 900; color: {p['text']}; }}
+    #homeHero {{ background: transparent; border: 1px solid {p['border']}; border-radius: 9px; }}
+    #heroTitle {{ font-size: 36px; font-weight: 700; color: {p['text']}; }}
+    #pageTitle {{ font-size: 28px; font-weight: 700; color: {p['text']}; }}
     #heroText {{ font-size: 16px; color: {p['muted']}; }}
-    #heroStat {{ font-size: 26px; font-weight: 850; color: {p['text']}; }}
-    #sectionLabel {{ font-size: 12px; font-weight: 800; color: {p['faint']}; }}
-    #glassCard {{ background: {glass_pill}; border: 1px solid {glass_edge}; border-radius: 18px; }}
+    #heroStat {{ font-size: 22px; font-weight: 650; color: {p['text']}; }}
+    #sectionLabel {{ font-size: 13px; font-weight: 600; color: {p['muted']}; }}
+    #glassCard {{ background: {glass_pill}; border: 1px solid {glass_edge}; border-radius: 8px; }}
     #glassCard:hover {{ border-color: {rgba(a, 0.5)}; background: {glass_hover}; }}
-    #footer {{ background: transparent; border: none; }}
     """
 
 

@@ -42,7 +42,7 @@ public final class PeregrinePauseScreen extends Screen {
 
     @Override
     public boolean mouseDragged(MouseButtonEvent e, double dragX, double dragY) {
-        if (movingPanel) {
+        if (Screens.button(e.button()) == 0 && movingPanel) {
             net.peregrine.client.core.modules.Menu3D m = net.peregrine.client.core.modules.Menu3D.get();
             if (m != null) {
                 m.nudge((float) (dragX / Math.max(1, width) * 2), (float) (-dragY / Math.max(1, height) * 2));
@@ -51,17 +51,24 @@ public final class PeregrinePauseScreen extends Screen {
             return true;
         }
         double[] p = at(e);
-        return menu.mouseDragged((int) p[0], (int) p[1]) || super.mouseDragged(e, dragX, dragY);
+        return (Screens.button(e.button()) == 0 && menu.mouseDragged((int) p[0], (int) p[1])) || super.mouseDragged(e, dragX, dragY);
     }
 
     @Override
     public boolean mouseReleased(MouseButtonEvent e) {
-        if (movingPanel) {
+        if (Screens.button(e.button()) == 0 && movingPanel) {
             movingPanel = false;
+            setDragging(false);
             return true;
         }
         double[] p = at(e);
-        return menu.mouseReleased((int) p[0], (int) p[1]) || super.mouseReleased(e);
+        if (Screens.button(e.button()) == 0) {
+            setDragging(false);
+            if (menu.mouseReleased((int) p[0], (int) p[1])) {
+                return true;
+            }
+        }
+        return super.mouseReleased(e);
     }
 
     @Override
@@ -98,11 +105,16 @@ public final class PeregrinePauseScreen extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent e, boolean doubleClick) {
-        if (Panel3D.active() && !Panel3D.inWorld() && Panel3D.altDown(net.minecraft.client.Minecraft.getInstance())) {
+        if (Screens.button(e.button()) == 0 && Panel3D.active() && !Panel3D.inWorld() && Panel3D.altDown(net.minecraft.client.Minecraft.getInstance())) {
             movingPanel = true;
+            setDragging(true);
             return true;
         }
         double[] p = at(e);
-        return menu.mouseClicked((int) p[0], (int) p[1], Screens.button(e.button())) || super.mouseClicked(e, doubleClick);
+        if (menu.mouseClicked((int) p[0], (int) p[1], Screens.button(e.button()))) {
+            setDragging(true);
+            return true;
+        }
+        return super.mouseClicked(e, doubleClick);
     }
 }

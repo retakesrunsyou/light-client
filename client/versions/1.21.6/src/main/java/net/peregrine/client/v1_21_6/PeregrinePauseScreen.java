@@ -22,7 +22,8 @@ public final class PeregrinePauseScreen extends Screen {
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        menu.render(new GuiDraw(g), mouseX, mouseY);
+        double[] p = pointer(mouseX, mouseY);
+        menu.render(new GuiDraw(g), (int) p[0], (int) p[1]);
     }
 
     @Override
@@ -30,19 +31,36 @@ public final class PeregrinePauseScreen extends Screen {
         // the game stays sharp behind the menu (the menu dims it a little)
     }
 
+    private double[] pointer(double x, double y) {
+        return Panel3D.pointer(x, y, width, height);
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        return menu.mouseClicked((int) mouseX, (int) mouseY, button) || super.mouseClicked(mouseX, mouseY, button);
+        double[] p = pointer(mouseX, mouseY);
+        if (menu.mouseClicked((int) p[0], (int) p[1], button)) {
+            setDragging(true);
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        return menu.mouseDragged((int) mouseX, (int) mouseY) || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        double[] p = pointer(mouseX, mouseY);
+        return (button == 0 && menu.mouseDragged((int) p[0], (int) p[1])) || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         // the buttons act on release, so this has to reach the menu
-        return menu.mouseReleased((int) mouseX, (int) mouseY) || super.mouseReleased(mouseX, mouseY, button);
+        double[] p = pointer(mouseX, mouseY);
+        if (button == 0) {
+            setDragging(false);
+            if (menu.mouseReleased((int) p[0], (int) p[1])) {
+                return true;
+            }
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 }

@@ -14,7 +14,7 @@ from . import workers
 from .dialogs import LoginDialog, NewInstanceDialog
 from .browse import BrowsePage, MarketPage, ModBrowser, ModpacksPage
 from .friends_page import FriendsPage
-from .modern import FloatButton, Pill, Rail, StatusRing, big_title
+from .modern import FloatButton, Rail, big_title
 from .recent import RecentPage
 from .pages import AccountsPage, ContentPage, HomePage, SettingsPage, icon_button
 from .sheet import tell
@@ -73,55 +73,6 @@ class MainWindow(QMainWindow):
         main.setContentsMargins(0, 0, 0, 0)
         main.setSpacing(0)
         outer.addLayout(main, 1)
-
-        # ---- top bar: you (and friends online) on the left, your server in the middle
-        top = QWidget()
-        top.setFixedHeight(78)
-        t = QHBoxLayout(top)
-        t.setContentsMargins(40, 12, 32, 4)
-        t.setSpacing(16)
-        self.profile = Pill()
-        self.profile.clicked.connect(lambda: self.go("accounts"))
-        p = QHBoxLayout(self.profile)
-        p.setContentsMargins(10, 8, 22, 8)
-        p.setSpacing(12)
-        self.chip_face = QLabel()
-        self.chip_face.setFixedSize(46, 46)
-        p.addWidget(self.chip_face)
-        ptext = QVBoxLayout()
-        ptext.setSpacing(0)
-        self.chip_name = QLabel(objectName="pillTitle")
-        self.chip_kind = QLabel(objectName="pillSub")
-        ptext.addWidget(self.chip_name)
-        ptext.addWidget(self.chip_kind)
-        p.addLayout(ptext)
-        t.addWidget(self.profile)
-        self.profile.hide()   # you're at the bottom of the side panel now
-        t.addStretch(1)
-
-        self.server_pill = Pill()
-        self.server_pill.clicked.connect(lambda: self.go("recent"))
-        sp = QHBoxLayout(self.server_pill)
-        sp.setContentsMargins(14, 8, 14, 8)
-        sp.setSpacing(14)
-        self.server_icon = QLabel()
-        self.server_icon.setFixedSize(38, 38)
-        sp.addWidget(self.server_icon)
-        stext = QVBoxLayout()
-        stext.setSpacing(0)
-        self.server_name = QLabel(objectName="pillTitle")
-        self.server_sub = QLabel(objectName="pillSub")
-        stext.addWidget(self.server_name)
-        stext.addWidget(self.server_sub)
-        sp.addLayout(stext)
-        sp.addSpacing(6)
-        self.ring = StatusRing(34)
-        sp.addWidget(self.ring)
-        t.addWidget(self.server_pill)
-        t.addStretch(1)
-        self.version_pill = QLabel(f"v{VERSION}", objectName="faint")
-        t.addWidget(self.version_pill)
-        main.addWidget(top)
 
         # ---- update banner (hidden until a new version is found)
         self.banner = QFrame(objectName="banner")
@@ -196,7 +147,6 @@ class MainWindow(QMainWindow):
         self.recent.open_content.connect(self.open_content)
         self.recent.browse.connect(lambda: self.go("browse"))
         self.recent.new_instance.connect(self.new_instance)
-        self.recent.current_changed.connect(self.show_server)
         self.library.play.connect(self.play)
         self.library.add_mods.connect(self.browse_mods)
         self.library.open_content.connect(self.open_content)
@@ -232,6 +182,7 @@ class MainWindow(QMainWindow):
         self.console_btn.toggled.connect(lambda on: self.console.setVisible(on))
         f.addWidget(self.status, 1)
         f.addWidget(self.bar)
+        f.addWidget(QLabel(f"v{VERSION}", objectName="faint"))
         f.addWidget(self.console_btn)
         self.console = QPlainTextEdit(objectName="console", readOnly=True)
         self.console.setMaximumBlockCount(4000)
@@ -365,29 +316,6 @@ class MainWindow(QMainWindow):
         self.home.refresh()
         self.accounts.refresh()
         self.refresh_chip()
-        self.show_server(self.recent.entry, self.recent.status.get(self.recent.entry["address"], "checking")
-                         if self.recent.entry else None)
-
-    def show_server(self, entry, st):
-        """The top bar's server pill: the server on the Recent page and how it's doing."""
-        from .recent import server_icon
-        from .. import servers
-        if entry is None:
-            self.server_pill.hide()
-            return
-        self.server_pill.show()
-        self.server_name.setText(servers.display_name(entry))
-        icon_png = entry.get("icon") or (st.get("favicon") if isinstance(st, dict) else None)
-        self.server_icon.setPixmap(server_icon(icon_png, 38))
-        if st == "checking":
-            self.server_sub.setText(entry["address"])
-            self.ring.set_state("checking")
-        elif isinstance(st, dict):
-            self.server_sub.setText(f"{st['online']:,} playing  ·  {entry['address']}")
-            self.ring.set_state("online")
-        else:
-            self.server_sub.setText(f"Offline  ·  {entry['address']}")
-            self.ring.set_state("offline")
 
     def got_friend_counts(self, online, total):
         self.friends_online = None if online < 0 else online
@@ -414,23 +342,19 @@ class MainWindow(QMainWindow):
     def refresh_chip(self):
         a = auth.active_account()
         if a:
-            self.chip_name.setText(a["name"])
+            name = a["name"]
             if a.get("type") != "msa":
-                kind = "Offline test account"
+                kind = "Offline account"
             elif self.friends_online is None:
                 kind = "Microsoft account"
             else:
                 n = self.friends_online
                 kind = f"{n} friend{'' if n == 1 else 's'} online"
-            self.chip_kind.setText(kind)
-            self.chip_face.setPixmap(avatar_pixmap(self.skins.get(a["uuid"]), a["name"], 46))
+            face = avatar_pixmap(self.skins.get(a["uuid"]), name, 34)
         else:
-            self.chip_name.setText("Sign in")
-            self.chip_kind.setText("No account yet")
-            self.chip_face.setPixmap(avatar_pixmap(None, "?", 46))
-        # the same, at the bottom of the side panel
-        self.rail.account.set(self.chip_face.pixmap(), self.chip_name.text(), self.chip_kind.text(),
-                              bool(a and a.get("type") == "msa"))
+            name, kind = "Sign in", "Microsoft account"
+            face = avatar_pixmap(None, "?", 34)
+        self.rail.account.set(face, name, kind, bool(a and a.get("type") == "msa"))
 
     def add_microsoft(self):
         cfg = config.load()

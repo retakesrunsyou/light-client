@@ -4,7 +4,7 @@ and the optimization mods Peregrine keeps on it, each with a switch."""
 import re
 
 from PySide6.QtCore import QPointF, QRectF, Qt, Signal
-from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPainterPath, QPen, QPixmap
+from PySide6.QtGui import QColor, QFont, QPainter, QPainterPath, QPen, QPixmap
 from PySide6.QtWidgets import (
     QAbstractButton, QFrame, QHBoxLayout, QLabel, QMenu, QPushButton, QSizePolicy, QVBoxLayout, QWidget,
 )
@@ -34,31 +34,6 @@ def _stats(inst):
         return s if int(s.get("avg_fps", 0)) > 0 else None
     except (OSError, ValueError, TypeError):
         return None
-
-
-class _Underline(QWidget):
-    """The accent line under the page title, fading out to the right."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setFixedHeight(3)
-
-    def paintEvent(self, _):
-        p = QPainter(self)
-        p.setRenderHint(QPainter.Antialiasing)
-        g = QLinearGradient(0, 0, self.width(), 0)
-        c = QColor(Theme.accent)
-        g.setColorAt(0, c)
-        c2 = QColor(c)
-        c2.setAlpha(120)
-        g.setColorAt(0.75, c2)
-        c3 = QColor(c)
-        c3.setAlpha(0)
-        g.setColorAt(1, c3)
-        path = QPainterPath()
-        path.addRoundedRect(QRectF(self.rect()), 1.5, 1.5)
-        p.fillPath(path, g)
-        p.end()
 
 
 class Check(QAbstractButton):
@@ -174,17 +149,12 @@ class LibraryPage(QWidget):
         super().__init__(objectName="page")
         self.inst = None
         v = QVBoxLayout(self)
-        v.setContentsMargins(40, 4, 40, 14)
+        v.setContentsMargins(32, 24, 32, 24)
         v.setSpacing(0)
         head = QHBoxLayout()
         head.setSpacing(12)
-        tcol = QVBoxLayout()
-        tcol.setSpacing(8)
         self.title = QLabel(objectName="profileTitle")
-        tcol.addWidget(self.title)
-        self.underline = _Underline()
-        tcol.addWidget(self.underline)
-        head.addLayout(tcol)
+        head.addWidget(self.title)
         head.addStretch(1)
         self.switch = QPushButton("Change instance", objectName="ghostSmall")
         self.switch.setCursor(Qt.PointingHandCursor)
@@ -295,7 +265,6 @@ class LibraryPage(QWidget):
         self.body_w.show()
         self.play_btn.setEnabled(True)
         self.title.setText(inst.name)
-        self.underline.setFixedWidth(max(120, self.title.sizeHint().width()))
         data = inst.data
         loader = data.get("loader", "vanilla")
         loader_text = "Vanilla" if loader == "vanilla" else f"{loader.capitalize()} {data.get('loader_version') or ''}".strip()

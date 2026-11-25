@@ -4,8 +4,8 @@ button that takes you straight back in. Other recent servers sit underneath."""
 from pathlib import Path
 
 from PySide6.QtCore import QRectF, Qt, QTimer, Signal
-from PySide6.QtGui import QColor, QFont, QImage, QLinearGradient, QPainter, QPixmap
-from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
+from PySide6.QtGui import QColor, QFont, QImage, QLinearGradient, QPainter, QPainterPath, QPixmap
+from PySide6.QtWidgets import QFrame, QGridLayout, QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
 
 from .. import config, instances, paths, servers
 from . import workers
@@ -57,7 +57,7 @@ class ServerCard(QFrame):
         self.entry = entry
         self.setCursor(Qt.PointingHandCursor)
         self.setFixedHeight(68)
-        self.setMinimumWidth(200)
+        self.setMinimumWidth(170)
         self.setMaximumWidth(280)
         h = QHBoxLayout(self)
         h.setContentsMargins(12, 10, 14, 10)
@@ -104,7 +104,6 @@ class RecentPage(QWidget):
     open_content = Signal(object)     # instance
     browse = Signal()
     new_instance = Signal()
-    current_changed = Signal(object, object)  # entry or None, status or None (for the top bar)
 
     def __init__(self):
         super().__init__(objectName="page")
@@ -115,14 +114,25 @@ class RecentPage(QWidget):
         self._backdrop_src = None
         self.busy = set()
 
-        v = QVBoxLayout(self)
-        v.setContentsMargins(64, 24, 56, 28)
+        page = QVBoxLayout(self)
+        page.setContentsMargins(32, 24, 32, 24)
+        page.setSpacing(16)
+        heading = QHBoxLayout()
+        heading.addWidget(big_title("Home"), 1)
+        mods = PillButton("Mods & packs", "s_layers", "ghost")
+        mods.clicked.connect(self.browse.emit)
+        heading.addWidget(mods)
+        page.addLayout(heading)
+
+        self.hero = QFrame(objectName="homeHero")
+        v = QVBoxLayout(self.hero)
+        v.setContentsMargins(24, 22, 24, 24)
         v.setSpacing(0)
-        v.addStretch(3)
+        page.addWidget(self.hero)
 
         self.chip = Chip("Recent")
         v.addWidget(self.chip)
-        v.addSpacing(18)
+        v.addSpacing(10)
         self.title = big_title("", hero=True)
         self.title.setWordWrap(True)
         self.title.setMaximumWidth(900)
@@ -135,6 +145,7 @@ class RecentPage(QWidget):
         self.icon.setFixedSize(30, 30)
         meta.addWidget(self.icon)
         self.meta = QLabel("", objectName="muted")
+        self.meta.setWordWrap(True)
         meta.addWidget(self.meta)
         meta.addStretch()
         v.addLayout(meta)
@@ -148,7 +159,7 @@ class RecentPage(QWidget):
         v.addSpacing(20)
 
         stats = QHBoxLayout()
-        stats.setSpacing(28)
+        stats.setSpacing(24)
         players = QVBoxLayout()
         players.setSpacing(0)
         self.count = CountUp()
@@ -170,10 +181,10 @@ class RecentPage(QWidget):
         stats.addWidget(self.last_box)
         stats.addStretch()
         v.addLayout(stats)
-        v.addSpacing(26)
+        v.addSpacing(18)
 
         buttons = QHBoxLayout()
-        buttons.setSpacing(16)
+        buttons.setSpacing(8)
         self.play_btn = PillButton("Play", "s_play", "primary", big=True)
         self.play_btn.clicked.connect(self._play)
         buttons.addWidget(self.play_btn)
@@ -182,22 +193,13 @@ class RecentPage(QWidget):
         buttons.addWidget(self.second_btn)
         buttons.addStretch()
         v.addLayout(buttons)
-        v.addStretch(4)
 
-        self.more_label = section_label("Jump back in")
-        v.addWidget(self.more_label)
-        v.addSpacing(10)
-        self.more = QHBoxLayout()
-        self.more.setSpacing(12)
-        v.addLayout(self.more)
-        v.addSpacing(22)
-
-        bottom = QHBoxLayout()
-        mods = PillButton("Mods & packs", "s_layers", "ghost")
-        mods.clicked.connect(self.browse.emit)
-        bottom.addWidget(mods)
-        bottom.addStretch()
-        v.addLayout(bottom)
+        self.more_label = section_label("Recent servers")
+        page.addWidget(self.more_label)
+        self.more = QGridLayout()
+        self.more.setSpacing(8)
+        page.addLayout(self.more)
+        page.addStretch(1)
 
         self.timer = QTimer(self)
         self.timer.setInterval(PING_EVERY_MS)
@@ -237,8 +239,6 @@ class RecentPage(QWidget):
         if address in self.busy:
             return
         self.busy.add(address)
-        if self.entry and self.entry["address"] == address and address not in self.status:
-            self.current_changed.emit(self.entry, "checking")
 
         def done(st, a=address):
             self.busy.discard(a)
@@ -270,7 +270,8 @@ class RecentPage(QWidget):
         if entry is None:
             self._show_empty(insts)
         else:
-            self.chip.set_text("Featured server" if entry.get("featured") else "Recent")
+            self.chip.show()
+            self.chip.set_text("Featured server" if entry.get("featured") else "Recent server")
             self.title.setText(entry["name"] if entry.get("featured") else servers.display_name(entry))
             self.icon.setPixmap(server_icon(entry.get("icon"), 30))
             self.icon.show()
@@ -281,11 +282,11 @@ class RecentPage(QWidget):
             self.count.set_value(0)
             self.count.setText("–")
             self.last.setText(last_played(entry["last_played"]).replace("Played ", "").capitalize())
-            self.last_label.setText("last played here")
+            self.last_label.setText("Last played here")
             self.last_box.show()
-            self.play_btn.setText("PLAY")
+            self.play_btn.setText("Play")
             self.play_btn.icon_name = "s_play"
-            self.second_btn.setText("INSTANCE")
+            self.second_btn.setText("Instance")
             self.second_btn.show()
             self.play_btn.updateGeometry()
             self._show_status()
@@ -296,35 +297,31 @@ class RecentPage(QWidget):
                 fade_in(w, 280, 0, n * 45)
 
     def _show_empty(self, insts):
-        self.chip.set_text("Recent")
-        self.chip.set_dot(None)
+        self.chip.hide()
         self.icon.hide()
         self.players_box.hide()
         if insts:
             last = max(insts, key=lambda i: i.data.get("last_played") or 0)
-            self.title.setText("No servers yet")
-            self.meta.setText(f"{last.name}   ·   {last.subtitle()}")
-            self.text.setText("Join a server in Minecraft and it shows up here with its live player "
-                              "count, ready to jump back into with one click.")
+            self.title.setText(last.name)
+            self.meta.setText(last.subtitle())
+            self.text.clear()
             self.last.setText(last_played(last.data.get("last_played")).replace("Played ", "").capitalize())
-            self.last_label.setText(last.name)
+            self.last_label.setText("Last played")
             self.last_box.show()
-            self.play_btn.setText("PLAY")
+            self.play_btn.setText("Play")
             self.play_btn.icon_name = "s_play"
-            self.second_btn.setText("INSTANCE")
+            self.second_btn.setText("Instance")
             self.second_btn.show()
             self._set_backdrop(last)
         else:
-            self.title.setText("Welcome")
+            self.title.setText("Create your first instance")
             self.meta.setText("")
-            self.text.setText("Make an instance: pick a Minecraft version and Light Client sets up Fabric, "
-                              "performance mods and the in-game menu for you.")
+            self.text.setText("Choose a Minecraft version to install Fabric and the in-game client.")
             self.last_box.hide()
-            self.play_btn.setText("NEW INSTANCE")
+            self.play_btn.setText("New instance")
             self.play_btn.icon_name = "s_plus"
             self.second_btn.hide()
             self._set_backdrop(None)
-        self.current_changed.emit(None, None)
 
     def _show_status(self):
         e = self.entry
@@ -332,7 +329,6 @@ class RecentPage(QWidget):
             return
         if e["address"] not in self.status:
             self.chip.set_dot(Theme.p["faint"])
-            self.current_changed.emit(e, "checking")
             return
         st = self.status[e["address"]]
         if st is None:
@@ -354,19 +350,17 @@ class RecentPage(QWidget):
             self.meta.setText("   ·   ".join(bits))
             if st.get("favicon") and not e.get("icon"):
                 self.icon.setPixmap(server_icon(st["favicon"], 30))
-        self.current_changed.emit(e, st)
 
     def _fill_more(self):
         from .pages import clear
         clear(self.more)
         others = [e for e in self.entries if e is not self.entry][:4]
         self.more_label.setVisible(bool(others))
-        for e in others:
+        for i, e in enumerate(others):
             card = ServerCard(e)
             card.clicked.connect(lambda entry: self.show_entry(entry))
             card.set_status(self.status.get(e["address"])) if e["address"] in self.status else None
-            self.more.addWidget(card)
-        self.more.addStretch()
+            self.more.addWidget(card, i // 2, i % 2)
 
     def _set_backdrop(self, inst, picture=None):
         shot = picture or (newest_screenshot(inst) if inst is not None else None)
@@ -405,31 +399,27 @@ class RecentPage(QWidget):
     # ------------------------------------------------------- painting
 
     def paintEvent(self, e):
-        if self.backdrop is None:
-            return super().paintEvent(e)
         p = QPainter(self)
-        p.setRenderHint(QPainter.SmoothPixmapTransform)
-        w, h = self.width(), self.height()
-        img = self.backdrop
-        scale = max(w / img.width(), h / img.height())
-        dw, dh = img.width() * scale, img.height() * scale
-        p.setOpacity(0.55 if Theme.name != "light" else 0.35)
-        p.drawImage(QRectF((w - dw) / 2, (h - dh) / 2, dw, dh), img)
-        p.setOpacity(1.0)
-        bg = QColor(Theme.p["bg"])
-        g = QLinearGradient(0, 0, w, 0)
-        for stop, alpha in ((0.0, 0.92), (0.45, 0.70), (1.0, 0.25)):
-            c = QColor(bg)
-            c.setAlphaF(alpha)
-            g.setColorAt(stop, c)
-        p.fillRect(self.rect(), g)
-        v = QLinearGradient(0, h * 0.55, 0, h)
-        c0, c1 = QColor(bg), QColor(bg)
-        c0.setAlphaF(0.0)
-        c1.setAlphaF(0.85)
-        v.setColorAt(0, c0)
-        v.setColorAt(1, c1)
-        p.fillRect(self.rect(), v)
+        p.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
+        bounds = QRectF(self.hero.geometry())
+        outline = QPainterPath()
+        outline.addRoundedRect(bounds, 9, 9)
+        p.setClipPath(outline)
+        surface = QColor(Theme.p["surface"])
+        p.fillRect(bounds, surface)
+        if self.backdrop is not None and not bounds.isEmpty():
+            image = self.backdrop
+            scale = max(bounds.width() / image.width(), bounds.height() / image.height())
+            width, height = image.width() * scale, image.height() * scale
+            p.setOpacity(0.52 if Theme.name != "light" else 0.3)
+            p.drawImage(QRectF(bounds.right() - width, bounds.center().y() - height / 2, width, height), image)
+            p.setOpacity(1)
+            shade = QLinearGradient(bounds.topLeft(), bounds.topRight())
+            for stop, alpha in ((0.0, 1.0), (0.43, 0.92), (1.0, 0.12)):
+                color = QColor(surface)
+                color.setAlphaF(alpha)
+                shade.setColorAt(stop, color)
+            p.fillRect(bounds, shade)
         p.end()
 
     def showEvent(self, e):

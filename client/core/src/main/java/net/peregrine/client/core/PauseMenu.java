@@ -28,6 +28,8 @@ public final class PauseMenu {
     private int coverVer = -1;
     private final java.util.Map<String, String> serverTex = new java.util.HashMap<String, String>();
     private long shownAt = -1, lastFrame;
+    private int musicOffset;
+    private final int[] buttonOffsets = new int[IDS.length];
 
     PauseMenu(Peregrine pc) {
         this.pc = pc;
@@ -104,6 +106,8 @@ public final class PauseMenu {
     }
 
     public void shown() {
+        grabbed = null;
+        dragging = false;
         shownAt = System.currentTimeMillis();
         lastFrame = 0;
     }
@@ -266,15 +270,17 @@ public final class PauseMenu {
 
         int i = 0;
         for (TitleMenu.Button b : buttons()) {
-            float ti = shownAt < 0 ? 1f : FadeDraw.progress(shownAt + 60 + i++ * 40L, 260);
+            float ti = FadeDraw.progress(shownAt + 60 + i * 40L, 260);
             Draw bd = ti < 1f ? new FadeDraw(d, Math.max(0.02f, Math.min(1f, ti * 1.4f))) : d;
-            int by = b.y + rise + Math.round((1f - Glass.backOut(ti)) * 8);
+            int offset = rise + Math.round((1f - Glass.backOut(ti)) * 8);
+            buttonOffsets[i++] = offset;
+            int by = b.y + offset;
             int bx0 = b.x;
             if (dragging && b == grabbed) {   // the button you're moving follows the mouse
                 b.x += dragX - grabX;
                 by += dragY - grabY;
             }
-            boolean hover = b.contains(mx, my - rise) || (dragging && b == grabbed);
+            boolean hover = b.contains(mx, my - offset) || (dragging && b == grabbed);
             b.glow = Glass.ease(b.glow, hover, dt);
             if (b == resume) {
                 Glass.pill(bd, b.x, by, b.w, b.h, true, b.glow, a);
@@ -290,27 +296,27 @@ public final class PauseMenu {
                 MenuIcons.draw(bd, "leave", b.x + b.w / 2 - bd.width(b.label) / 2 - 8, by + 5, Theme.mix(0xFFE8B4B4, 0xFFFFFFFF, b.glow));
                 bd.text(b.label, b.x + (b.w - bd.width(b.label)) / 2 + 6, by + 5, Theme.mix(0xFFE8B4B4, 0xFFFFFFFF, b.glow), false);
             } else {
-                int lift = Math.round(b.glow * 2);
                 if (b.glow > 0.01f) {
-                    bd.glow(b.x + 4, by - lift + 5, b.w - 8, b.h - 6, Theme.withAlpha(a, Math.round(0x38 * b.glow)));
+                    bd.glow(b.x + 4, by + 5, b.w - 8, b.h - 6, Theme.withAlpha(a, Math.round(0x38 * b.glow)));
                 }
-                Glass.pane(bd, b.x, by - lift, b.w, b.h, 6, Theme.mix(Glass.PANE, Glass.PANE_HOVER, b.glow));
+                Glass.pane(bd, b.x, by, b.w, b.h, 6, Theme.mix(Glass.PANE, Glass.PANE_HOVER, b.glow));
                 if (b.glow > 0.01f) {
-                    bd.roundOutline(b.x, by - lift, b.w, b.h, 6, Theme.withAlpha(a, Math.round(0xB0 * b.glow)));
+                    bd.roundOutline(b.x, by, b.w, b.h, 6, Theme.withAlpha(a, Math.round(0xB0 * b.glow)));
                 }
-                bd.roundRect(b.x + 7, by - lift + (b.h - 22) / 2, 22, 22, 11, Theme.mix(0x24FFFFFF, Theme.withAlpha(a, 0x70), b.glow));
-                MenuIcons.draw(bd, b.icon, b.x + 13, by - lift + (b.h - 11) / 2, 11, Theme.mix(0xFFD3D6DE, 0xFFFFFFFF, b.glow));
+                bd.roundRect(b.x + 7, by + (b.h - 22) / 2, 22, 22, 11, Theme.mix(0x24FFFFFF, Theme.withAlpha(a, 0x70), b.glow));
+                MenuIcons.draw(bd, b.icon, b.x + 13, by + (b.h - 11) / 2, 11, Theme.mix(0xFFD3D6DE, 0xFFFFFFFF, b.glow));
                 String label = b == more ? "More" : b.label;
-                bd.text(bd.trim(label, b.w - 40), b.x + 35, by - lift + b.h / 2 - 7, Theme.TEXT, false);
+                bd.text(bd.trim(label, b.w - 40), b.x + 35, by + b.h / 2 - 7, Theme.TEXT, false);
                 String sub = b == modules ? "Right Shift" : b == options ? "Video, sound..." : b == locker ? "Capes, skins" : "Stats, LAN...";
-                bd.text(bd.trim(sub, b.w - 40), b.x + 35, by - lift + b.h / 2 + 3, Theme.FAINT, false);
+                bd.text(bd.trim(sub, b.w - 40), b.x + 35, by + b.h / 2 + 3, Theme.FAINT, false);
             }
             b.x = bx0;
         }
         if (np[2] > 0) {
             float ti = shownAt < 0 ? 1f : FadeDraw.progress(shownAt + 300, 300);
             Draw nd = ti < 1f ? new FadeDraw(d, Math.max(0.02f, ti)) : d;
-            drawMusic(nd, p, mx, my - rise, rise + Math.round((1f - Glass.backOut(ti)) * 8), dt, a);
+            musicOffset = rise + Math.round((1f - Glass.backOut(ti)) * 8);
+            drawMusic(nd, p, mx, my - musicOffset, musicOffset, dt, a);
         }
         if (holiday != Holidays.NONE) {
             Holidays.greetingChip(d, holiday, sw / 2, Math.max(2, y - 20));
@@ -370,7 +376,7 @@ public final class PauseMenu {
         // back, play / pause, skip
         for (int i = 0; i < 3; i++) {
             int[] c = ctl[i];
-            int ccy = c[1] + lift - (np[1] + lift - y);
+            int ccy = c[1] + lift;
             boolean hover = mx >= c[0] && mx < c[0] + c[2] && my >= c[1] && my < c[1] + c[3];
             ctlGlow[i] = Glass.ease(ctlGlow[i], hover, dt);
             float g = ctlGlow[i];
@@ -392,31 +398,31 @@ public final class PauseMenu {
     }
 
     public boolean mouseClicked(int mx, int my, int button) {
-        if (button != 0) {
+        if (button != 0 || lastFrame == 0) {
             return false;
         }
-        layout(pc.platform());
+        grabbed = null;
+        dragging = false;
         if (np[2] > 0) {
+            int musicY = my - musicOffset;
             for (int i = 0; i < 3; i++) {
                 int[] c = ctl[i];
-                if (mx >= c[0] && mx < c[0] + c[2] && my >= c[1] && my < c[1] + c[3]) {
+                if (mx >= c[0] && mx < c[0] + c[2] && musicY >= c[1] && musicY < c[1] + c[3]) {
                     NowPlaying.control(CTL[i]);
                     return true;
                 }
             }
-            if (mx >= np[0] && mx < np[0] + np[2] && my >= np[1] && my < np[1] + np[3]) {
+            if (mx >= np[0] && mx < np[0] + np[2] && musicY >= np[1] && musicY < np[1] + np[3]) {
                 return true;   // a click on the card itself does nothing
             }
         }
-        for (TitleMenu.Button b : buttons()) {
-            if (b.contains(mx, my)) {
-                grabbed = b;
-                grabX = dragX = mx;
-                grabY = dragY = my;
-                grabAt = System.currentTimeMillis();
-                dragging = false;
-                return true;
-            }
+        TitleMenu.Button b = buttonAt(mx, my);
+        if (b != null) {
+            grabbed = b;
+            grabX = dragX = mx;
+            grabY = dragY = my;
+            grabAt = System.currentTimeMillis();
+            return true;
         }
         return false;
     }
@@ -443,21 +449,28 @@ public final class PauseMenu {
         if (b == null) {
             return false;
         }
+        TitleMenu.Button target = buttonAt(mx, my);
         if (dragging) {
             dragging = false;
-            layout(pc.platform());
-            if (b.contains(mx, my)) {
-                return press(b);   // dropped back where it started: that's a click
-            }
-            for (TitleMenu.Button o : buttons()) {
-                if (o != b && o.contains(mx, my)) {
-                    swap(b, o);
-                    break;
-                }
+            if (target != null && target != b) {
+                swap(b, target);
             }
             return true;
         }
-        return press(b);
+        if (target == b || Math.abs(mx - grabX) + Math.abs(my - grabY) <= 12) {
+            return press(b);
+        }
+        return true;
+    }
+
+    private TitleMenu.Button buttonAt(int x, int y) {
+        TitleMenu.Button[] buttons = buttons();
+        for (int i = buttons.length - 1; i >= 0; i--) {
+            if (buttons[i].contains(x, y - buttonOffsets[i])) {
+                return buttons[i];
+            }
+        }
+        return null;
     }
 
     private boolean press(TitleMenu.Button b) {

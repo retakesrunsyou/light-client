@@ -1,11 +1,10 @@
-"""The 1.1 look: pill buttons, the icon rail, chips, glass pills and the live
-status ring. Everything animates a little, and nothing animates while hidden."""
+"""Shared launcher controls and navigation."""
 
 from PySide6.QtCore import (
     Property, QEasingCurve, QPointF, QPropertyAnimation, QRect, QRectF, QSize, Qt, QTimer,
     QVariantAnimation, Signal,
 )
-from PySide6.QtGui import QColor, QFont, QIcon, QImage, QPainter, QPainterPath, QPen, QPixmap
+from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPainterPath, QPen, QPixmap
 from PySide6.QtWidgets import (QBoxLayout,
     QAbstractButton, QFrame, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QToolButton, QVBoxLayout, QWidget,
 )
@@ -16,11 +15,6 @@ from .theme import Theme, icon_pixmap, on_color
 
 def animations_on() -> bool:
     return bool(config.load().get("animations", True))
-
-
-def _mix(a: QColor, b: QColor, t: float) -> QColor:
-    return QColor(round(a.red() + (b.red() - a.red()) * t), round(a.green() + (b.green() - a.green()) * t),
-                  round(a.blue() + (b.blue() - a.blue()) * t), round(a.alpha() + (b.alpha() - a.alpha()) * t))
 
 
 def dark() -> bool:
@@ -39,197 +33,49 @@ def heavy_font(px: int, weight=QFont.Black, spacing: float = 0) -> QFont:
 # ------------------------------------------------------------------ buttons
 
 class PillButton(QPushButton):
-    """A Minecraft-style block button: 'primary' (accent), 'ghost' (stone grey) or 'danger',
-    with an optional icon on the left. Lights up on hover, pushes in on press."""
+    """An action button with an optional leading icon."""
 
     def __init__(self, text: str, icon_name: str = None, kind: str = "primary", big: bool = False, parent=None):
-        # the big hero buttons shout (PLAY); everyday buttons read as normal words
-        super().__init__(text.upper() if big else text, parent)
+        super().__init__(text, parent)
         self.kind, self.icon_name, self.big = kind, icon_name, big
-        self._hover = 0.0
         self.setCursor(Qt.PointingHandCursor)
-        self.setFont(heavy_font(17 if big else 14, QFont.Black if big else QFont.Bold, 0.4 if big else 0.0))
-        self._anim = QVariantAnimation(self)
-        self._anim.setDuration(150)
-        self._anim.setEasingCurve(QEasingCurve.OutCubic)
-        self._anim.valueChanged.connect(self._set_hover)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        # press: the pill dips a little and a ripple spreads from where it was clicked
-        self._press = 0.0
-        self._ripple = None  # (x, y, t 0..1)
-        self._press_anim = QVariantAnimation(self)
-        self._press_anim.valueChanged.connect(self._set_press)
-        self._ripple_anim = QVariantAnimation(self, duration=520, startValue=0.0, endValue=1.0,
-                                              easingCurve=QEasingCurve.OutCubic)
-        self._ripple_anim.valueChanged.connect(self._set_ripple)
-
-    def _set_press(self, v):
-        self._press = float(v)
-        self.update()
-
-    def _set_ripple(self, v):
-        if self._ripple is not None:
-            self._ripple = (self._ripple[0], self._ripple[1], float(v))
-            self.update()
-
-    def _press_to(self, to, ms):
-        if not animations_on():
-            self._set_press(to)
-            return
-        self._press_anim.stop()
-        self._press_anim.setDuration(ms)
-        self._press_anim.setEasingCurve(QEasingCurve.OutCubic if to else QEasingCurve.OutBack)
-        self._press_anim.setStartValue(self._press)
-        self._press_anim.setEndValue(to)
-        self._press_anim.start()
-
-    def mousePressEvent(self, e):
-        if e.button() == Qt.LeftButton and self.isEnabled():
-            self._press_to(1.0, 70)
-            if animations_on():
-                self._ripple = (0.0, 0.0, 0.0)   # the click flash
-                self._ripple_anim.stop()
-                self._ripple_anim.setDuration(240)
-                self._ripple_anim.start()
-        super().mousePressEvent(e)
-
-    def mouseReleaseEvent(self, e):
-        self._press_to(0.0, 260)
-        super().mouseReleaseEvent(e)
-
-    def _set_hover(self, v):
-        self._hover = float(v)
-        self.update()
-
-    def _fade(self, to: float):
-        if not animations_on():
-            self._set_hover(to)
-            return
-        self._anim.stop()
-        self._anim.setStartValue(self._hover)
-        self._anim.setEndValue(to)
-        self._anim.start()
-
-    def enterEvent(self, e):
-        self._fade(1.0)
-        super().enterEvent(e)
-
-    def leaveEvent(self, e):
-        self._fade(0.0)
-        super().leaveEvent(e)
 
     def sizeHint(self):
-        h = 64 if self.big else 46
-        badge = (h - 22) if self.icon_name else 0
-        w = self.fontMetrics().horizontalAdvance(self.text()) + (h * 0.75) + badge + (14 if badge else 0)
-        return QSize(int(w), h)
+        icon_space = 27 if self.icon_name else 0
+        return QSize(self.fontMetrics().horizontalAdvance(self.text()) + 32 + icon_space, 44 if self.big else 36)
 
     def minimumSizeHint(self):
         return self.sizeHint()
 
-    _GRAIN = {}
-
-    @classmethod
-    def _grain(cls, w: int, h: int) -> QPixmap:
-        """Stone grain: 2 px cells, each a touch lighter or darker, like a Minecraft button's face."""
-        key = (w, h)
-        pm = cls._GRAIN.get(key)
-        if pm is None:
-            import random
-            rng = random.Random(w * 7919 + h)
-            img = QImage(max(1, w), max(1, h), QImage.Format_ARGB32_Premultiplied)
-            img.fill(Qt.transparent)
-            gp = QPainter(img)
-            for y in range(0, h, 2):
-                for x in range(0, w, 2):
-                    v = rng.random()
-                    if v < 0.28:
-                        gp.fillRect(x, y, 2, 2, QColor(0, 0, 0, 16 + int(v * 30)))
-                    elif v > 0.74:
-                        gp.fillRect(x, y, 2, 2, QColor(255, 255, 255, 10 + int((v - 0.74) * 40)))
-            gp.end()
-            pm = QPixmap.fromImage(img)
-            if len(cls._GRAIN) > 64:
-                cls._GRAIN.clear()
-            cls._GRAIN[key] = pm
-        return pm
-
     def paintEvent(self, _):
-        """Drawn like a Minecraft button: a square stone block with a dark outline, a light top
-        edge and a dark bottom edge. Hovering lifts it a little and lights the outline; pressing
-        pushes it down (and it springs back up), with a quick flash."""
         p = QPainter(self)
-        enabled = self.isEnabled()
-        press = max(self._press, 1.0 if self.isDown() and not animations_on() else 0.0)
-        hover = (self._hover if enabled else 0.0) * (1 - press)
-        o = 2                                   # outline thickness
-        bev_top = 3 if self.big else 2
-        bev_bot = 4 if self.big else 3
-        r = self.rect().adjusted(0, 0, -1, -1)
-        # the block stands 2 px tall: up to 4 px when hovered, flat when pressed
-        top = round(2 - 2 * hover + 2 * press)
-        depth = max(1, round(bev_bot + 1 * hover - (bev_bot - 1) * press))
-        block = r.adjusted(0, top, 0, 0)
-        accent = QColor(Theme.p["danger"]) if self.kind == "danger" else QColor(Theme.accent)
-        if self.kind in ("primary", "danger"):
-            base = QColor(accent)
-            text_color = QColor(on_color(accent.name()))
-        else:
-            base = QColor(Theme.p["raised"]).lighter(128) if dark() else QColor(214, 216, 222)
-            text_color = QColor(Theme.p["text"])
-        if not enabled:
-            g = int(base.red() * 0.3 + base.green() * 0.59 + base.blue() * 0.11)
-            base = QColor(g, g, g).darker(150 if dark() else 110)
-            text_color = QColor(Theme.p["faint"])
-        base = _mix(base, base.lighter(114), hover)
-        hi, lo = base.lighter(140), base.darker(170)
-        if press > 0.5:
-            hi = base.darker(118)
-        # outline: near-black, lit up on hover
-        edge = QColor(0, 0, 0, 235)
-        if hover > 0:
-            lit = QColor(255, 255, 255) if dark() else QColor(accent).darker(130)
-            edge = _mix(edge, lit, hover)
-        p.fillRect(block, edge)
-        inner = block.adjusted(o, o, -o + 1, -o + 1)
-        p.fillRect(inner, base)
-        if inner.width() > 4 and inner.height() > 4:
-            p.setOpacity(0.55 if self.kind in ("primary", "danger") else 1.0)
-            p.drawPixmap(inner.topLeft(), self._grain(inner.width(), inner.height()))
-            p.setOpacity(1.0)
-        p.fillRect(inner.x(), inner.y(), inner.width(), bev_top, hi)
-        p.fillRect(inner.x(), inner.y(), 2, inner.height() - depth, hi)
-        p.fillRect(inner.x(), inner.bottom() - depth + 1, inner.width(), depth, lo)
-        p.fillRect(inner.right() - 1, inner.y() + bev_top, 2, inner.height() - depth - bev_top, base.darker(118))
-        # a quick flash when clicked
-        if self._ripple is not None and self._ripple[2] < 1.0:
-            p.fillRect(inner, QColor(255, 255, 255, int(70 * (1 - self._ripple[2]))))
-        face = QRectF(inner.adjusted(0, bev_top, 0, -depth))
         p.setRenderHint(QPainter.Antialiasing)
-        p.setRenderHint(QPainter.TextAntialiasing)
-        x = face.left() + face.height() * 0.42 + 4
-        # Minecraft's hard text shadow: dark under light text, a soft light edge under dark text
-        if text_color.lightness() > 140:
-            shadow = QColor(0, 0, 0, 120 if enabled else 40)
+        palette = Theme.p
+        fill, edge, text = palette["raised"], palette["border"], palette["text"]
+        if self.isEnabled():
+            if self.kind in ("primary", "danger"):
+                fill = palette["danger"] if self.kind == "danger" else Theme.accent
+                edge, text = fill, on_color(fill)
+            color = QColor(fill)
+            if self.isDown():
+                color = color.darker(116)
+            elif self.underMouse():
+                color = color.lighter(112) if dark() else color.darker(105)
+            fill = color.name()
         else:
-            shadow = QColor(255, 255, 255, 150 if enabled else 60)
+            fill, text = palette["surface"], palette["muted"]
+        p.setBrush(QColor(fill))
+        p.setPen(QPen(QColor(palette["text"] if self.hasFocus() else edge), 1))
+        p.drawRoundedRect(QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5), 6, 6)
+        x = 16
         if self.icon_name:
-            size = int(min(face.height() - 8, 26 if self.big else 20))
-            pm = icon_pixmap(self.icon_name, text_color.name(), size)
-            sh = icon_pixmap(self.icon_name, shadow.name(), size)
-            y = face.top() + (face.height() - size) / 2
-            p.setOpacity(shadow.alphaF())
-            p.drawPixmap(QPointF(x + 1.5, y + 1.5), sh)
-            p.setOpacity(1.0)
-            p.drawPixmap(QPointF(x, y), pm)
-            x += size + 10
+            size = 17
+            p.drawPixmap(x, (self.height() - size) // 2, icon_pixmap(self.icon_name, text, size))
+            x += 27
         p.setFont(self.font())
-        tr = QRectF(x, face.top(), face.right() - x - face.height() * 0.3, face.height())
-        p.setPen(shadow)
-        off = 1.5 if shadow.lightness() < 128 else 1.0
-        p.drawText(tr.translated(off, off), Qt.AlignVCenter | Qt.AlignLeft, self.text())
-        p.setPen(text_color)
-        p.drawText(tr, Qt.AlignVCenter | Qt.AlignLeft, self.text())
+        p.setPen(QColor(text))
+        p.drawText(QRectF(x, 0, self.width() - x - 12, self.height()), Qt.AlignVCenter | Qt.AlignLeft, self.text())
         p.end()
 
 
@@ -244,13 +90,15 @@ class RailButton(QAbstractButton):
         self.sub = ""
         self.setCheckable(True)
         self.setToolTip(label)
+        self.setAccessibleName(label)
+        self.setFocusPolicy(Qt.StrongFocus)
         self.setCursor(Qt.PointingHandCursor)
-        self.setFixedHeight(40)
+        self.setFixedHeight(35)
         self._hover = False
 
     def set_sub(self, text: str):
         self.sub = text or ""
-        self.setFixedHeight(48 if self.sub else 40)
+        self.setFixedHeight(45 if self.sub else 35)
         self.update()
 
     def enterEvent(self, e):
@@ -266,12 +114,12 @@ class RailButton(QAbstractButton):
     def paintEvent(self, _):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
-        if self._hover and not self.isChecked():
+        if (self._hover or self.hasFocus()) and not self.isChecked():
             path = QPainterPath()
-            path.addRoundedRect(QRectF(self.rect()).adjusted(2, 1, -2, -1), 10, 10)
+            path.addRoundedRect(QRectF(self.rect()).adjusted(2, 1, -2, -1), 6, 6)
             p.fillPath(path, QColor(255, 255, 255, 12) if dark() else QColor(0, 0, 0, 10))
         on = self.isChecked()
-        color = Theme.p["text"] if on or self._hover else (Theme.p["muted"] if dark() else Theme.p["faint"])
+        color = Theme.p["text"] if on or self._hover else Theme.p["muted"]
         size = 20
         pm = icon_pixmap(self.icon_name, Theme.accent if on else color, size)
         p.drawPixmap(16, (self.height() - size) // 2, pm)
@@ -310,12 +158,8 @@ class _Highlight(QWidget):
         c = QColor(Theme.accent)
         c.setAlpha(34)
         path = QPainterPath()
-        path.addRoundedRect(r, 10, 10)
+        path.addRoundedRect(r, 6, 6)
         p.fillPath(path, c)
-        edge = QColor(Theme.accent)
-        edge.setAlpha(70)
-        p.setPen(QPen(edge, 1))
-        p.drawPath(path)
         bar = QPainterPath()
         bar.addRoundedRect(QRectF(r.left(), r.top() + 8, 3.5, r.height() - 16), 1.75, 1.75)
         p.fillPath(bar, QColor(Theme.accent))
@@ -387,7 +231,7 @@ class Rail(QFrame):
     """The side panel: the falcon and name on top, the pages with their names, and you at the
     bottom. Collapses to nothing with a slide."""
     picked = Signal(str)
-    WIDTH = 224
+    WIDTH = 196
 
     def __init__(self, logo: QLabel, items: list, parent=None):
         """items: [(key, icon_name, name)]; None makes a divider."""
@@ -400,7 +244,7 @@ class Rail(QFrame):
         brand.setContentsMargins(8, 0, 0, 0)
         brand.setSpacing(10)
         brand.addWidget(logo)
-        self.brand = QLabel("LIGHT CLIENT", objectName="railBrand")
+        self.brand = QLabel("Light Client", objectName="railBrand")
         brand.addWidget(self.brand)
         brand.addStretch(1)
         self.collapse = QToolButton(objectName="iconBtn")
@@ -482,7 +326,7 @@ class Rail(QFrame):
             return
         self._anim = QPropertyAnimation(self.highlight, b"geometry", self)
         self._anim.setDuration(240)
-        self._anim.setEasingCurve(QEasingCurve.OutBack)
+        self._anim.setEasingCurve(QEasingCurve.OutCubic)
         self._anim.setStartValue(self.highlight.geometry())
         self._anim.setEndValue(target)
         self._anim.start()
@@ -548,129 +392,40 @@ class FloatButton(QAbstractButton):
 
 # -------------------------------------------------------------- pills etc.
 
-class Pill(QFrame):
-    """A clickable glass pill (the top bar's profile and server pills)."""
-    clicked = Signal()
-
-    def __init__(self, parent=None):
-        super().__init__(parent, objectName="pill")
-        self.setCursor(Qt.PointingHandCursor)
-        self.setMinimumHeight(64)
-
-    def mouseReleaseEvent(self, e):
-        if e.button() == Qt.LeftButton and self.rect().contains(e.position().toPoint()):
-            self.clicked.emit()
-        super().mouseReleaseEvent(e)
-
-
 class Chip(QFrame):
-    """'● HOME': a small label with a status dot, above a page's big title."""
+    """A compact label with a status indicator."""
 
     def __init__(self, text: str, dot: str = None, parent=None):
         super().__init__(parent, objectName="chip")
         h = QHBoxLayout(self)
-        h.setContentsMargins(14, 7, 16, 7)
-        h.setSpacing(10)
+        h.setContentsMargins(10, 4, 10, 4)
+        h.setSpacing(7)
         self.dot = QLabel()
-        self.dot.setFixedSize(10, 10)
+        self.dot.setFixedSize(7, 7)
         h.addWidget(self.dot)
-        self.label = QLabel(text.upper(), objectName="chipText")
-        self.label.setFont(heavy_font(13, QFont.ExtraBold, 1.0))
+        self.label = QLabel(text, objectName="chipText")
         h.addWidget(self.label)
         self.set_dot(dot)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
     def set_dot(self, color: str = None):
         color = color or Theme.p["faint"]
-        self.dot.setStyleSheet(f"background: {color}; border-radius: 5px;")
+        self.dot.setStyleSheet(f"background: {color}; border-radius: 3px;")
 
     def set_text(self, text: str):
-        self.label.setText(text.upper())
+        self.label.setText(text)
 
 
 def big_title(text: str, hero: bool = False):
-    """A page's title: bold, with the accent line under it (the hero on Home is bigger, no line)."""
-    if hero:
-        t = QLabel(text, objectName="heroTitle")
-        t.setFont(heavy_font(50, QFont.ExtraBold, -0.8))
-        return t
-    from .profile_page import _Underline
-    box = QWidget()
-    v = QVBoxLayout(box)
-    v.setContentsMargins(0, 0, 0, 0)
-    v.setSpacing(8)
-    t = QLabel(text, objectName="pageTitle")
-    t.setFont(heavy_font(30, QFont.ExtraBold, -0.3))
-    v.addWidget(t, 0, Qt.AlignLeft)
-    line = _Underline()
-    line.setFixedWidth(max(120, t.sizeHint().width() + 40))
-    v.addWidget(line, 0, Qt.AlignLeft)
-    box.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Fixed)
-    box.label = t
-    return box
+    return QLabel(text, objectName="heroTitle" if hero else "pageTitle")
 
 
 def section_label(text: str) -> QLabel:
-    lab = QLabel(text.upper(), objectName="sectionLabel")
-    lab.setFont(heavy_font(12, QFont.ExtraBold, 1.0))
-    return lab
+    return QLabel(text, objectName="sectionLabel")
 
 
 ONLINE = "#3ddc84"
 OFFLINE = "#e5676b"
-
-
-class StatusRing(QWidget):
-    """The ring on the server pill: spins while checking, then green (up) or red (down)."""
-
-    def __init__(self, size: int = 34, parent=None):
-        super().__init__(parent)
-        self.setFixedSize(size, size)
-        self.state = "idle"
-        self.angle = 0
-        self.timer = QTimer(self)
-        self.timer.setInterval(16)
-        self.timer.timeout.connect(self._spin)
-
-    def set_state(self, state: str):
-        self.state = state
-        if state == "checking" and animations_on():
-            self.timer.start()
-        else:
-            self.timer.stop()
-        self.update()
-
-    def _spin(self):
-        if not self.isVisible():
-            self.timer.stop()
-            return
-        self.angle = (self.angle + 6) % 360
-        self.update()
-
-    def showEvent(self, e):
-        if self.state == "checking" and animations_on():
-            self.timer.start()
-        super().showEvent(e)
-
-    def paintEvent(self, _):
-        p = QPainter(self)
-        p.setRenderHint(QPainter.Antialiasing)
-        r = QRectF(self.rect()).adjusted(4, 4, -4, -4)
-        track = QColor(Theme.p["text"])
-        track.setAlpha(28)
-        p.setPen(QPen(track, 3))
-        p.drawEllipse(r)
-        if self.state == "checking":
-            p.setPen(QPen(QColor(Theme.accent), 3, Qt.SolidLine, Qt.RoundCap))
-            p.drawArc(r, -self.angle * 16, 100 * 16)
-        elif self.state in ("online", "offline"):
-            c = QColor(ONLINE if self.state == "online" else OFFLINE)
-            p.setPen(QPen(c, 3))
-            p.drawEllipse(r)
-            p.setPen(Qt.NoPen)
-            p.setBrush(c)
-            p.drawEllipse(r.center(), 4, 4)
-        p.end()
 
 
 def rounded_pixmap(pm: QPixmap, size: int, radius: float = 0.22, dpr: float = 2.0) -> QPixmap:
