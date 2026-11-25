@@ -8,7 +8,8 @@ final class LightPanel extends MenuPanel {
 
     /** What changed, newest first: {version, title, what it does}. */
     static final String[][] NEWS = {
-        {"3.0.1", "Inter", "Minecraft's default text uses the launcher font"},
+        {"3.0.1", "In-game menu", "Simpler controls and panels with the same motion"},
+        {"3.0.1", "Inter", "One typeface for the launcher, in-game menus and lyrics"},
         {"3.0.1", "Pause menu", "Clicks follow animated buttons and 3D panels"},
         {"3.0.1", "Launcher", "Refreshed navigation, controls and Home page"},
         {"3.0.1", "Skeleton Look", "Player skeletons and first-person bones on 1.21 and 1.21.1"},
@@ -79,8 +80,7 @@ final class LightPanel extends MenuPanel {
         boolean on = engine != null && engine.enabled();
         int bx = x + 3, bw = w - 6;
         float hv = glow("engine", in(mx, my, bx, y, bw, 30), dt);
-        d.roundRect(bx, y, bw, 30, 6, Theme.mix(on ? Theme.withAlpha(accent, 0x40) : 0x80213043,
-                on ? Theme.withAlpha(accent, 0x60) : 0xB0374E64, hv));
+        MenuStyle.panel(d, bx, y, bw, 30, Theme.mix(MenuStyle.ROW, MenuStyle.ROW_HOVER, hv));
         d.text(on ? "On: " + LightEngine.PRESETS[engine.preset.index] : "Off: your own settings", bx + 10, y + 6, Theme.TEXT, false);
         d.text(on ? "Turn off to restore your settings" : "Turn on to apply the preset", bx + 10, y + 17,
                 Theme.MUTED, false);
@@ -93,10 +93,9 @@ final class LightPanel extends MenuPanel {
             int cx = bx + (i % 2) * (cw + gap), cy = y + (i / 2) * 42;
             boolean picked = on && engine.preset.index == i;
             float g = glow("preset:" + i, in(mx, my, cx, cy, cw, 38), dt);
-            d.roundRect(cx, cy, cw, 38, 6, Theme.mix(picked ? Theme.withAlpha(accent, 0x38) : 0x70213043,
-                    picked ? Theme.withAlpha(accent, 0x58) : 0xA0374E64, g));
+            d.roundRect(cx, cy, cw, 38, 3, Theme.mix(MenuStyle.ROW, MenuStyle.ROW_HOVER, g));
             if (picked) {
-                d.roundOutline(cx, cy, cw, 38, 6, Theme.withAlpha(accent, 0xC0));
+                d.roundOutline(cx, cy, cw, 38, 3, Theme.withAlpha(accent, 0xC0));
             }
             d.text(LightEngine.PRESETS[i], cx + 8, cy + 6, picked ? accent : Theme.TEXT, false);
             d.text(d.trim(LightEngine.ABOUT[i], cw - 14), cx + 8, cy + 19, Theme.MUTED, false);
@@ -107,7 +106,7 @@ final class LightPanel extends MenuPanel {
         Saturation sat = (Saturation) pc.module("saturation");
         if (sat != null && (p == null || p.supports("saturation"))) {
             boolean son = sat.enabled();
-            d.roundRect(bx, y, bw, 30, 6, 0x80213043);
+            d.roundRect(bx, y, bw, 30, 3, MenuStyle.ROW);
             d.text("World saturation", bx + 10, y + 6, Theme.TEXT, false);
             d.text(son ? "How vivid everything is" : "Off: the game's own colours", bx + 10, y + 17, Theme.MUTED, false);
             String val = son ? Math.round(sat.amount.value) + "%" : "Off";
@@ -126,13 +125,12 @@ final class LightPanel extends MenuPanel {
     }
 
     private void toggle(Draw d, int x, int y, boolean on, int accent) {
-        d.roundRect(x, y, 24, 12, 6, on ? accent : 0xFF3A4252);
-        d.roundRect(on ? x + 13 : x + 1, y + 1, 10, 10, 5, 0xFFFFFFFF);
+        MenuStyle.toggle(d, x, y, 24, 12, on ? 1f : 0f, accent, false);
     }
 
     private void chip(Draw d, int mx, int my, float dt, int accent, String id, String label, int x, int y) {
         float g = glow(id, in(mx, my, x, y, 16, 16), dt);
-        d.roundRect(x, y, 16, 16, 4, Theme.mix(0xA0374E64, Theme.withAlpha(accent, 0x90), g));
+        d.roundRect(x, y, 16, 16, 4, Theme.mix(MenuStyle.ROW, MenuStyle.ROW_HOVER, g));
         d.text(label, x + (16 - d.width(label)) / 2, y + 4, Theme.TEXT, false);
         spot(id, x, y, 16, 16);
     }
@@ -141,7 +139,7 @@ final class LightPanel extends MenuPanel {
         int x = this.x + 3, w = this.w - 6;
         if (y + 29 > this.y && y < this.y + h) {
             float hover = action == null ? 0 : glow(action, in(mx, my, x, y, w, 28), dt);
-            d.roundRect(x, y, w, 28, 6, Theme.mix(0x80213043, 0xB0374E64, hover));
+            d.roundRect(x, y, w, 28, 3, Theme.mix(MenuStyle.ROW, MenuStyle.ROW_HOVER, hover));
             d.rect(x + 1, y + 6, 2, 16, Theme.withAlpha(accent, 0xA0));
             d.text(d.trim(name, w - 30), x + 9, y + 5, Theme.TEXT, false);
             d.text(d.trim(detail, w - 30), x + 9, y + 16, Theme.MUTED, false);
@@ -168,7 +166,7 @@ final class LightPanel extends MenuPanel {
             }
             int bx = x + 3, bw = w - 6;
             if (y + 29 > this.y && y < this.y + h) {
-                d.roundRect(bx, y, bw, 28, 6, 0x80213043);
+                d.roundRect(bx, y, bw, 28, 3, MenuStyle.ROW);
                 d.roundRect(bx + 7, y + 11, 6, 6, 3, accent);
                 d.text(d.trim(n[1], bw - 30), bx + 19, y + 5, Theme.TEXT, false);
                 d.text(d.trim(n[2], bw - 26), bx + 19, y + 16, Theme.MUTED, false);

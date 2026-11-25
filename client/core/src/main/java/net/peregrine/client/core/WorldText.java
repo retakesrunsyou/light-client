@@ -11,7 +11,7 @@ package net.peregrine.client.core;
  */
 public final class WorldText {
 
-    public static final int FONT_MINECRAFT = 0, FONT_ROUNDED = 1, FONT_HEAVY = 2, FONT_HANDWRITTEN = 3;
+    public static final int FONT_INTER = 0, FONT_ITALIC = 3;
 
     public String text = "";
     public double x, y, z;

@@ -198,11 +198,9 @@ final class HudEditor {
             modsY = (ush - modsH) / 2;
             boolean mh = in(ui(mx), ui(my), modsX, modsY, modsW, modsH);
             modsGlow += ((mh ? 1f : 0f) - modsGlow) * 0.25f;
-            d.shadow(modsX, modsY, modsW, modsH);
-            d.roundRect(modsX, modsY, modsW, modsH, 11, Theme.mix(Theme.withAlpha(Theme.PANEL, 0xE6), Theme.withAlpha(a, 0xF0), modsGlow));
-            d.roundOutline(modsX, modsY, modsW, modsH, 11, Theme.withAlpha(a, 0xD0));
-            int fg = Theme.mix(Theme.TEXT, Theme.onColor(a), modsGlow);
-            Glass.logo(d, modsX + 9, modsY + 3, 1.3f, Theme.mix(a, fg, modsGlow));
+            MenuStyle.panel(d, modsX, modsY, modsW, modsH, Theme.mix(MenuStyle.ROW, MenuStyle.ROW_HOVER, modsGlow));
+            int fg = Theme.TEXT;
+            Glass.logo(d, modsX + 9, modsY + 3, 1.3f, Theme.MUTED);
             d.text("Mods", modsX + 28, modsY + 7, fg, false);
             // a short how-to that fades away after a few seconds
             long age = System.currentTimeMillis() - openedAt;
@@ -240,9 +238,7 @@ final class HudEditor {
         int h = 72;
         int x = (sw - w) / 2;
         int y = (sh - h) / 2;
-        d.shadow(x, y, w, h);
-        d.roundRect(x, y, w, h, Theme.PANEL);
-        d.roundOutline(x, y, w, h, Theme.HAIRLINE);
+        MenuStyle.panel(d, x, y, w, h, MenuStyle.WINDOW);
         d.rect(x + 2, y, w - 4, 1, a);
         d.text(line1, x + (w - d.width(line1)) / 2, y + 14, Theme.TEXT, false);
         d.text(line2, x + (w - d.width(line2)) / 2, y + 27, Theme.MUTED, false);
@@ -263,9 +259,7 @@ final class HudEditor {
         int h = MENU_ITEMS.length * MENU_ROW + 4;
         menuX = Math.min(menuX, ui(pc.platform().screenWidth()) - MENU_W - 2);
         menuY = Math.min(menuY, ui(pc.platform().screenHeight()) - h - 2);
-        d.shadow(menuX, menuY, MENU_W, h);
-        d.roundRect(menuX, menuY, MENU_W, h, Theme.PANEL);
-        d.roundOutline(menuX, menuY, MENU_W, h, Theme.HAIRLINE);
+        MenuStyle.panel(d, menuX, menuY, MENU_W, h, MenuStyle.WINDOW);
         for (int i = 0; i < MENU_ITEMS.length; i++) {
             int y = menuY + 2 + i * MENU_ROW;
             boolean hv = in(umx, umy, menuX + 2, y, MENU_W - 4, MENU_ROW);
@@ -344,9 +338,7 @@ final class HudEditor {
         int umx = ui(mx), umy = ui(my);
         HudModule s = selected;
         int x = panelX, w = PANEL_W;
-        d.shadow(x, panelY, w, panelH);
-        d.roundRect(x, panelY, w, panelH, Theme.PANEL);
-        d.roundOutline(x, panelY, w, panelH, Theme.HAIRLINE);
+        MenuStyle.panel(d, x, panelY, w, panelH, MenuStyle.WINDOW);
         d.rect(x + 2, panelY, w - 4, 1, a);
         d.text(d.trim(s.name, w - 30), x + 8, panelY + 8, Theme.TEXT, false);
         boolean ch = in(umx, umy, closeX - 3, closeY - 3, 12, 12);
@@ -496,9 +488,7 @@ final class HudEditor {
 
     private void renderPicker(Draw d, int umx, int umy, int a) {
         int x = pickX, y = pickY;
-        d.shadow(x, y, PICK_W, PICK_H);
-        d.roundRect(x, y, PICK_W, PICK_H, Theme.PANEL);
-        d.roundOutline(x, y, PICK_W, PICK_H, Theme.HAIRLINE);
+        MenuStyle.panel(d, x, y, PICK_W, PICK_H, MenuStyle.WINDOW);
         int sx = x + 6, sy = y + 6;
         // saturation across, brightness down, in small cells
         int cell = 2;

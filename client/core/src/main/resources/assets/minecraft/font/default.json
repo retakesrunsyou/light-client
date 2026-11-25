@@ -28,15 +28,8 @@
       ]
     },
     {
-      "type": "ttf",
-      "file": "peregrine-client:inter.ttf",
-      "size": 10.0,
-      "oversample": 4.0,
-      "shift": [
-        0,
-        0
-      ],
-      "skip": ""
+      "type": "reference",
+      "id": "peregrine-client:inter"
     }
   ]
 }

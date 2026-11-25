@@ -41,7 +41,7 @@ final class ReactionPanel extends MenuPanel {
     void draw(Draw d, int mx, int my, float dt, long now, int accent) {
         d.textScaled("Reaction test", x, y + 1, Theme.TEXT, 1.25f, true);
         int top = y + 22, area = h - 30;
-        Glass.pane(d, x, top, w, area, 8, Glass.PANE);
+        MenuStyle.panel(d, x, top, w, area, MenuStyle.ROW);
         spot("area", x, top, w, area);
         int cx = x + w / 2;
         if (state == 1 && now >= showAt) {
@@ -101,11 +101,11 @@ final class ReactionPanel extends MenuPanel {
         centre(d, sb.toString(), cx, top + 54, Theme.FAINT);
         int bw = 120, bh = 16, by = top + area - 30;
         float g1 = glow("use", in(mx, my, cx - bw - 4, by, bw, bh), dt);
-        Glass.pill(d, cx - bw - 4, by, bw, bh, true, g1, accent);
+        MenuStyle.button(d, cx - bw - 4, by, bw, bh, true, g1, accent);
         d.text("Use my time", cx - bw - 4 + (bw - d.width("Use my time")) / 2, by + 4, Theme.onColor(accent), false);
         spot("use", cx - bw - 4, by, bw, bh);
         float g2 = glow("again", in(mx, my, cx + 4, by, bw, bh), dt);
-        Glass.pill(d, cx + 4, by, bw, bh, false, g2, accent);
+        MenuStyle.button(d, cx + 4, by, bw, bh, false, g2, accent);
         d.text("Again", cx + 4 + (bw - d.width("Again")) / 2, by + 4, Theme.TEXT, false);
         spot("again", cx + 4, by, bw, bh);
     }

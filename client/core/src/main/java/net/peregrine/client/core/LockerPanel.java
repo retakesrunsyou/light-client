@@ -42,7 +42,7 @@ final class LockerPanel extends MenuPanel {
         player[1] = y;
         player[2] = pw;
         player[3] = ph;
-        Glass.pane(d, x, y, pw, ph, 6, 0x8C0E1117);
+        MenuStyle.panel(d, x, y, pw, ph, 0x8C0E1117);
         // a soft spotlight under the player
         for (int i = 0; i < 6; i++) {
             int rw = pw - 20 - i * 6;
@@ -55,7 +55,7 @@ final class LockerPanel extends MenuPanel {
         if (trying >= 0) {
             int bw = pw, by = y + ph + 6;
             float g = glow("wear", in(mx, my, x, by, bw, 16), dt);
-            Glass.pill(d, x, by, bw, 16, true, g, a);
+            MenuStyle.button(d, x, by, bw, 16, true, g, a);
             MenuIcons.draw(d, "check", x + 6, by + 4, Theme.onColor(a));
             d.text("Wear it", x + 18, by + 4, Theme.onColor(a), false);
             spot("wear", x, by, bw, 16);
@@ -119,7 +119,7 @@ final class LockerPanel extends MenuPanel {
             float g = glow("c" + tab + ":" + i, hover, dt);
             cy -= Math.round(g * 2);
             boolean picked = tab == 0 ? i == worn : i == trying;
-            Glass.pane(cd, cx, cy, cw, chH, 5, Theme.mix(Glass.PANE, Glass.PANE_HOVER, g));
+            MenuStyle.panel(cd, cx, cy, cw, chH, Theme.mix(MenuStyle.ROW, MenuStyle.ROW_HOVER, g));
             if (picked) {
                 cd.roundOutline(cx - 1, cy - 1, cw + 2, chH + 2, 6, Theme.withAlpha(a, Math.round(0x40 + 0x60 * pulse)));
                 cd.roundOutline(cx, cy, cw, chH, 5, a);

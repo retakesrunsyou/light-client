@@ -716,26 +716,18 @@ public final class Menu {
         }
         int a = pc.accent();
 
-        d.shadow(px, py, pw, ph);
-        d.roundRect(px, py, pw, ph, 9, pc.menuBg(0xF5111520));
-        d.roundOutline(px, py, pw, ph, 9, 0x66545D71);
-        d.roundRect(sideX - 3, sideY - 2, sideW + 6, editY + editH - sideY + 5, 5, 0x66101521);
-        d.rect(px + 11, py + TITLE_H, pw - 22, 1, 0x40607793);
-        d.rect(px + 11, py + TITLE_H, 38, 1, a);
+        d.roundRect(px, py, pw, ph, 4, pc.menuBg(MenuStyle.WINDOW));
+        d.roundOutline(px, py, pw, ph, 4, MenuStyle.BORDER);
+        d.rect(px + 1, py + TITLE_H, pw - 2, 1, MenuStyle.BORDER);
 
         int ty = py + (TITLE_H - 8) / 2;
-        TitleMenu.lightMark(d, px + 10, ty - 4, a);
-        d.textScaled(TitleMenu.BRAND, px + 36, ty - 1, Theme.TEXT, 1.25f, false);
-        String crumb = crumb();
-        int cx0 = px + 36 + Math.round(d.width(TitleMenu.BRAND) * 1.25f) + 6;
-        int room = (view == 0 ? menuBtnX : searchX) - 8 - cx0;
-        if (room > 20) {
-            d.text("/", cx0, ty + 1, Theme.FAINT, false);
-            d.text(d.trim(crumb, room - 10), cx0 + 9, ty + 1, a, false);
-        }
+        int titleX = px + 12;
+        int titleRight = view == 0 && page == null ? menuBtnX : searchX - 8;
+        String title = d.trim(crumb(), Math.round((titleRight - titleX) / 1.2f));
+        d.textScaled(title, titleX, ty - 1, Theme.TEXT, 1.2f, false);
         boolean closeHover = in(mx, my, closeX, closeY, 16, 16);
         float cg = sideGlowOf("close", closeHover, dt);
-        d.roundRect(closeX, closeY, 16, 16, 8, Theme.mix(0x30FFFFFF, Theme.withAlpha(Theme.BAD, 0xD0), cg));
+        d.roundRect(closeX, closeY, 16, 16, 3, Theme.mix(0x00000000, MenuStyle.ROW_HOVER, cg));
         int xc = Theme.mix(Theme.MUTED, 0xFFFFFFFF, cg);
         if (d.hasTextures()) {
             MenuIcons.draw(d, "close", closeX + 4, closeY + 4, 8, xc);
@@ -754,22 +746,22 @@ public final class Menu {
         }
         if (searchable) {
             boolean searching = !search.isEmpty();
-            d.roundRect(searchX, searchY, searchW, TABBAR_H, 8, 0x50000000);
-            d.roundOutline(searchX, searchY, searchW, TABBAR_H, 8, (searchFocused || searching) ? Theme.withAlpha(a, 0xC0) : 0x22FFFFFF);
+            d.roundRect(searchX, searchY, searchW, TABBAR_H, 3, MenuStyle.FIELD);
+            d.roundOutline(searchX, searchY, searchW, TABBAR_H, 3, searchFocused ? a : MenuStyle.BORDER);
             boolean caret = searchFocused && (now / 500) % 2 == 0;
             String shown = searching || searchFocused ? search + (caret ? "|" : "")
-                    : pn != null ? pn.placeholder() : page != null ? "Click to search settings" : "Click to search modules";
+                    : pn != null ? pn.placeholder() : page != null ? "Search settings" : "Search modules";
             MenuIcons.draw(d, "search", searchX + 5, searchY + 4, searching ? a : Theme.FAINT);
             if (searchFocused) {
                 while (!shown.isEmpty() && d.width(shown) > searchW - 22) {
                     shown = shown.substring(shown.offsetByCodePoints(0, 1));
                 }
             }
-            d.text(d.trim(shown, searchW - 22), searchX + 17, searchY + 4, searching ? Theme.TEXT : Theme.FAINT, false);
+            d.text(d.trim(shown, searchW - 22), searchX + 17, searchY + 4, searching || searchFocused ? Theme.TEXT : Theme.MUTED, false);
         }
 
         if (in(mx, my, px + 6, py + 4, Math.max(0, menuBtnX - px - 8), TITLE_H - 9)) {
-            d.rect(px + 11, py + TITLE_H, 38, 1, Theme.TEXT);
+            d.rect(titleX, py + TITLE_H, Math.round(d.width(title) * 1.2f), 1, Theme.MUTED);
         }
         int grip = resizingWindow || onResizeGrip(mx, my) ? a : Theme.MUTED;
         for (int i = 0; i < 3; i++) {
@@ -779,10 +771,10 @@ public final class Menu {
         drawSidebar(d, mx, my, dt, a);
         boolean editHover = in(mx, my, editX, editY, editW, editH);
         float eg = sideGlowOf("edit", editHover, dt);
-        Glass.pill(d, editX, editY, editW, editH, true, eg, a);
-        MenuIcons.draw(d, "hud", editX + 8, editY + 4, Theme.onColor(a));
+        MenuStyle.button(d, editX, editY, editW, editH, false, eg, a);
+        MenuIcons.draw(d, "hud", editX + 8, editY + 4, Theme.MUTED);
         String edit = "Edit HUD";
-        d.text(edit, editX + (editW - d.width(edit)) / 2 + 5, editY + 5, Theme.onColor(a), false);
+        d.text(edit, editX + (editW - d.width(edit)) / 2 + 5, editY + 5, Theme.TEXT, false);
 
         if (page != null) {
             renderPage(d, mx, my, p, dt, now, a);
@@ -832,7 +824,6 @@ public final class Menu {
             Draw cd = appear < 1f ? new FadeDraw(d, 0.05f + 0.95f * appear) : d;
             if (raw < 1f) {
                 cy += Math.round((1f - Glass.backOut(raw)) * 8);
-                c = new int[] {cx, cy, cw};
             }
             boolean hover = mouseInList && in(mx, my, cx, cy, cw, tileH);
             float g = ease(rowGlow, m, hover ? 1f : 0f, dt * 10f);
@@ -870,8 +861,8 @@ public final class Menu {
 
         boolean oh = in(mx, my, onlyX, filterY, onlyW, TABBAR_H);
         float og = sideGlowOf("onlyon", oh, dt);
-        d.roundRect(onlyX, filterY, onlyW, TABBAR_H, 5, onlyOn ? Theme.withAlpha(a, 0x50) : Theme.mix(0x18FFFFFF, 0x2CFFFFFF, og));
-        d.roundOutline(onlyX, filterY, onlyW, TABBAR_H, 5, onlyOn ? Theme.withAlpha(a, 0xC0) : 0x1CFFFFFF);
+        d.roundRect(onlyX, filterY, onlyW, TABBAR_H, 3, onlyOn ? Theme.withAlpha(a, 0x50) : Theme.mix(0x18FFFFFF, 0x2CFFFFFF, og));
+        d.roundOutline(onlyX, filterY, onlyW, TABBAR_H, 3, onlyOn ? Theme.withAlpha(a, 0xC0) : 0x1CFFFFFF);
         String ol = "Only on";
         d.text(ol, onlyX + (onlyW - d.width(ol)) / 2, filterY + 4, onlyOn ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, og), false);
 
@@ -894,11 +885,10 @@ public final class Menu {
             boolean hv = in(mx, my, x, cy, w, ch) && in(mx, my, listX, cy, listW, ch);
             float hg = sideGlowOf("chip:" + label, hv, dt);
             if (sel) {
-                d.roundRect(x, cy, w, ch, 4, 0x30FFFFFF);
                 selX = x + 4;
                 selW = w - 8;
             } else if (hg > 0.01f) {
-                d.roundRect(x, cy, w, ch, 4, Theme.withAlpha(0xFFFFFF, Math.round(0x14 * hg)));
+                d.roundRect(x, cy, w, ch, 3, Theme.withAlpha(0xFFFFFF, Math.round(0x14 * hg)));
             }
             d.text(label, x + 6, cy + 3, sel ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, hg), false);
             chipHits.add(new Hit(g == null ? "" : g, x, cy, w, ch, null));
@@ -917,7 +907,7 @@ public final class Menu {
         if (chipMax > 0) {   // a fade at the edge says there's more to the side
             int fx = listX + listW - 10;
             for (int i = 0; i < 10; i++) {
-                d.rect(fx + i, cy, 1, ch, Theme.withAlpha(0x111520, chipScroll >= chipMax ? 0 : i * 22));
+                d.rect(fx + i, cy, 1, ch, Theme.withAlpha(MenuStyle.WINDOW, chipScroll >= chipMax ? 0 : i * 22));
             }
         }
     }
@@ -933,10 +923,7 @@ public final class Menu {
      */
     private void drawTile(Draw cd, Module m, int[] c, int mx, int my, boolean hover, float g, float on, int a, Platform p) {
         int cx = c[0], cy = c[1], cw = c[2];
-        cd.roundRect(cx, cy, cw, tileH, 4, Theme.mix(0x14FFFFFF, 0x22FFFFFF, g));
-        if (hover) {
-            cd.roundOutline(cx, cy, cw, tileH, 4, 0x1EFFFFFF);
-        }
+        cd.roundRect(cx, cy, cw, tileH, 3, Theme.mix(MenuStyle.ROW, MenuStyle.ROW_HOVER, g));
         int ic = 18;
         int ix = cx + 5, iy = cy + (tileH - ic) / 2;
         Object stack = p.icon(Icons.of(m));
@@ -964,7 +951,7 @@ public final class Menu {
         }
         if (!compact) {
             String sub = cd.trim(warn ? m.warning() : m.description, room);
-            cd.text(sub, tx, cy + 15, warn ? Theme.OK : Theme.FAINT, false);
+            cd.text(sub, tx, cy + 15, warn ? Theme.OK : Theme.MUTED, false);
         }
         if (m.favorite || hover) {
             boolean starHover = hover && in(mx, my, st[0] - 2, st[1] - 2, 15, 15);
@@ -972,7 +959,7 @@ public final class Menu {
                     m.favorite ? a : starHover ? Theme.TEXT : Theme.withAlpha(Theme.MUTED, 0xA0));
         }
         boolean swHover = hover && in(mx, my, tg[0] - 2, tg[1] - 3, tg[2] + 4, tg[3] + 6);
-        switchKnob(cd, tg[0], tg[1], on, a, swHover);
+        MenuStyle.toggle(cd, tg[0], tg[1], 24, 11, on, a, swHover);
     }
 
     /** Where you are, for the title: "Modules / HUD", "Mods / Browse"... */
@@ -1026,7 +1013,7 @@ public final class Menu {
     private void drawSidebar(Draw d, int mx, int my, float dt, int a) {
         sideHits.clear();
         rows.clear();
-        d.roundRect(sideX, sideY, sideW, sideH, 6, pc.menuBg(0x74141F2F));
+        d.rect(sideX + sideW + 4, sideY, 1, editY + editH - sideY, MenuStyle.BORDER);
         int lines = 0, dividers = 0;
         for (Node n : SIDEBAR) {
             if (n == null) {
@@ -1091,15 +1078,13 @@ public final class Menu {
                 d.roundRect(rx, r.y, rw, rh, 4, Theme.withAlpha(0xFFFFFF, Math.round(0x16 * g * r.alpha)));
             }
         }
-        // the selection: an accent pill gliding from one choice to the next
+        // The selection slides between sidebar rows.
         if (selY >= 0) {
             sideSlide = sideSlide < 0 ? selY : sideSlide + (selY - sideSlide) * Math.min(1f, dt * 16f);
             int sx = selKid ? sideX + 14 : sideX + 3, sw = selKid ? sideW - 17 : sideW - 6, sh = selKid ? rowH - 2 : rowH;
             int sy = Math.round(sideSlide);
-            d.glow(sx + 3, sy + 3, sw - 6, sh - 4, Theme.withAlpha(a, 0x48));
-            d.roundRect(sx, sy, sw, sh, 4, a);
-            Glass.sheen(d, sx, sy, sw, sh, 4, 0x1C);
-            Glass.line(d, sx + 3, sy, sw - 6, 0x60FFFFFF);
+            d.roundRect(sx, sy, sw, sh, 3, Theme.mix(MenuStyle.ROW, a, 0.18f));
+            d.rect(sx, sy + 2, 1, sh - 4, a);
         }
         // icons and names on top
         for (Row r : rows) {
@@ -1115,7 +1100,7 @@ public final class Menu {
             Float gl = sideGlow.get("n:" + r.n.id);
             float g = gl == null ? 0f : gl;
             if (r.kid) {
-                int kc = selected ? Theme.onColor(a) : Theme.mix(Theme.FAINT, Theme.TEXT, g);
+                int kc = selected ? Theme.TEXT : Theme.mix(Theme.FAINT, Theme.TEXT, g);
                 if (r.n.icon != null) {
                     MenuIcons.draw(rd, r.n.icon, sideX + 18, r.y + ty - 2, kc);
                 } else {
@@ -1124,10 +1109,10 @@ public final class Menu {
                 rd.text(rd.trim(r.n.label, sideW - 50), sideX + 31, r.y + ty - 1, kc, false);
                 if (r.n.id.startsWith("cat:")) {  // how many are on
                     String cnt = String.valueOf(count(Module.Category.valueOf(r.n.id.substring(4)), true));
-                    rd.text(cnt, sideX + sideW - 8 - rd.width(cnt), r.y + ty - 1, selected ? Theme.onColor(a) : Theme.FAINT, false);
+                    rd.text(cnt, sideX + sideW - 8 - rd.width(cnt), r.y + ty - 1, selected ? Theme.TEXT : Theme.FAINT, false);
                 }
             } else {
-                int col = selected ? Theme.onColor(a) : inside ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, g);
+                int col = selected ? Theme.TEXT : inside ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, g);
                 MenuIcons.draw(rd, r.n.icon, sideX + 8, r.y + ty - 1, col);
                 rd.text(rd.trim(r.n.label, sideW - 36), sideX + 21, r.y + ty, col, false);
                 if (r.n.kids.length > 0) {
@@ -1152,20 +1137,6 @@ public final class Menu {
             scroll = clamp(v, 0, maxScroll);
             smoothScroll = scroll;
         });
-    }
-
-    /**
-     * An on/off switch with a round knob: off is grey with a cross in the knob,
-     * on is the accent color with a tick. 24 x 11.
-     */
-    private static void switchKnob(Draw d, int x, int y, float on, int accent, boolean hover) {
-        int track = Theme.mix(hover ? 0x60FFFFFF : 0x38FFFFFF, accent, on);
-        d.roundRect(x, y, 24, 11, 5, track);
-        int kx = x + 1 + Math.round(on * 13);
-        d.roundRect(kx, y + 1, 9, 9, 4, on > 0.5f ? 0xFFFFFFFF : 0xFFC9CDD6);
-        if (on > 0.05f) {
-            d.roundOutline(x - 1, y - 1, 26, 13, 6, Theme.withAlpha(accent, Math.round(0x50 * on)));
-        }
     }
 
     /** Small pixel icons for the filter list (9 x 9). */
@@ -1391,7 +1362,7 @@ public final class Menu {
             d.roundRect(x, y, w, SET_H, Theme.ROW_HOVER);
         }
         d.text(label, x + 6, y + 7, rh ? Theme.TEXT : Theme.MUTED, false);
-        switchKnob(d, x + w - 30, y + 5, animate(m, dt), a, rh);
+        MenuStyle.toggle(d, x + w - 30, y + 5, 24, 11, animate(m, dt), a, rh);
         hit("module:" + id, x, y, w, SET_H, null);
         return y + SET_H + 2;
     }
@@ -1494,7 +1465,7 @@ public final class Menu {
         d.text(d.trim(m.description, w - 66), x + 22, listY + 13, Theme.FAINT, false);
         if (m != allHud) {
             boolean th = in(mx, my, x + w - 30, listY + 6, 22, 10);
-            switchKnob(d, x + w - 32, listY + 6, animate(m, dt), a, th);
+            MenuStyle.toggle(d, x + w - 32, listY + 6, 24, 11, animate(m, dt), a, th);
             hit("toggle", x + w - 32, listY + 3, 26, 16, null);
         }
         d.rect(x, listY + 25, w - 4, 1, Theme.HAIRLINE);
@@ -1612,7 +1583,7 @@ public final class Menu {
                 float v = cur == null ? target : cur;
                 v = v < target ? Math.min(target, v + dt * 9f) : Math.max(target, v - dt * 9f);
                 settingKnob.put(st, v);
-                switchKnob(d, right - 24, y + 5, v, a, rh);
+                MenuStyle.toggle(d, right - 24, y + 5, 24, 11, v, a, rh);
                 hit(id, x, y, w - 4, SET_H, st);
             } else if (st instanceof SliderSetting) {
                 SliderSetting sl = (SliderSetting) st;
@@ -2257,9 +2228,8 @@ public final class Menu {
         ddBox[4] = ddScroll;
         ddBox[5] = shown;
         Draw f = t < 1f ? new FadeDraw(d, t) : d;
-        f.roundRect(x + 1, y + 2, w, h, 6, 0x50000000);                 // soft shadow
-        f.roundRect(x, y, w, h, 6, 0xF2181B22);
-        f.roundOutline(x, y, w, h, 6, Theme.withAlpha(a, 0x90));
+        f.roundRect(x, y, w, h, 3, MenuStyle.WINDOW);
+        f.roundOutline(x, y, w, h, 3, MenuStyle.BORDER);
         int hoverRow = in(mx, my, x, y + 2, w, shown * DD_ROW) ? (my - y - 2) / DD_ROW + ddScroll : -1;
         if (hoverRow >= 0) {
             ddHover = hoverRow;
@@ -2395,16 +2365,7 @@ public final class Menu {
 
     /** A rounded switch; on is filled with the accent and the knob slides right. */
     private static void toggle(Draw d, int x, int y, float on, int accent, boolean hover) {
-        int track = Theme.mix(hover ? 0xFF3C4352 : 0xFF2F3542, accent, on);
-        if (on > 0.05f) {  // a soft glow around a switch that's on
-            d.roundOutline(x - 1, y - 1, 24, 12, Theme.withAlpha(accent, Math.round(0x50 * on)));
-        }
-        d.roundRect(x, y, 22, 10, track);
-        d.rect(x + 2, y + 1, 18, 1, Theme.withAlpha(0xFFFFFF, Math.round(0x18 + 0x18 * on)));  // sheen
-        int kx = x + 2 + Math.round(on * 10);
-        d.rect(kx + 1, y + 8, 6, 1, 0x40000000);  // the knob's shadow
-        d.rect(kx + 1, y + 2, 6, 6, 0xFFFFFFFF);
-        d.rect(kx, y + 3, 8, 4, 0xFFFFFFFF);
+        MenuStyle.toggle(d, x, y, 22, 10, on, accent, hover);
     }
 
     // -------------------------------------------------------------- input

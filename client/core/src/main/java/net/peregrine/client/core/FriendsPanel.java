@@ -130,7 +130,7 @@ final class FriendsPanel extends MenuPanel {
                 int ry = cy + Math.round((1f - ap) * 6);
                 boolean hover = in(mx, my, x, ry, w, rowH);
                 float g = glow("f:" + f.tag, hover, dt);
-                Glass.pane(rd, x, ry, w, rowH, 4, Theme.mix(Glass.PANE, Glass.PANE_HOVER, g));
+                MenuStyle.panel(rd, x, ry, w, rowH, Theme.mix(MenuStyle.ROW, MenuStyle.ROW_HOVER, g));
                 icon(rd, Library.webIcon(f.picture), f.tag, x + 5, ry + 4, 18, a);
                 // a status dot on the picture's corner
                 int dot = f.online ? (f.minecraft ? a : Theme.GOOD) : Theme.FAINT;

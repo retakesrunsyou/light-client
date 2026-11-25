@@ -57,7 +57,7 @@ final class SchematicsPanel extends MenuPanel {
         String of = "Open folder";
         int ow = d.width(of) + 22, ox = x + w - ow;
         float og = glow("open", in(mx, my, ox, y - 1, ow, 14), dt);
-        Glass.pill(d, ox, y - 1, ow, 14, false, og, a);
+        MenuStyle.button(d, ox, y - 1, ow, 14, false, og, a);
         MenuIcons.draw(d, "folder", ox + 5, y + 2, Theme.mix(Theme.MUTED, Theme.TEXT, og));
         d.text(of, ox + 17, y + 3, Theme.mix(Theme.MUTED, Theme.TEXT, og), false);
         spot("open", ox, y - 1, ow, 14);
@@ -98,7 +98,7 @@ final class SchematicsPanel extends MenuPanel {
             ry += Math.round((1f - ap) * 6);
             boolean hover = in(mx, my, x, ry, w, rowH) && in(mx, my, x, listTop, w, listH);
             float g = glow("f:" + f, hover, dt);
-            Glass.pane(rd, x, ry, w, rowH, 4, Theme.mix(Glass.PANE, Glass.PANE_HOVER, g));
+            MenuStyle.panel(rd, x, ry, w, rowH, Theme.mix(MenuStyle.ROW, MenuStyle.ROW_HOVER, g));
             String fn = f.getFileName().toString();
             String ext = fn.substring(fn.lastIndexOf('.') + 1).toUpperCase(Locale.ROOT);
             int tw = rd.width(ext) + 8;
@@ -116,7 +116,7 @@ final class SchematicsPanel extends MenuPanel {
             rd.text(rd.trim(sub, w - tw - pw - 30), x + tw + 12, ry + 15, Theme.FAINT, false);
             if (pc.platform().inWorld()) {
                 float bg = glow("p:" + f, in(mx, my, x + w - pw - 6, ry + 6, pw, 14), dt);
-                Glass.pill(rd, x + w - pw - 6, ry + 6, pw, 14, true, Math.max(bg, g * 0.4f), a);
+                MenuStyle.button(rd, x + w - pw - 6, ry + 6, pw, 14, true, Math.max(bg, g * 0.4f), a);
                 rd.text(place, x + w - pw + 1, ry + 9, Theme.onColor(a), false);
                 spot("load:" + i, x, ry, w, rowH);
             }
@@ -150,7 +150,7 @@ final class SchematicsPanel extends MenuPanel {
     private void button(Draw d, String id, String label, String icon, int bx, int by, int bw, int mx, int my, float dt, int a,
                         boolean on) {
         float g = glow("b:" + id, in(mx, my, bx, by, bw, 15), dt);
-        Glass.pill(d, bx, by, bw, 15, on, g, a);
+        MenuStyle.button(d, bx, by, bw, 15, on, g, a);
         int fg = on ? Theme.onColor(a) : Theme.mix(Theme.MUTED, Theme.TEXT, g);
         int lw = d.width(label) + (icon != null ? 12 : 0);
         int lx = bx + (bw - lw) / 2;
@@ -180,8 +180,8 @@ final class SchematicsPanel extends MenuPanel {
         String sh = pl.visible ? "Showing" : "Hidden";
         int sw2 = d.width(sh) + 30, sx = ux - sw2 - 6;
         float shg = glow("vis", in(mx, my, sx, y, sw2, 15), dt);
-        Glass.pill(d, sx, y, sw2, 15, false, shg, a);
-        Glass.toggle(d, sx + 5, y + 3, glow("visk", pl.visible, dt * 1.6f), a, false);
+        MenuStyle.button(d, sx, y, sw2, 15, false, shg, a);
+        MenuStyle.toggle(d, sx + 5, y + 3, 18, 10, glow("visk", pl.visible, dt * 1.6f), a, false);
         d.text(sh, sx + 26, y + 4, Theme.TEXT, false);
         spot("visible", sx, y, sw2, 15);
         // ghost blocks: see-through copies of the blocks still to place
@@ -192,8 +192,8 @@ final class SchematicsPanel extends MenuPanel {
             int gw = d.width(gh) + 30, gx = sx - gw - 6;
             if (gx > x + Math.min(w / 2, d.width(dims) + 8)) {
                 float gg = glow("ghost", in(mx, my, gx, y, gw, 15), dt);
-                Glass.pill(d, gx, y, gw, 15, false, gg, a);
-                Glass.toggle(d, gx + 5, y + 3, glow("ghostk", gOn, dt * 1.6f), a, false);
+                MenuStyle.button(d, gx, y, gw, 15, false, gg, a);
+                MenuStyle.toggle(d, gx + 5, y + 3, 18, 10, glow("ghostk", gOn, dt * 1.6f), a, false);
                 d.text(gh, gx + 26, y + 4, pl.visible ? Theme.TEXT : Theme.MUTED, false);
                 spot("ghosts", gx, y, gw, 15);
             }
@@ -205,7 +205,7 @@ final class SchematicsPanel extends MenuPanel {
 
         // progress
         int need = Schematics.needed(), done = Schematics.done(), bad = Schematics.wrong();
-        Glass.pane(d, x, top, w, 26, 4, Glass.PANE);
+        MenuStyle.panel(d, x, top, w, 26, MenuStyle.ROW);
         String prog = done < 0 ? "Too big to count · build with the outlines" : need == 0 ? "Checking..."
                 : Math.round(done * 100f / need) + "% built  ·  " + done + " / " + need;
         d.text(prog, x + 7, top + 5, Theme.TEXT, false);

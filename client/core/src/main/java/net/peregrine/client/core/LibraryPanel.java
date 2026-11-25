@@ -101,7 +101,7 @@ final class LibraryPanel extends MenuPanel {
         String of = "Open folder";
         int ow = d.width(of) + 22, ox = x + w - ow;
         float og = glow("open", in(mx, my, ox, top - 1, ow, 14), dt);
-        Glass.pill(d, ox, top - 1, ow, 14, false, og, a);
+        MenuStyle.button(d, ox, top - 1, ow, 14, false, og, a);
         MenuIcons.draw(d, "folder", ox + 5, top + 2, Theme.mix(Theme.MUTED, Theme.TEXT, og));
         d.text(of, ox + 17, top + 3, Theme.mix(Theme.MUTED, Theme.TEXT, og), false);
         spot("open", ox, top - 1, ow, 14);
@@ -111,7 +111,7 @@ final class LibraryPanel extends MenuPanel {
                 String off = "Shaders off";
                 int fw = d.width(off) + 14, fx = ox - fw - 4;
                 float fg = glow("off", in(mx, my, fx, top - 1, fw, 14), dt);
-                Glass.pill(d, fx, top - 1, fw, 14, false, fg, a);
+                MenuStyle.button(d, fx, top - 1, fw, 14, false, fg, a);
                 d.text(off, fx + 7, top + 3, Theme.mix(Theme.MUTED, Theme.TEXT, fg), false);
                 spot("shaders-off", fx, top - 1, fw, 14);
             }
@@ -153,7 +153,7 @@ final class LibraryPanel extends MenuPanel {
             float g = glow("row:" + it.file, hover, dt);
             boolean on = packOn(it);
             boolean using = inUse != null && inUse.equals(it.file);
-            Glass.pane(rd, x, ry, w, ROW, 4, Theme.mix(Glass.PANE, Glass.PANE_HOVER, g));
+            MenuStyle.panel(rd, x, ry, w, ROW, Theme.mix(MenuStyle.ROW, MenuStyle.ROW_HOVER, g));
             if (on && kind != Library.Kind.SHADERS || using) {
                 rd.roundRect(x + 1, ry + 5, 2, ROW - 10, 1, a);
             }
@@ -187,14 +187,14 @@ final class LibraryPanel extends MenuPanel {
                 String u = using ? "In use" : "Use";
                 int uw = rd.width(u) + 14;
                 float ug = glow("use:" + it.file, in(mx, my, right - uw, ry + 8, uw, 14), dt);
-                Glass.pill(rd, right - uw, ry + 8, uw, 14, using, ug, a);
+                MenuStyle.button(rd, right - uw, ry + 8, uw, 14, using, ug, a);
                 rd.text(u, right - uw + 7, ry + 11, using ? Theme.onColor(a) : Theme.TEXT, false);
                 spot("use:" + it.file, right - uw, ry + 8, uw, 14);
                 right -= uw + 8;
             } else if (!it.ours) {
                 float k = glow("on:" + it.file, on, dt * 1.6f);
                 boolean sh = in(mx, my, right - 20, ry + 9, 22, 12);
-                Glass.toggle(rd, right - 18, ry + 10, k, a, sh);
+                MenuStyle.toggle(rd, right - 18, ry + 10, 18, 10, k, a, sh);
                 spot("toggle:" + it.file, right - 21, ry + 7, 24, 16);
                 right -= 28;
             }
@@ -306,7 +306,7 @@ final class LibraryPanel extends MenuPanel {
             ry += Math.round((1f - ap) * 6);
             boolean hover = in(mx, my, x, ry, w, BROWSE_ROW) && in(mx, my, x, listTop, w, listH);
             float g = glow("r:" + r.project, hover, dt);
-            Glass.pane(rd, x, ry, w, BROWSE_ROW, 4, Theme.mix(Glass.PANE, Glass.PANE_HOVER, g));
+            MenuStyle.panel(rd, x, ry, w, BROWSE_ROW, Theme.mix(MenuStyle.ROW, MenuStyle.ROW_HOVER, g));
             icon(rd, Library.webIcon(r.iconUrl), r.title, x + 6, ry + 5, 26, a);
             int tx = x + 38, right = x + w - 8;
             // the install button
@@ -322,7 +322,7 @@ final class LibraryPanel extends MenuPanel {
                 MenuIcons.draw(rd, "check", bx + 5, by + 3, 0xFF7BC47F);
                 rd.text(label, bx + 16, by + 3, 0xFF7BC47F, false);
             } else {
-                Glass.pill(rd, bx, by, bw, 14, true, bg, a);
+                MenuStyle.button(rd, bx, by, bw, 14, true, bg, a);
                 if ("working".equals(st)) {
                     dots(rd, bx + bw / 2 - 5, by + 6, now, Theme.onColor(a));
                 } else {

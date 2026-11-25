@@ -1,5 +1,0 @@
-{
-  "providers": [
-    {"type": "ttf", "file": "peregrine-client:lyrics/handwritten.ttf", "size": 12.0, "oversample": 6.0, "shift": [0, 1], "skip": ""}
-  ]
-}

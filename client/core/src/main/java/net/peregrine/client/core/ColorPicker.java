@@ -73,9 +73,7 @@ final class ColorPicker {
             return;
         }
         int hh = height();
-        d.shadow(x, y, W, hh);
-        d.roundRect(x, y, W, hh, 5, Theme.PANEL);
-        d.roundOutline(x, y, W, hh, 5, Theme.HAIRLINE);
+        MenuStyle.panel(d, x, y, W, hh, MenuStyle.WINDOW);
         int sx = x + 6, sy = y + 6;
         int cell = 2;
         for (int cx = 0; cx < SV_W; cx += cell) {

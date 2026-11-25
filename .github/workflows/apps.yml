@@ -62,7 +62,7 @@ jobs:
           ls -la payload/payload.zip
           pyinstaller --noconfirm --onefile --windowed --name Peregrine-Setup \
             --icon assets/peregrine.ico \
-            --add-data "payload/payload.zip:." \
+            --add-data "payload/payload.zip:." --add-data "assets/fonts:assets/fonts" \
             --paths . --exclude-module tkinter \
             --distpath dist-setup --workpath build-setup \
             packaging/setup_app.py 2>&1 | tail -n 30 > log/setup-build.txt

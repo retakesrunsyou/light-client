@@ -40,7 +40,7 @@ public final class Lyrics extends Module {
     public final SliderSetting distance = add(new SliderSetting("distance", "Distance", 2f, 30f, 0.5f, 7f, "%.1f blocks"));
     public final SliderSetting height = add(new SliderSetting("height", "Height", -3f, 6f, 0.25f, 0.5f, "%+.2f blocks"));
     // look
-    public final ChoiceSetting font = add(new ChoiceSetting("font", "Font", 1, "Minecraft", "Rounded", "Heavy", "Handwritten"));
+    public final ChoiceSetting font = add(new ChoiceSetting("font", "Font", 1, "Inter", "Inter Medium", "Inter Bold", "Inter Italic"));
     public final ChoiceSetting colors = add(new ChoiceSetting("colors", "Colors", HIGHLIGHT,
             "Highlight as sung", "Solid", "Gradient", "Rainbow", "Glitch"));
     public final ColorSetting color = add(new ColorSetting("color", "Text color", 0xFFFFFFFF, false));
@@ -258,7 +258,7 @@ public final class Lyrics extends Module {
         w.y = eyeY - Math.sin(pitch) * dist + (mode.index == AROUND ? 0 : height.value);
         w.z = p.z() + Math.cos(yaw) * cp * dist;
         // the same size on screen at any distance, a little varied when they're all around
-        float base = 0.05f * textSize.value * (float) (dist / 7.0) * (font.index == WorldText.FONT_MINECRAFT ? 1.5f : 1f);
+        float base = 0.05f * textSize.value * (float) (dist / 7.0) * (font.index == WorldText.FONT_INTER ? 1.5f : 1f);
         w.size = mode.index == SKY ? base * 1.6f : mode.index == AROUND ? base * (0.85f + rnd.nextFloat() * 0.3f) : base;
         w.fromX = p.x() - Math.sin(yaw) * cp * dist * 3;
         w.fromY = w.y + 4;

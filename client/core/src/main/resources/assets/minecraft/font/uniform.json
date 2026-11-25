@@ -1,0 +1,8 @@
+{
+  "providers": [
+    {
+      "type": "reference",
+      "id": "peregrine-client:inter"
+    }
+  ]
+}

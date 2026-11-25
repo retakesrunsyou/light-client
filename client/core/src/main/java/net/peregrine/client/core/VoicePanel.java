@@ -87,18 +87,18 @@ final class VoicePanel extends MenuPanel {
     private void drawJoin(Draw d, int mx, int my, float dt, long now, int a, int top) {
         int half = (w - 8) / 2;
         // start a party
-        Glass.pane(d, x, top, half, 74, 6, Glass.PANE);
+        MenuStyle.panel(d, x, top, half, 74, MenuStyle.ROW);
         d.text("Start a party", x + 10, top + 9, Theme.TEXT, false);
         d.text("You get a code to", x + 10, top + 22, Theme.FAINT, false);
         d.text("share with friends", x + 10, top + 32, Theme.FAINT, false);
         float g = glow("start", in(mx, my, x + 10, top + 49, half - 20, 16), dt);
-        Glass.pill(d, x + 10, top + 49, half - 20, 16, true, g, a);
+        MenuStyle.button(d, x + 10, top + 49, half - 20, 16, true, g, a);
         MenuIcons.draw(d, "mic", x + 16, top + 53, Theme.onColor(a));
         d.text("Start", x + 10 + (half - 20 - d.width("Start")) / 2 + 4, top + 53, Theme.onColor(a), false);
         spot("start", x + 10, top + 49, half - 20, 16);
         // join one
         int jx = x + half + 8, jw = w - half - 8;
-        Glass.pane(d, jx, top, jw, 74, 6, Glass.PANE);
+        MenuStyle.panel(d, jx, top, jw, 74, MenuStyle.ROW);
         d.text("Join a party", jx + 10, top + 9, Theme.TEXT, false);
         int bx = jx + 10, by = top + 24, bw = jw - 20;
         d.roundRect(bx, by, bw, 18, 5, 0x60000000);
@@ -108,7 +108,7 @@ final class VoicePanel extends MenuPanel {
         spot("code", bx, by, bw, 18);
         boolean ready = code.length() == 6;
         float jg = glow("join", ready && in(mx, my, jx + 10, top + 49, jw - 20, 16), dt);
-        Glass.pill(d, jx + 10, top + 49, jw - 20, 16, ready, jg, a);
+        MenuStyle.button(d, jx + 10, top + 49, jw - 20, 16, ready, jg, a);
         d.text("Join", jx + 10 + (jw - 20 - d.width("Join")) / 2, top + 53, ready ? Theme.onColor(a) : Theme.FAINT, false);
         if (ready) {
             spot("join", jx + 10, top + 49, jw - 20, 16);
@@ -138,7 +138,7 @@ final class VoicePanel extends MenuPanel {
 
     private void drawParty(Draw d, int mx, int my, float dt, long now, int a, int top) {
         // the code, big
-        Glass.pane(d, x, top, w, 34, 6, Glass.PANE);
+        MenuStyle.panel(d, x, top, w, 34, MenuStyle.ROW);
         d.text("Party code", x + 10, top + 6, Theme.FAINT, false);
         d.text("Friends join with it", x + 10, top + 18, Theme.FAINT, false);
         String c = spaced(VoiceChat.party());
@@ -150,7 +150,7 @@ final class VoicePanel extends MenuPanel {
         String mt = muted ? "Unmute" : "Mute mic";
         int mw = d.width(mt) + 26;
         float mg = glow("mute", in(mx, my, x, top, mw, 16), dt);
-        Glass.pill(d, x, top, mw, 16, muted, mg, a);
+        MenuStyle.button(d, x, top, mw, 16, muted, mg, a);
         MenuIcons.draw(d, "mic", x + 6, top + 4, muted ? Theme.onColor(a) : Theme.TEXT);
         if (muted) {
             for (int i = 0; i < 9; i++) {
@@ -190,7 +190,7 @@ final class VoicePanel extends MenuPanel {
             boolean me = m.id == VoiceChat.myId();
             boolean talking = me ? VoiceChat.talking() : m.talking();
             float tg = glow("t:" + m.id, talking, dt * 2f);
-            Glass.pane(d, x, ry, w, rowH, 4, Theme.mix(Glass.PANE, Theme.withAlpha(Theme.GOOD, 0x40), tg * 0.6f));
+            MenuStyle.panel(d, x, ry, w, rowH, Theme.mix(MenuStyle.ROW, Theme.withAlpha(Theme.GOOD, 0x40), tg * 0.6f));
             if (tg > 0.01f) {
                 d.roundOutline(x, ry, w, rowH, 4, Theme.withAlpha(Theme.GOOD, Math.round(0xC0 * tg)));
             }

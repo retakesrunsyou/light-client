@@ -193,7 +193,7 @@ def stylesheet() -> str:
     QProgressBar {{ background: {p['raised']}; border: none; border-radius: 2px; }}
     QProgressBar::chunk {{ background: {a}; border-radius: 2px; }}
     #console {{ background: {p['bg']}; border: none; border-top: 1px solid {p['border']};
-                border-radius: 0; font-family: monospace; font-size: 12px; color: {p['muted']}; }}
+                border-radius: 0; font-size: 12px; color: {p['muted']}; }}
     #footer {{ background: {p['surface']}; border-top: 1px solid {p['border']}; }}
     QScrollBar:vertical {{ background: transparent; width: 10px; }}
     QScrollBar::handle:vertical {{ background: {p['border']}; border-radius: 4px; min-height: 30px; }}

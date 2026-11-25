@@ -80,7 +80,10 @@ class LoginDialog(Sheet):
                            "Use the Microsoft account that owns Minecraft: Java Edition. "
                            "Your password stays with Microsoft."))
         self.code = QLabel("…")
-        self.code.setFont(QFont("monospace", 28, QFont.Bold))
+        code_font = QFont(self.code.font())
+        code_font.setPointSize(28)
+        code_font.setBold(True)
+        self.code.setFont(code_font)
         self.code.setAlignment(Qt.AlignCenter)
         self.code.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.code.setStyleSheet(f"color: {Theme.accent}; padding: 12px;")

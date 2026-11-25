@@ -22,7 +22,7 @@ public final class WorldTextDraw {
 
     private static final int LIGHT = 0xF000F0;
     private static final Style[] STYLES = new Style[4];
-    private static final String[] NAMES = {null, "lyrics_rounded", "lyrics_heavy", "lyrics_handwritten"};
+    private static final String[] NAMES = {null, "lyrics_medium", "lyrics_bold", "lyrics_regular"};
 
     private WorldTextDraw() {
     }
@@ -31,6 +31,9 @@ public final class WorldTextDraw {
         int f = Math.max(0, Math.min(3, font));
         if (STYLES[f] == null) {
             STYLES[f] = NAMES[f] == null ? Style.EMPTY : Style.EMPTY.withFont(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("peregrine-client", NAMES[f]));
+            if (f == WorldText.FONT_ITALIC) {
+                STYLES[f] = STYLES[f].withItalic(true);
+            }
         }
         return STYLES[f];
     }
@@ -76,7 +79,7 @@ public final class WorldTextDraw {
             }
             Font.DisplayMode mode = t.seeThrough ? Font.DisplayMode.SEE_THROUGH : Font.DisplayMode.POLYGON_OFFSET;
             float w = width(t.text, t.font);
-            float h = t.font == WorldText.FONT_MINECRAFT ? 8f : 12f;
+            float h = t.font == WorldText.FONT_INTER ? 8f : 12f;
             if (t.dx == null && t.colors == null) {
                 piece(sink, pose, t, t.text, -w / 2f, -h / 2f, t.color, mode);
             } else {
