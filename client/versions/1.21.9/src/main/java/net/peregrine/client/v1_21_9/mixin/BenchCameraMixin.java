@@ -20,8 +20,8 @@ public abstract class BenchCameraMixin {
     @Shadow
     protected abstract void setRotation(float yaw, float pitch);
 
-    @Inject(method = "alignWithEntity", at = @At("TAIL"), require = 0)
-    private void peregrine$benchmark(float partial, CallbackInfo ci) {
+    @Inject(method = "setup", at = @At("TAIL"), require = 0)   // 1.21 places the camera in setup()
+    private void peregrine$benchmark(CallbackInfo ci) {
         if (!Benchmark.INSTANCE.running()) {
             return;
         }
