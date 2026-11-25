@@ -47,6 +47,8 @@
 		"NightVisionScaleMixin",
 		"OldAnimationsMixin",
 		"OldSneakMixin",
+		"KnifeHandMixin",
+		"KnifeKeyMixin",
 		"MouseGrabAccessor",
 		"FrameGenWindowMixin",
 		"FrameGenEncoderMixin",

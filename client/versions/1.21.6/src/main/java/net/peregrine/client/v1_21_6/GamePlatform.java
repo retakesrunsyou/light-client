@@ -574,7 +574,7 @@ final class GamePlatform implements Platform {
 
     @Override
     public boolean supports(String moduleId) {
-        if (moduleId.equals("custom_sky") || moduleId.equals("gpu_mobs") || moduleId.equals("knives") || moduleId.equals("viewmodel_fx") || moduleId.equals("skeletons") || moduleId.equals("pickaxe_look")) {
+        if (moduleId.equals("custom_sky") || moduleId.equals("gpu_mobs") || moduleId.equals("viewmodel_fx") || moduleId.equals("skeletons") || moduleId.equals("pickaxe_look")) {
             return false;  // these are on 26.1 for now (beta)
         }
         return !moduleId.equals("chunk_fade");  // Minecraft added the fade-in in 1.21.11
