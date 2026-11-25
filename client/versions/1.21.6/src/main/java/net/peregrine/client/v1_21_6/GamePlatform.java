@@ -574,7 +574,7 @@ final class GamePlatform implements Platform {
 
     @Override
     public boolean supports(String moduleId) {
-        if (moduleId.equals("custom_sky") || moduleId.equals("gpu_mobs") || moduleId.equals("knives") || moduleId.equals("viewmodel_fx") || moduleId.equals("boost_world_scale") || moduleId.equals("skeletons") || moduleId.equals("pickaxe_look") || moduleId.equals("frame_gen") || moduleId.equals("hd_look") || moduleId.equals("clips") || moduleId.equals("menu_3d")) {
+        if (moduleId.equals("custom_sky") || moduleId.equals("gpu_mobs") || moduleId.equals("knives") || moduleId.equals("viewmodel_fx") || moduleId.equals("skeletons") || moduleId.equals("pickaxe_look")) {
             return false;  // these are on 26.1 for now (beta)
         }
         return !moduleId.equals("chunk_fade");  // Minecraft added the fade-in in 1.21.11
@@ -889,6 +889,16 @@ final class GamePlatform implements Platform {
             return new int[] {b.getX(), b.getY(), b.getZ()};
         }
         return null;
+    }
+
+    @Override
+    public int shownFps() {
+        return FrameGen.shownFps();
+    }
+
+    @Override
+    public boolean killedSomething() {
+        return ClipCapture.killedSomething();
     }
 
     @Override
