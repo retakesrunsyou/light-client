@@ -45,6 +45,8 @@
 		"KnifeHandMixin",
 		"KnifeKeyMixin",
 		"PickaxeLookMixin",
+		"SkeletonHandMixin",
+		"SkeletonRenderMixin",
 		"InventorySlotAccessor",
 		"EntityRemovedAccessor",
 		"MinecraftInputAccessor",

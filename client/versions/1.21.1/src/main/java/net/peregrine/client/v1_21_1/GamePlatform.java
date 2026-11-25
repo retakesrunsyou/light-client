@@ -574,7 +574,7 @@ final class GamePlatform implements Platform {
 
     @Override
     public boolean supports(String moduleId) {
-        if (moduleId.equals("custom_sky") || moduleId.equals("gpu_mobs") || moduleId.equals("viewmodel_fx") || moduleId.equals("boost_world_scale") || moduleId.equals("skeletons") || moduleId.equals("frame_gen") || moduleId.equals("hd_look") || moduleId.equals("clips") || moduleId.equals("menu_3d")) {
+        if (moduleId.equals("custom_sky") || moduleId.equals("gpu_mobs") || moduleId.equals("viewmodel_fx") || moduleId.equals("boost_world_scale") || moduleId.equals("frame_gen") || moduleId.equals("hd_look") || moduleId.equals("clips") || moduleId.equals("menu_3d")) {
             return false;  // these are on 26.1 for now (beta)
         }
         if (moduleId.equals("saturation")) {

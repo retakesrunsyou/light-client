@@ -10,6 +10,7 @@ NOTES = [
     ("3.0.1", "Launcher refresh", "A clearer navigation rail, simpler controls and a redesigned Home page."),
     ("3.0.1", "Inter in Minecraft", "The launcher font now carries through to Minecraft's default text."),
     ("3.0.1", "Pause menu input", "Clicks follow the visible buttons during animations and on supported 3D pause panels."),
+    ("3.0.1", "Skeleton Look", "Skeleton player models and first-person arms now work on Minecraft 1.21 and 1.21.1."),
     ("3.0.0", "Everything on every version", "Knives, viewmodel effects, skeletons, pickaxe looks, clips, zero delay, "
               "the benchmark, area miner, smooth join, world scale, HD look, frame generation, the 3D menu and custom skies "
               "now work on far more versions than just 26.1. A few still need newer versions; the launcher only shows what "

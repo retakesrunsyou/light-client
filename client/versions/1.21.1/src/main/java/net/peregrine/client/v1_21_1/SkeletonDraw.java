@@ -2,6 +2,8 @@ package net.peregrine.client.v1_21_1;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -16,7 +18,7 @@ import net.peregrine.client.core.skeleton.Skeleton;
 import net.peregrine.client.core.skeleton.ToolLooks;
 
 /**
- * The Skeleton look and pickaxe looks on 1.21-1.21.1 (pickaxe looks; the bone bodies need 1.21.2+): players' bodies and your first-person arm drawn
+ * The Skeleton look and pickaxe looks on 1.21-1.21.1: players' bodies and your first-person arm drawn
  * as bone, and your pickaxe as a star wand or peppermint axe. Anything that goes wrong turns that
  * part off for the session and Minecraft's own drawing comes back.
  */
@@ -38,6 +40,40 @@ public final class SkeletonDraw {
     }
 
     // ------------------------------------------------------------------ players
+
+    /** Reuses the pose Minecraft prepared for this player's model. */
+    public static boolean player(PlayerModel<?> model, AbstractClientPlayer player, PoseStack pose,
+                                 MultiBufferSource buffers, int light, int overlay, int tint) {
+        if (broken) {
+            return false;
+        }
+        Minecraft mc = Minecraft.getInstance();
+        int lod = Skeleton.lod(mc.getEntityRenderDispatcher().distanceToSqr(player));
+        if (lod < 0) {
+            return false;
+        }
+        try {
+            float[] parts = new float[Skeleton.PARTS * 9];
+            put(parts, Skeleton.HEAD, model.head);
+            put(parts, Skeleton.BODY, model.body);
+            put(parts, Skeleton.RIGHT_ARM, model.rightArm);
+            put(parts, Skeleton.LEFT_ARM, model.leftArm);
+            put(parts, Skeleton.RIGHT_LEG, model.rightLeg);
+            put(parts, Skeleton.LEFT_LEG, model.leftLeg);
+            boolean slim = player.getSkin().model() == net.minecraft.client.resources.PlayerSkin.Model.SLIM;
+            PoseStack.Pose current = pose.last();
+            VertexConsumer vertices = buffers.getBuffer(bone());
+            Skeleton.draw(parts, slim, lod,
+                    (x, y, z, nx, ny, nz, u, v, color) -> vertices.addVertex(current, x, y, z)
+                            .setColor(mul(color, tint)).setUv(u, v).setOverlay(overlay).setLight(light)
+                            .setNormal(current, nx, ny, nz));
+            return true;
+        } catch (RuntimeException e) {
+            broken = true;
+            System.err.println("[Peregrine] skeleton look turned off: " + e);
+            return false;
+        }
+    }
 
     private static void put(float[] p, int part, ModelPart m) {
         int o = part * 9;
@@ -68,16 +104,18 @@ public final class SkeletonDraw {
             Minecraft mc = Minecraft.getInstance();
             final boolean slim = mc.player != null && mc.player.getSkin().model() == net.minecraft.client.resources.PlayerSkin.Model.SLIM;
             pose.pushPose();
-            arm.translateAndRotate(pose);
-            final M4 px = new M4().scale(1 / 16f);
-            {
-                PoseStack.Pose pp = pose.last();
-                VertexConsumer vc = buffers.getBuffer(bone());
-                Skeleton.arm(right, slim, lod, px,
-                    (x, y, z, nx, ny, nz, u, v, c) -> vc.addVertex(pp, x, y, z).setColor(c).setUv(u, v)
-                            .setOverlay(overlay).setLight(light).setNormal(pp, nx, ny, nz));
+            try {
+                arm.translateAndRotate(pose);
+                M4 scale = new M4().scale(1 / 16f);
+                PoseStack.Pose current = pose.last();
+                VertexConsumer vertices = buffers.getBuffer(bone());
+                Skeleton.arm(right, slim, lod, scale,
+                        (x, y, z, nx, ny, nz, u, v, color) -> vertices.addVertex(current, x, y, z)
+                                .setColor(color).setUv(u, v).setOverlay(overlay).setLight(light)
+                                .setNormal(current, nx, ny, nz));
+            } finally {
+                pose.popPose();
             }
-            pose.popPose();
             return true;
         } catch (Throwable e) {
             broken = true;

@@ -164,11 +164,12 @@ class LibraryPage(QWidget):
         v.addLayout(head)
         v.addSpacing(22)
 
-        from .modern import ResponsiveRow
-        body = ResponsiveRow()   # side by side, or the mods under the details in a narrow window
-        body.setSpacing(18)
+        body = QHBoxLayout()
+        body.setContentsMargins(0, 0, 0, 0)
+        body.setSpacing(16)
         left = QVBoxLayout()
-        left.setSpacing(14)
+        left.setContentsMargins(0, 0, 0, 0)
+        left.setSpacing(10)
 
         self.details = QFrame(objectName="card")
         d = QVBoxLayout(self.details)
@@ -195,8 +196,7 @@ class LibraryPage(QWidget):
         left.addStretch(1)
         lw = QWidget()
         lw.setLayout(left)
-        lw.setFixedWidth(300)
-        self.mods_min = 260
+        lw.setFixedWidth(248)
         body.addWidget(lw)
 
         self.mods_card = QFrame(objectName="card")
@@ -251,7 +251,7 @@ class LibraryPage(QWidget):
         if self.inst is not None:
             self.inst = next((i for i in insts if i.folder == self.inst.folder), None)
         if self.inst is None:
-            self.inst = max(insts, key=lambda i: i.data.get("last_played", 0), default=None)
+            self.inst = max(insts, key=lambda i: i.data.get("last_played") or 0, default=None)
         inst = self.inst
         clear(self.rows)
         clear(self.list)

@@ -11,6 +11,7 @@ final class LightPanel extends MenuPanel {
         {"3.0.1", "Inter", "Minecraft's default text uses the launcher font"},
         {"3.0.1", "Pause menu", "Clicks follow animated buttons and 3D panels"},
         {"3.0.1", "Launcher", "Refreshed navigation, controls and Home page"},
+        {"3.0.1", "Skeleton Look", "Player skeletons and first-person bones on 1.21 and 1.21.1"},
         {"3.0.0", "Every version", "Knives, clips, skeletons and more on older versions"},
         {"3.0.0", "26.3", "Knives, clips, sky, world scale and HD look"},
         {"3.0.0", "Fixes", "Fog off crash on 1.21.6-1.21.11 fixed"},
