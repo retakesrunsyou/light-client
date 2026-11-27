@@ -5,7 +5,7 @@ from PySide6.QtGui import QColor, QIcon, QImage, QPainter, QPainterPath, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 
 THEMES = {
-    # Bunny: near-black neutrals with hairline borders and a pink accent (the default).
+    # Bunny: near-black neutrals with hairline borders and a white accent (the default).
     "bunny": dict(bg="#0b0b0f", surface="#131318", raised="#1e1e26", border="#25252d",
                   text="#f2f2f5", muted="#a0a0b0", faint="#6f6f80", danger="#ff6b81"),
     # Dusk: slate blue-grey, like the sky a falcon hunts in.
@@ -19,22 +19,24 @@ THEMES = {
 THEME_NAMES = {"bunny": "Bunny", "dusk": "Dusk", "midnight": "Midnight", "light": "Light"}
 
 ACCENTS = {
-    "Pink": "#ff5fa8", "Amber": "#e8a33d", "Sky": "#5aa9e6", "Moss": "#7bc47f",
+    "White": "#ffffff", "Pink": "#ff5fa8", "Amber": "#e8a33d", "Sky": "#5aa9e6", "Moss": "#7bc47f",
     "Heather": "#c38be0", "Coral": "#e07a7a", "Violet": "#7c5cff",
 }
-DEFAULT_ACCENT = "#ff5fa8"
+DEFAULT_ACCENT = "#ffffff"
 
 
 class Theme:
     """The current palette. Widgets read colors from here."""
     name = "bunny"
-    accent = "#ff5fa8"
+    accent = "#ffffff"
     p = THEMES["bunny"]
 
     @classmethod
     def set(cls, name: str, accent: str) -> None:
         cls.name = name if name in THEMES else "bunny"
         cls.accent = accent
+        if cls.name == "light" and accent.lower() == "#ffffff":
+            cls.accent = "#15171c"   # white would vanish on the light theme
         cls.p = THEMES[cls.name]
 
 
@@ -77,7 +79,7 @@ def on_color(hex_color: str) -> str:
     """Readable text color (dark or white) to put on top of a fill."""
     c = QColor(hex_color)
     lum = 0.2126 * c.redF() ** 2.2 + 0.7152 * c.greenF() ** 2.2 + 0.0722 * c.blueF() ** 2.2
-    return "#1a0610" if lum > 0.28 else "#ffffff"
+    return "#0b0b0f" if lum > 0.28 else "#ffffff"
 
 
 def tint(hex_color: str, alpha: float) -> str:
@@ -102,7 +104,7 @@ def stylesheet() -> str:
     p, a = Theme.p, Theme.accent
     on_a = on_color(a)
     dark = Theme.name != "light"
-    hover_a = shade(a, 112 if dark else 94)
+    hover_a = shade(a, 88) if dark and a.lower() == "#ffffff" else shade(a, 112 if dark else 94)
     rail = shade(p["bg"], 90) if dark else p["surface"]
     edge_hi = p["border"]
     glass_pill = p["surface"]
