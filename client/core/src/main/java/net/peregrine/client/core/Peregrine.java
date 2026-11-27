@@ -238,6 +238,7 @@ public final class Peregrine {
         modules.add(new net.peregrine.client.core.modules.Clips());
         modules.add(new Flag("borderless", "Borderless fullscreen", "F11 fills the screen without switching modes: alt-tab is instant",
                 Module.Category.UTILITY));
+        for (Module module : modules) module.addPersonalization();
         this.menu = new Menu(this);
         this.titleMenu = new TitleMenu(this);
     }
@@ -478,9 +479,11 @@ public final class Peregrine {
         }
         m.setEnabled(!m.enabled());
         markDirty();
-        toast = m.name;
-        toastOn = m.enabled();
-        toastAt = System.currentTimeMillis();
+        if (m.keyNotice.value) {
+            toast = m.displayName();
+            toastOn = m.enabled();
+            toastAt = System.currentTimeMillis();
+        }
         SelfTest.count("keybind:" + m.id);
     }
 

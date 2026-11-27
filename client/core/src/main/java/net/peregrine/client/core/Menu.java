@@ -553,7 +553,7 @@ public final class Menu {
                 if (x.favorite != y.favorite) {
                     return x.favorite ? -1 : 1;  // starred ones first
                 }
-                return x.name.compareToIgnoreCase(y.name);
+                return x.displayName().compareToIgnoreCase(y.displayName());
             }
         });
         return out;
@@ -957,7 +957,7 @@ public final class Menu {
         int[] st = starAt(c);
         int room = (hover || m.favorite ? st[0] - 3 : tg[0] - 5) - tx;
         boolean warn = hover && m.warning() != null;
-        String title = cd.trim(m.name, room);
+        String title = cd.trim(m.displayName(), room);
         boolean compact = pc.compactRows();
         int ty = compact ? cy + (tileH - 8) / 2 : cy + 5;
         cd.text(title, tx, ty, Theme.TEXT, false);
@@ -985,7 +985,7 @@ public final class Menu {
     /** Where you are, for the title: "Modules / HUD", "Mods / Browse"... */
     private String crumb() {
         if (page != null) {
-            return page.name;
+            return page.displayName();
         }
         if (section.equals("cat:PERFORMANCE")) return "Performance / Modules";
         for (Node n : SIDEBAR) {
@@ -1432,7 +1432,7 @@ public final class Menu {
                 if (stack != null) {
                     d.item(stack, listX + 3, y + 1);
                 }
-                d.text(d.trim(m.name, listW - 100), listX + 23, y + 5, rh ? Theme.TEXT : Theme.MUTED, false);
+                d.text(d.trim(m.displayName(), listW - 100), listX + 23, y + 5, rh ? Theme.TEXT : Theme.MUTED, false);
                 String val = waiting ? "Press a key…" : Keys.name(m.key);
                 int bw = Math.max(44, d.width(val) + 12);
                 int bx = listX + listW - 6 - bw;
@@ -1475,7 +1475,7 @@ public final class Menu {
         d.roundOutline(x, listY + 3, 16, 16, bh ? Theme.withAlpha(a, 0xC0) : Theme.HAIRLINE);
         arrowLeft(d, x + 6, listY + 7, bh ? Theme.TEXT : Theme.MUTED);
         hit("back", x, listY + 3, 16, 16, null);
-        d.text(d.trim(m.name, w - 66), x + 22, listY + 2, Theme.TEXT, false);
+        d.text(d.trim(m.displayName(), w - 66), x + 22, listY + 2, Theme.TEXT, false);
         d.text(d.trim(m.description, w - 66), x + 22, listY + 13, Theme.FAINT, false);
         if (m != allHud) {
             boolean th = in(mx, my, x + w - 30, listY + 6, 22, 10);
@@ -1602,17 +1602,19 @@ public final class Menu {
             } else if (st instanceof SliderSetting) {
                 SliderSetting sl = (SliderSetting) st;
                 String val = sl.text();
-                int vw = Math.max(d.width(val), 28);
-                d.text(val, right - d.width(val), y + 7, Theme.TEXT, false);
+                int vw = Math.max(d.width(val) + 8, 30);
+                d.roundRect(right - vw, y + 4, vw, 15, 3, Theme.FIELD);
+                d.text(val, right - (vw + d.width(val)) / 2, y + 7, Theme.TEXT, false);
                 int tw = Math.max(40, Math.min(110, w - 16 - w / 2 - vw));
                 int tx = right - vw - 8 - tw;
                 boolean active = draggingSlider == sl;
-                d.roundRect(tx, y + 10, tw, 3, 0xFF2F3542);
                 int fill = Math.round(sl.fraction() * tw);
-                d.roundRect(tx, y + 10, Math.max(2, fill), 3, a);
-                int kx = tx + fill - 3;
-                d.rect(kx + 1, y + 7, 4, 9, rh || active ? 0xFFFFFFFF : 0xFFE6E6E6);
-                d.rect(kx, y + 8, 6, 7, rh || active ? 0xFFFFFFFF : 0xFFE6E6E6);
+                d.roundRect(tx, y + 10, tw, 3, 1, 0xFF42444C);
+                if (fill > 0) d.roundRect(tx, y + 10, fill, 3, 1, a);
+                int cx = tx + fill;
+                if (active || rh) d.roundRect(cx - 6, y + 5, 13, 13, 6, Theme.withAlpha(a, 0x35));
+                d.roundRect(cx - 4, y + 7, 9, 9, 4, 0xFF101116);
+                d.roundRect(cx - 3, y + 8, 7, 7, 3, 0xFFF8F9FB);
                 hit(id, tx - 3, y + 2, tw + 6, SET_H - 4, st);
                 sliderTrack.put(sl, new int[] {tx, tw});
             } else if (st instanceof TextSetting) {

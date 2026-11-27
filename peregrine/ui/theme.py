@@ -1,5 +1,8 @@
 """Colors, the app stylesheet, and small line icons drawn as SVG."""
 
+import sys
+from pathlib import Path
+
 from PySide6.QtCore import QByteArray, QRectF, Qt
 from PySide6.QtGui import QColor, QIcon, QImage, QPainter, QPainterPath, QPixmap
 from PySide6.QtSvg import QSvgRenderer
@@ -324,13 +327,8 @@ _PATHS = {
     "info": '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8v.2"/>',
 }
 
-LOGO_SVG = (
-    '<g transform="translate(23 23) scale(5)">'
-    '<path fill="#fff0cf" d="M12 0h3L7 16H4Z"/>'
-    '<path fill="#e6a04f" d="m11.5 7 5 9H7Z"/>'
-    '<path fill="{c}" d="M0 11h6l-.5 1H0zm2-2h5l-.5 1H2z"/>'
-    '</g>'
-)
+APP_ICON_SVG = (Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[2]))
+                / "assets" / "light-client-mark.svg").read_text(encoding="utf-8")
 
 
 def _render(svg: str, size: int, dpr: float) -> QPixmap:
@@ -360,9 +358,7 @@ def icon_pixmap(name: str, color: str = None, size: int = 20, dpr: float = 2.0, 
 
 
 def logo_pixmap(size: int = 32, dpr: float = 2.0) -> QPixmap:
-    svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="14 18 100 90">'
-           f'{LOGO_SVG.format(c=Theme.accent)}</svg>')
-    return _render(svg, size, dpr)
+    return _render(APP_ICON_SVG, size, dpr)
 
 
 def avatar_pixmap(skin_path, name: str, size: int = 32, dpr: float = 2.0) -> QPixmap:
@@ -392,18 +388,6 @@ def avatar_pixmap(skin_path, name: str, size: int = 32, dpr: float = 2.0) -> QPi
     painter.end()
     out.setDevicePixelRatio(dpr)
     return out
-
-
-APP_ICON_SVG = (   # the Light Client prism, matching assets/peregrine.ico
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">'
-    '<rect x="6.5" y="6.5" width="115" height="115" rx="24" fill="#121722" stroke="#525d73" stroke-width="1.5"/>'
-    '<g transform="translate(22 24) scale(5)">'
-    '<path fill="#fff0cf" d="M12 0h3L7 16H4Z"/>'
-    '<path fill="#e6a04f" d="m11.5 7 5 9H7Z"/>'
-    '<path fill="#efad49" d="M0 11h6l-.5 1H0zm2-2h5l-.5 1H2z"/>'
-    '</g>'
-    '</svg>'
-)
 
 
 def render_app_icon(size: int) -> QPixmap:

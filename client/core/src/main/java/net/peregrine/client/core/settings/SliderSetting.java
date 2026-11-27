@@ -21,8 +21,12 @@ public final class SliderSetting extends Setting {
     }
 
     public void set(float v) {
-        v = Math.max(min, Math.min(max, v));
-        value = step > 0 ? Math.round(v / step) * step : v;
+        if (!Float.isFinite(v)) return;
+        if (v <= min || v >= max) {
+            value = v <= min ? min : max;
+            return;
+        }
+        value = step > 0 ? Math.min(max, min + Math.round((v - min) / step) * step) : v;
     }
 
     public float fraction() {

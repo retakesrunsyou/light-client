@@ -1,9 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 21 20" role="img" aria-label="Light Client prism">
-  <defs>
-    <linearGradient id="edge" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#fffaf0"/><stop offset="1" stop-color="#efad49"/></linearGradient>
-    <linearGradient id="facet" x2="0" y2="1"><stop stop-color="#ffcb72"/><stop offset="1" stop-color="#ab652e"/></linearGradient>
-  </defs>
-  <path fill="url(#edge)" d="M12 0h3L7 16H4Z"/>
-  <path fill="url(#facet)" d="m11.5 7 5 9H7Z"/>
-  <path fill="#efad49" d="M0 11h6l-.5 1H0zm2-2h5l-.5 1H2z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Light Client">
+  <rect x="1" y="1" width="30" height="30" rx="7" fill="#15161a" stroke="#414349"/>
+  <path fill="#fafafa" d="M10 7h7l-5 14-6 4zM14 21l4-3h9l-4 7H9z"/>
 </svg>
