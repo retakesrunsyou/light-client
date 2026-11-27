@@ -889,23 +889,25 @@ final class GamePlatform implements Platform {
         if (shape == cursorShape) {
             return;
         }
+        cursorShape = shape;
         try {
-            long window = org.lwjgl.glfw.GLFW.glfwGetCurrentContext();
+            // This version may not ship GLFW (the window library moved), so it's looked up at run time.
+            Class<?> glfw = Class.forName("org.lwjgl.glfw.GLFW");
+            long window = (long) glfw.getMethod("glfwGetCurrentContext").invoke(null);
             if (window == 0) {
                 return;
             }
+            var create = glfw.getMethod("glfwCreateStandardCursor", int.class);
             if (shape > 0 && CURSORS[shape] == 0) {
-                // 0x36009 / 0x3600A are the diagonal arrows (GLFW 3.4); older builds fall back to a plain arrow pair.
                 int[] kinds = {0, 0x33005, 0x33006, 0x36009, 0x3600A};
-                CURSORS[shape] = org.lwjgl.glfw.GLFW.glfwCreateStandardCursor(kinds[shape]);
+                CURSORS[shape] = (long) create.invoke(null, kinds[shape]);
                 if (CURSORS[shape] == 0 && shape > 2) {
-                    CURSORS[shape] = org.lwjgl.glfw.GLFW.glfwCreateStandardCursor(0x36001);
+                    CURSORS[shape] = (long) create.invoke(null, 0x36001);
                 }
             }
-            org.lwjgl.glfw.GLFW.glfwSetCursor(window, shape == 0 ? 0L : CURSORS[shape]);
-            cursorShape = shape;
+            glfw.getMethod("glfwSetCursor", long.class, long.class).invoke(null, window, shape == 0 ? 0L : CURSORS[shape]);
         } catch (Throwable ignored) {
-            cursorShape = shape;
+            // no cursor shapes here; the arrow stays
         }
     }
 
