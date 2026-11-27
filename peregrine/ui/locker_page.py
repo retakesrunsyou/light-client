@@ -15,7 +15,7 @@ from PySide6.QtCore import QEasingCurve, QRectF, QSize, Qt, QTimer, QVariantAnim
 from PySide6.QtGui import QColor, QImage, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
-from .. import auth, custom_cape, locker
+from .. import auth, custom_cape, locker, shop
 from . import workers
 from .modern import PillButton, animations_on, big_title, section_label
 from .pages import clear, scroll
@@ -289,7 +289,7 @@ class SkinView(QWidget):
     def set_cape(self, data_or_path, frames=None, frame_ms=125):
         self.cape = None
         self.cape_frames = None
-        self.cape_ms = max(20, frame_ms) / 1000.0
+        self.cape_ms = max(16, frame_ms) / 1000.0
         if frames:
             imgs = [QImage(str(f)) for f in frames]
             self.cape_frames = [i.convertToFormat(QImage.Format_ARGB32) for i in imgs if not i.isNull()] or None
@@ -516,11 +516,12 @@ class CapeCard(_Card):
     def __init__(self, title, sub, image, frames=None, frame_ms=125):
         super().__init__(title, sub)
         self.img = image
+        self.locked = False
         self.frames = [QImage(str(f)) for f in frames] if frames else None
-        self.ms = max(20, frame_ms) / 1000.0
+        self.ms = max(16, frame_ms) / 1000.0
         if self.frames:
             self._t0 = time.monotonic()
-            self._timer = QTimer(self, interval=max(20, int(frame_ms)))
+            self._timer = QTimer(self, interval=max(16, int(frame_ms)))
             self._timer.timeout.connect(self._next)
             self._timer.start()
 
@@ -537,7 +538,18 @@ class CapeCard(_Card):
         front = self.img.copy(round(k), round(k), round(10 * k), round(16 * k))
         s = min(r.width() / 10, r.height() / 16)
         p.setRenderHint(QPainter.SmoothPixmapTransform, k > 1)
+        if self.locked:
+            p.setOpacity(0.55)
         p.drawImage(QRectF(r.center().x() - 5 * s, r.top() + (r.height() - 16 * s) / 2, 10 * s, 16 * s), front)
+        if self.locked:   # a small padlock
+            p.setOpacity(1.0)
+            cx, cy = r.center().x(), r.center().y()
+            p.setPen(QPen(QColor(255, 255, 255, 235), 2))
+            p.setBrush(Qt.NoBrush)
+            p.drawArc(QRectF(cx - 6, cy - 14, 12, 14), 0, 180 * 16)
+            p.setPen(Qt.NoPen)
+            p.setBrush(QColor(255, 255, 255, 235))
+            p.drawRoundedRect(QRectF(cx - 9, cy - 7, 18, 14), 3, 3)
 
 
 class BackgroundCard(_Card):
@@ -794,13 +806,17 @@ class LockerPage(QWidget):
                 if i == locker.CUSTOM_CAPE:
                     continue
                 path = locker.cape_asset(i)
-                c = CapeCard(name, "Moving" if locker.cape_frames(i) else "Light Client",
-                             QImage(str(path)) if path else None, locker.cape_frames(i))
+                file = locker.CAPE_FILES[i]
+                lock = not shop.owns(file)
+                c = CapeCard(name, f"{shop.price(file)} fragments" if lock else
+                             "Moving" if locker.cape_frames(i) else "Light Client",
+                             QImage(str(path)) if path else None, locker.cape_frames(i), locker.cape_frame_ms(i))
+                c.locked = lock
                 c.worn = i == worn
                 c.key = ("pcape", i)
                 c.clicked.connect(lambda c=c: self.pick(c.key))
                 pc.append(c)
-            self._grid("Light Client capes · other Light Client players see these", pc)
+            self._grid(f"Capes · {shop.balance()} Light Fragments (+{shop.DAILY} a day)", pc)
             own = []
             if custom_cape.exists():
                 i = locker.CUSTOM_CAPE
@@ -870,7 +886,13 @@ class LockerPage(QWidget):
             self.view.set_cape(locker.cape_asset(what), locker.cape_frames(what), locker.cape_frame_ms(what))
             self.pick_name.setText("Your own cape" if what == locker.CUSTOM_CAPE
                                    else locker.CAPE_NAMES[what] + " cape" if what else "No Light Client cape")
-            self.wear.setText("WEAR THIS CAPE")
+            file = locker.CAPE_FILES[what] if 0 < what < len(locker.CAPE_FILES) else ""
+            if not shop.owns(file):
+                have = shop.balance()
+                self.wear.setText(f"BUY FOR {shop.price(file)} FRAGMENTS" if have >= shop.price(file)
+                                  else "GET MORE FRAGMENTS" if shop.checkout_url() else "NOT ENOUGH FRAGMENTS")
+            else:
+                self.wear.setText("WEAR THIS CAPE")
             self.view.show_back(bool(what))
         elif kind == "mcape":
             self.view.set_cape(what.get("image") if what else None)
@@ -1000,6 +1022,22 @@ class LockerPage(QWidget):
             return
         kind, what = self.picked
         acct = auth.active_account()
+        if kind == "pcape" and 0 < what < len(locker.CAPE_FILES) and not shop.owns(locker.CAPE_FILES[what]):
+            file = locker.CAPE_FILES[what]
+            if shop.balance() < shop.price(file) and shop.checkout_url():
+                import webbrowser
+                webbrowser.open(shop.checkout_url())
+                self._done("Opened the page to get more Light Fragments")
+                return
+            why = shop.buy(file)
+            if why:
+                self._done(why + " You earn a few every day you open Light Client.")
+                return
+            locker.set_peregrine_cape(what)
+            self._done(f"Bought the {locker.CAPE_NAMES[what]} cape and put it on")
+            self.render()
+            self.pick(("pcape", what))
+            return
         if kind == "pcape":
             locker.set_peregrine_cape(what)
             from .. import profiles

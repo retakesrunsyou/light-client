@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 
 from .. import auth, avatars, friends, wsclient
 from . import workers
+from .game_bridge import GameBridge
 from .modern import ONLINE, PillButton, big_title, section_label
 from .pages import clear, empty_state, scroll
 from .theme import Theme, avatar_pixmap, icon
@@ -349,6 +350,8 @@ class FriendsPage(QWidget):
         self.cv.setSpacing(10)
         self.body.addWidget(self.chat, 1)
 
+        self.bridge = GameBridge(self)     # the in-game Friends page (game_bridge.py)
+        self.bridge.request.connect(self._from_game)
         self.ticker = QTimer(self, interval=1000, timeout=self._tick)
         self.refresher = QTimer(self, interval=90_000, timeout=self.load)
         self.refresher.start()
@@ -405,7 +408,7 @@ class FriendsPage(QWidget):
         self.loading = False
         self.error = ""
         self.data = data
-        friends.save_snapshot(data.get("friends", []))
+        self._snapshot()
         self.render()
         people = data.get("friends", [])
         self.counts.emit(sum(1 for p in people if p.get("online")), len(people))
@@ -425,6 +428,9 @@ class FriendsPage(QWidget):
         self.error = msg
         self.render()
         self.counts.emit(-1, 0)
+
+    def _snapshot(self):
+        friends.save_snapshot(self.data.get("friends", []))
 
     def friend(self, uuid):
         for p in self.data.get("friends", []):
@@ -457,6 +463,7 @@ class FriendsPage(QWidget):
                 if p:
                     p["unread"] = p.get("unread", 0) + 1
                     self.render_list()
+                    self._snapshot()
 
     def _fetch_new(self, uuid):
         c = self.client
@@ -487,6 +494,9 @@ class FriendsPage(QWidget):
             elif p.get("t") == "text" and not m["mine"] and live:
                 if uuid != self.selected or not self.isVisible():
                     self._notify(f"{self._name(uuid)}: {p.get('b', '')[:80]}")
+        self.bridge.publish_chat(uuid, self.chats.get(uuid, []))
+        if fresh and not live:
+            self._snapshot()
         if uuid == self.selected:
             self.render_messages()
             if fresh and self.client:
@@ -554,14 +564,18 @@ class FriendsPage(QWidget):
 
     def send_text(self):
         text = self.input.text().strip()
-        uuid, c = self.selected, self.client
+        self.input.clear()
+        self.send_to(self.selected, text)
+
+    def send_to(self, uuid, text):
+        c = self.client
         if not text or not uuid or not c:
             return
-        self.input.clear()
         pending = {"id": 10 ** 12 + len(self.chats.get(uuid, [])), "mine": True, "at": int(time.time() * 1000),
                    "payload": {"t": "text", "b": text}, "pending": True}
         self.chats.setdefault(uuid, []).append(pending)
-        self.render_messages()
+        if uuid == self.selected:
+            self.render_messages()
 
         def sent(r):
             try:
@@ -572,8 +586,11 @@ class FriendsPage(QWidget):
 
         def failed(m):
             pending["failed"] = m
-            self.render_messages()
+            if uuid == self.selected:
+                self.render_messages()
+            self.bridge.publish_chat(uuid, self.chats.get(uuid, []))
 
+        self.bridge.publish_chat(uuid, self.chats[uuid])
         workers.run(c.text, uuid, text, done=sent, failed=failed)
 
     def friend_menu(self, uuid, button):
@@ -632,6 +649,7 @@ class FriendsPage(QWidget):
         self.call.share_when_live = screen
         self.call.start()
         self.ticker.start()
+        self._publish_call()
         self.render_chat()
 
     def _ring(self, uuid, payload):
@@ -644,6 +662,7 @@ class FriendsPage(QWidget):
         import base64
         self.ringing = {"friend": p, "room": payload["room"], "key": base64.b64decode(payload["key"]),
                         "screen": payload.get("screen")}
+        self._publish_call()
         self._notify(f"{p['name']} is calling you")
         if self.selected != uuid:
             self.open_chat(uuid)
@@ -654,15 +673,18 @@ class FriendsPage(QWidget):
     def _stop_ringing(self, room):
         if self.ringing and self.ringing["room"] == room:
             self.ringing = None
+            self._publish_call()
             self.render_chat()
 
     def answer(self):
         r, self.ringing = self.ringing, None
         if r:
             self._begin_call(r["friend"], r["room"], r["key"], False)
+        self._publish_call()
 
     def decline(self):
         r, self.ringing = self.ringing, None
+        self._publish_call()
         if r and self.client:
             workers.run(self.client.hang_up, r["friend"]["uuid"], r["room"], 0, False, failed=lambda _m: None)
         self.render_chat()
@@ -671,6 +693,8 @@ class FriendsPage(QWidget):
         call = self.call
         if state == "live" and getattr(call, "share_when_live", False):
             call.start_screen()
+        if state != "ended":
+            self._publish_call()
         if state == "ended" and call:
             seconds = getattr(call, "ended_seconds", 0)
             reason = getattr(call, "ended_reason", "")
@@ -678,6 +702,7 @@ class FriendsPage(QWidget):
             if reason in ("you", "no answer"):   # whoever ended it writes it in the chat
                 workers.run(self.client.hang_up, call.friend["uuid"], call.room, seconds, missed, failed=lambda _m: None)
             self.call = None
+            self._publish_call()
             self.ticker.stop()
             if self.viewer:
                 self.viewer.close()
@@ -694,7 +719,54 @@ class FriendsPage(QWidget):
             self.viewer.close()
             self.viewer = None
 
+    # ------------------------------------------------------------ the in-game Friends page
+
+    def _publish_call(self):
+        call, ring = self.call, self.ringing
+        out = {"state": "none", "uuid": "", "name": "", "incoming": False, "seconds": 0, "muted": False}
+        try:
+            if call and call.state != "ended":
+                out.update(state="live" if call.state == "live" else "calling", uuid=call.friend["uuid"],
+                           name=call.friend["name"], incoming=not call.outgoing,
+                           seconds=call.duration() if call.state == "live" else 0, muted=bool(call.muted))
+            elif ring:
+                out.update(state="ringing", uuid=ring["friend"]["uuid"], name=ring["friend"]["name"], incoming=True)
+        except (RuntimeError, KeyError):
+            pass
+        self.bridge.publish_call(out)
+
+    def _from_game(self, req):
+        op, uuid = req.get("op"), str(req.get("uuid", ""))
+        if op == "text":
+            self.send_to(uuid, str(req.get("text", ""))[:1000].strip())
+        elif op == "open" and self.client and uuid:
+            p = self.friend(uuid)
+            if p and p.get("unread"):
+                p["unread"] = 0
+                self.render_list()
+                self._snapshot()
+            if uuid in self.chats:
+                self.bridge.publish_chat(uuid, self.chats[uuid])
+                if self.chats[uuid]:
+                    workers.run(self.client.read, uuid, max(m["id"] for m in self.chats[uuid] if m["id"] < 10 ** 12) if any(m["id"] < 10 ** 12 for m in self.chats[uuid]) else 0,
+                                failed=lambda _m: None)
+            else:
+                workers.run(self.client.messages, uuid, 0, 80, done=lambda msgs, u=uuid: self._new_messages(u, msgs, False),
+                            failed=lambda _m: None)
+        elif op == "call" and uuid:
+            self.start_call(uuid)
+        elif op == "answer" and self.ringing:
+            self.answer()
+        elif op == "decline" and self.ringing:
+            self.decline()
+        elif op == "hangup" and self.call:
+            self.hang_up()
+        elif op == "mute" and self.call:
+            self.toggle_mute()
+        self._publish_call()
+
     def _tick(self):
+        self._publish_call()
         if self.call and hasattr(self, "call_time"):
             try:
                 if self.call.state == "live":
@@ -705,6 +777,7 @@ class FriendsPage(QWidget):
     def toggle_mute(self):
         if self.call:
             self.call.set_muted(not self.call.muted)
+            self._publish_call()
             self.render_chat()
 
     def toggle_screen(self):

@@ -8,6 +8,10 @@ final class LightPanel extends MenuPanel {
 
     /** What changed, newest first: {version, title, what it does}. */
     static final String[][] NEWS = {
+        {"5.0.0", "Friends in game", "The in-game menu now has the launcher's Friends: text and call from inside Minecraft"},
+        {"5.0.0", "Sleeker capes", "Static capes at 2048 x 1024 with clean edges; moving capes at about 30 frames a second"},
+        {"5.0.0", "Eight new capes", "Aurora, Fragments, Dawn, Mint, Rose, Midnight, Sunbeam and Obsidian"},
+        {"5.0.0", "Light Fragments", "Earn fragments every day and buy capes with them in the launcher's Locker"},
         {"4.2.0", "Grey and white", "One neutral look across launcher, installers and game"},
         {"4.2.0", "Lexend", "A bolder typeface used everywhere"},
         {"4.2.0", "Light cape", "New grey cape with the logo; sharper 1024 px capes"},

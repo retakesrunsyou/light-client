@@ -33,6 +33,11 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
+        try:
+            from .. import shop
+            shop.load()   # today's Light Fragments, and the list of capes the game may show
+        except Exception:
+            pass
         self.tray, self.quitting = None, False  # the tray icon comes with make_tray()
         self.setWindowTitle(f"{NAME} Launcher")  # display name also set app-wide
         self.resize(1040, 680)

@@ -93,6 +93,11 @@ abstract class MenuPanel {
         return false;
     }
 
+    /** Whether the page has its own text box in use, so keys type into it. */
+    boolean wantsTyping() {
+        return false;
+    }
+
     /** The menu's search text changed. */
     void searchChanged(String text) {
     }

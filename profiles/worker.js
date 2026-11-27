@@ -12,7 +12,7 @@
 const MAX_BYTES = 256 * 1024;
 const NAME = /^[A-Za-z0-9_]{3,16}$/;
 const UUID = /^[0-9a-f]{32}$/;
-const CAPES = ["", "falcon", "violet", "ember", "starry", "pumpkin", "frost", "custom", "prism", "lightspeed"];
+const CAPES = ["", "falcon", "violet", "ember", "starry", "pumpkin", "frost", "custom", "prism", "lightspeed", "aurora", "fragments", "dawn", "mint", "rose", "midnight", "sunbeam", "obsidian"];
 const PRESENCE_DAYS = 60;
 
 // Mojang's keys for signing players' chat keys ("playerCertificateKeys" from
@@ -127,7 +127,7 @@ async function proven(env, body) {
 // reporting it hides it from everyone until its owner makes a new one.
 
 const MAX_CAPE_BYTES = 24 * 1024 * 1024;
-const MAX_CAPE_FRAMES = 160;
+const MAX_CAPE_FRAMES = 240;
 const MAX_STILL_WIDTH = 1024;   // 1024 x 512
 const MAX_MOVING_WIDTH = 512;   // 512 x 256
 // Moving capes: the first frame and frames picked at random are checked (the uploader can't know which).

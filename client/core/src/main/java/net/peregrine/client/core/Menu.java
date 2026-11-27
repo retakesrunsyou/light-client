@@ -217,7 +217,6 @@ public final class Menu {
         new Node("schematics", "Schematics", "blueprint"),
         new Node("locker", "Locker", "shirt"),
         new Node("friends", "Friends", "people"),
-        new Node("voice", "Voice chat", "mic"),
         new Node("news", "What's new", "layers"),
         new Node("keybinds", "Keybinds", "keyboard"),
         new Node("settings", "Settings", "gear"),
@@ -2870,7 +2869,8 @@ public final class Menu {
 
     /** True while something in the menu takes the keyboard: a search bar you clicked, a text box, a key being set. */
     public boolean wantsTyping() {
-        return searchFocused || typing != null || bindingKey != null || binding != null;
+        MenuPanel pn = view == 3 ? panels.get(section) : null;
+        return searchFocused || typing != null || bindingKey != null || binding != null || (pn != null && pn.wantsTyping());
     }
 
     public boolean charTyped(char c) {
@@ -2886,7 +2886,14 @@ public final class Menu {
             styleChanged(typing);
             return true;
         }
-        if (editingHud || Character.isISOControl(c) || search.length() >= 24) {
+        if (editingHud || Character.isISOControl(c)) {
+            return false;
+        }
+        MenuPanel own = view == 3 && page == null ? panel() : null;
+        if (own != null && own.typed(c)) {   // a page with its own text box (the chat) gets every character, spaces too
+            return true;
+        }
+        if (search.length() >= 24) {
             return false;
         }
         boolean free = searchFocused;   // typing only searches once the search bar is clicked

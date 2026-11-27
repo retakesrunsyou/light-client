@@ -13,7 +13,7 @@ package net.peregrine.client.core;
  */
 public final class TitleMenu {
 
-    public static final String CLIENT_VERSION = "4.2.0";
+    public static final String CLIENT_VERSION = "5.0.0";
 
     static final String BRAND = "Light Client";
     static final int H = 20, GAP = 4, SMALL_H = 15;
@@ -824,7 +824,7 @@ public final class TitleMenu {
                 String name = net.peregrine.client.core.modules.Cosmetics.CAPES[i];
                 String n = cd.trim(name, w - 6);
                 cd.text(n, x + (w - cd.width(n)) / 2, cy + h - 22, Theme.TEXT, false);
-                String sub = picked ? "Wearing" : i == net.peregrine.client.core.modules.Cosmetics.CUSTOM ? "Only you" : "Light Client";
+                String sub = picked ? "Wearing" : net.peregrine.client.core.modules.Cosmetics.locked(i) ? "Locked" : i == net.peregrine.client.core.modules.Cosmetics.CUSTOM ? "Only you" : "Owned";
                 cd.text(sub, x + (w - cd.width(sub)) / 2, cy + h - 11, picked ? a : Theme.FAINT, false);
             } else {
                 int iw = w - 8, ih = iw * 9 / 16;

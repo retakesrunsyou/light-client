@@ -35,19 +35,22 @@ import net.peregrine.client.core.settings.ChoiceSetting;
  */
 public final class Cosmetics extends Module {
 
-    public static final String[] CAPES = {"None", "Light", "Violet", "Ember", "Starry night", "Pumpkin", "Frost", "Your own", "Prism", "Lightspeed"};
+    public static final String[] CAPES = {"None", "Light", "Violet", "Ember", "Starry night", "Pumpkin", "Frost", "Your own", "Prism", "Lightspeed", "Aurora", "Fragments", "Dawn", "Mint", "Rose", "Midnight", "Sunbeam", "Obsidian"};
     /** Texture names, under assets/peregrine-client/textures/cape/ ("custom" is your own, made in the launcher). */
-    public static final String[] FILES = {null, "light", "violet", "ember", "starry", "pumpkin", "frost", "custom", "prism", "lightspeed"};
+    public static final String[] FILES = {null, "light", "violet", "ember", "starry", "pumpkin", "frost", "custom", "prism", "lightspeed", "aurora", "fragments", "dawn", "mint", "rose", "midnight", "sunbeam", "obsidian"};
     /** "Your own" cape: a picture, GIF or video made into a cape in the launcher's Locker. Shared with other
      *  Peregrine players once the service's safety check has passed it. */
     public static final int CUSTOM = 7;
     /** Animated capes: frames (files name_0.png ...) and how long each shows. */
     static final java.util.Map<String, Integer> FRAMES = new java.util.HashMap<String, Integer>();
-    static final long FRAME_MS = 125;
+    static final long FRAME_MS = 33;   // about 30 frames a second
 
     static {
-        FRAMES.put("starry", 24);
-        FRAMES.put("lightspeed", 16);
+        FRAMES.put("starry", 32);
+        FRAMES.put("prism", 32);
+        FRAMES.put("lightspeed", 32);
+        FRAMES.put("aurora", 32);
+        FRAMES.put("fragments", 40);
     }
 
     // ---- your own cape (<data>/capes/custom: frame_000.png ... and cape.json, written by the launcher)
@@ -98,7 +101,7 @@ public final class Cosmetics extends Module {
         com.google.gson.JsonArray ms = o.has("ms") ? o.getAsJsonArray("ms") : null;
         for (int i = 0; i < n; i++) {
             int m = ms != null && i < ms.size() ? ms.get(i).getAsInt() : 100;
-            c[3 + i] = Math.max(20, m);
+            c[3 + i] = Math.max(16, m);
             c[2] += c[3 + i];
         }
         return c;
@@ -121,6 +124,45 @@ public final class Cosmetics extends Module {
     public static boolean hasCustom() {
         net.peregrine.client.core.Peregrine pg = net.peregrine.client.core.Peregrine.get();
         return pg != null && pg.platform() != null && pg.platform().supportsCustomCape() && custom() != null;
+    }
+
+    private static volatile java.util.Set<String> ownedSet;
+    private static volatile long ownedAt;
+
+    /**
+     * Whether a cape is yours to wear. The launcher's Shop keeps the list in shop/owned.json; with no
+     * list yet (the Shop was never opened) everything is allowed, and \"Your own\" is always yours.
+     */
+    public static boolean owned(String file) {
+        if (file == null || file.equals("custom") || file.equals("light")) {
+            return true;
+        }
+        long now = System.currentTimeMillis();
+        if (now - ownedAt > 3000) {
+            ownedAt = now;
+            java.util.Set<String> set = null;
+            try {
+                String data = System.getProperty("peregrine.data");
+                java.nio.file.Path f = data == null ? null : java.nio.file.Paths.get(data, "shop", "owned.json");
+                if (f != null && java.nio.file.Files.isRegularFile(f)) {
+                    set = new java.util.HashSet<String>();
+                    JsonObject o = JsonParser.parseString(new String(java.nio.file.Files.readAllBytes(f), java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+                    for (JsonElement e : o.getAsJsonArray("capes")) {
+                        set.add(e.getAsString());
+                    }
+                }
+            } catch (Exception e) {
+                set = null;
+            }
+            ownedSet = set;
+        }
+        java.util.Set<String> set = ownedSet;
+        return set == null || set.contains(file);
+    }
+
+    /** Whether the cape at this index is locked (not bought yet). */
+    public static boolean locked(int index) {
+        return index > 0 && index < FILES.length && !owned(FILES[index]);
     }
 
     /** How many capes the menus list: "Your own" only once you've made one. */
@@ -232,7 +274,7 @@ public final class Cosmetics extends Module {
             return null;
         }
         if (self) {
-            return frame(FILES[m.cape.index]);
+            return frame(owned(FILES[m.cape.index]) ? FILES[m.cape.index] : "light");
         }
         if (!m.others.value) {
             return null;
@@ -369,7 +411,7 @@ public final class Cosmetics extends Module {
     /** Puts on a Peregrine cape (from the Locker), saves it, and lets other Peregrine players know. */
     public static void setCape(int index) {
         Cosmetics m = instance;
-        if (m == null || index < 0 || index >= CAPES.length) {
+        if (m == null || index < 0 || index >= CAPES.length || locked(index)) {
             return;
         }
         m.cape.index = index;
@@ -594,7 +636,7 @@ public final class Cosmetics extends Module {
             c[0] = n;
             com.google.gson.JsonArray ms = own.has("ms") ? own.getAsJsonArray("ms") : null;
             for (int i = 0; i < n; i++) {
-                c[2 + i] = Math.max(20, ms != null && i < ms.size() ? ms.get(i).getAsInt() : 100);
+                c[2 + i] = Math.max(16, ms != null && i < ms.size() ? ms.get(i).getAsInt() : 100);
                 c[1] += c[2 + i];
             }
             OWN.put(hash, c);

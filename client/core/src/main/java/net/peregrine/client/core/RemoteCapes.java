@@ -22,7 +22,7 @@ public final class RemoteCapes {
 
     private static final int KEEP = 60;
     /** The most a shared cape can be: 160 frames, 24 MB (a still is up to 1024 x 512, a moving one 512 x 256). */
-    public static final int MAX_FRAMES = 160;
+    public static final int MAX_FRAMES = 240;
     static final int MAX_BYTES = 24 * 1024 * 1024;
     private static final Set<String> FETCHING = ConcurrentHashMap.newKeySet();
     private static final Map<String, Long> FAILED = new ConcurrentHashMap<String, Long>();

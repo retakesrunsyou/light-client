@@ -18,8 +18,8 @@ from . import auth, config, net, paths
 
 PROFILE = "https://api.minecraftservices.com/minecraft/profile"
 LIBRARY = paths.DATA / "skins" / "library"
-CAPE_NAMES = ("None", "Light", "Violet", "Ember", "Starry night", "Pumpkin", "Frost", "Your own", "Prism", "Lightspeed")
-CAPE_FILES = ("", "light", "violet", "ember", "starry", "pumpkin", "frost", "custom", "prism", "lightspeed")
+CAPE_NAMES = ("None", "Light", "Violet", "Ember", "Starry night", "Pumpkin", "Frost", "Your own", "Prism", "Lightspeed", "Aurora", "Fragments", "Dawn", "Mint", "Rose", "Midnight", "Sunbeam", "Obsidian")
+CAPE_FILES = ("", "light", "violet", "ember", "starry", "pumpkin", "frost", "custom", "prism", "lightspeed", "aurora", "fragments", "dawn", "mint", "rose", "midnight", "sunbeam", "obsidian")
 CUSTOM_CAPE = 7   # your own picture, GIF or video (custom_cape.py); only you see it
 
 
@@ -354,7 +354,7 @@ def peregrine_cape() -> int:
         return 1
 
 
-ANIMATED = {"starry": 24, "lightspeed": 16}
+ANIMATED = {"starry": 32, "prism": 32, "lightspeed": 32, "aurora": 32, "fragments": 40}
 
 
 def cape_frames(index: int):
@@ -406,7 +406,7 @@ def cape_frame_ms(index: int) -> int:
     if index == CUSTOM_CAPE:
         from . import custom_cape
         return custom_cape.preview()[2]
-    return 125
+    return 33
 
 
 def cape_asset(index: int):

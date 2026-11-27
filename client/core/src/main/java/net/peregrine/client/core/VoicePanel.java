@@ -61,7 +61,11 @@ final class VoicePanel extends MenuPanel {
 
     @Override
     void draw(Draw d, int mx, int my, float dt, long now, int a) {
-        d.textScaled("Voice chat", x, y + 1, Theme.TEXT, 1.25f, true);
+        float bg = glow("back", in(mx, my, x, y - 1, 18, 18), dt);
+        MenuStyle.button(d, x, y - 1, 18, 18, false, bg, a);
+        MenuIcons.draw(d, "back", x + 4, y + 3, Theme.TEXT);
+        spot("back", x, y - 1, 18, 18);
+        d.textScaled("Voice party", x + 24, y + 1, Theme.TEXT, 1.25f, true);
         boolean in = VoiceChat.inParty();
         String state = in ? "In a party" : VoiceChat.connecting() ? "Joining..." : "Not in a party";
         int sw = d.width(state) + 16;
@@ -216,6 +220,10 @@ final class VoicePanel extends MenuPanel {
     @Override
     boolean clicked(String id, int mx, int my, int button) {
         Platform p = pc.platform();
+        if (id.equals("back")) {
+            menu.choose("friends");
+            return true;
+        }
         if (id.equals("code")) {
             typing = true;
             return true;

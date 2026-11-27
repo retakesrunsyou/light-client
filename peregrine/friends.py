@@ -372,7 +372,8 @@ def _error(r, fallback: str) -> str:
 def save_snapshot(people: list) -> None:
     """Your friends and who's online, for the game's Friends page (the launcher keeps it
     fresh while it runs, the game reads it)."""
-    keep = [{"gamertag": p.get("name", ""), "online": bool(p.get("online")),
+    keep = [{"uuid": p.get("uuid", ""), "unread": int(p.get("unread", 0) or 0),
+             "gamertag": p.get("name", ""), "online": bool(p.get("online")),
              "status": "Online" if p.get("online") else "", "minecraft": bool(p.get("online")),
              "picture": f"https://mc-heads.net/avatar/{p.get('uuid', '')}/64"} for p in people]
     f = paths.DATA / "client" / "friends.json"
