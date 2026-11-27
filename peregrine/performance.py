@@ -243,7 +243,13 @@ def conflicts(mods: Path, mc: str, ours: set, ignore=()) -> dict:
                 bad[name] = f"needs {dep} {rule}"
         for dep, rule in (m.get("breaks") or {}).items():
             if dep in versions and _matches(versions[dep], rule):
-                if name in ours:
+                theirs = next((o for o, om in jars.items() if om.get("id") == dep), None)
+                if name in ours and theirs in ours:
+                    # Both are ours (Sodium saying this Iris doesn't work with it): the mod
+                    # named in "breaks" is the one that's behind, so that's the one that goes.
+                    # Taking out the other would also strand whatever needs it (Iris needs Sodium).
+                    bad[theirs] = f"{m.get('id')} {versions.get(m.get('id'), '')} doesn't work with it yet"
+                elif name in ours:
                     bad[name] = f"doesn't work with {dep} {versions[dep]}"
                 elif name not in ignore:  # someone else's mod says it breaks with one of ours: ours goes
                     for other, om in jars.items():
@@ -472,7 +478,8 @@ def sync_set(inst, slugs, prefix: str, on: bool, progress=None, force: bool = Fa
             if fn in bad:
                 print(f"[peregrine] not using {fn}: {bad[fn]}")
                 if fn not in shared:
-                    (mods / fn).unlink()
+                    # missing_ok: one file can be tracked twice (Sodium as a mod and as Iris's library)
+                    (mods / fn).unlink(missing_ok=True)
                 tracked.pop(key)
                 if not key.startswith("dep:"):
                     summary["unavailable"].append(key)
