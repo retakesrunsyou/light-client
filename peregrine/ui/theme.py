@@ -5,6 +5,9 @@ from PySide6.QtGui import QColor, QIcon, QImage, QPainter, QPainterPath, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 
 THEMES = {
+    # Bunny: near-black neutrals with hairline borders and a pink accent (the default).
+    "bunny": dict(bg="#0b0b0f", surface="#131318", raised="#1e1e26", border="#25252d",
+                  text="#f2f2f5", muted="#a0a0b0", faint="#6f6f80", danger="#ff6b81"),
     # Dusk: slate blue-grey, like the sky a falcon hunts in.
     "dusk": dict(bg="#171a21", surface="#1f232c", raised="#272c37", border="#323846",
                  text="#edeef2", muted="#959bab", faint="#646b7b", danger="#e5676b"),
@@ -13,24 +16,24 @@ THEMES = {
     "light": dict(bg="#eef0f4", surface="#ffffff", raised="#f4f5f8", border="#d8dce4",
                   text="#1a1d24", muted="#5d6474", faint="#9298a6", danger="#c9454a"),
 }
-THEME_NAMES = {"dusk": "Dusk", "midnight": "Midnight", "light": "Light"}
+THEME_NAMES = {"bunny": "Bunny", "dusk": "Dusk", "midnight": "Midnight", "light": "Light"}
 
 ACCENTS = {
-    "Amber": "#e8a33d", "Sky": "#5aa9e6", "Moss": "#7bc47f",
-    "Heather": "#c38be0", "Coral": "#e07a7a", "Pink": "#ec4f9b", "Violet": "#7c5cff",
+    "Pink": "#ff5fa8", "Amber": "#e8a33d", "Sky": "#5aa9e6", "Moss": "#7bc47f",
+    "Heather": "#c38be0", "Coral": "#e07a7a", "Violet": "#7c5cff",
 }
-DEFAULT_ACCENT = "#7c5cff"
+DEFAULT_ACCENT = "#ff5fa8"
 
 
 class Theme:
     """The current palette. Widgets read colors from here."""
-    name = "dusk"
-    accent = "#e8a33d"
-    p = THEMES["dusk"]
+    name = "bunny"
+    accent = "#ff5fa8"
+    p = THEMES["bunny"]
 
     @classmethod
     def set(cls, name: str, accent: str) -> None:
-        cls.name = name if name in THEMES else "dusk"
+        cls.name = name if name in THEMES else "bunny"
         cls.accent = accent
         cls.p = THEMES[cls.name]
 
@@ -74,7 +77,7 @@ def on_color(hex_color: str) -> str:
     """Readable text color (dark or white) to put on top of a fill."""
     c = QColor(hex_color)
     lum = 0.2126 * c.redF() ** 2.2 + 0.7152 * c.greenF() ** 2.2 + 0.0722 * c.blueF() ** 2.2
-    return "#15171c" if lum > 0.28 else "#ffffff"
+    return "#1a0610" if lum > 0.28 else "#ffffff"
 
 
 def tint(hex_color: str, alpha: float) -> str:
@@ -95,16 +98,6 @@ def round_menu(menu):
     return menu
 
 
-def _block(base: str, pressed: bool = False) -> str:
-    """A Minecraft-style bevel as a QSS gradient: a light top edge, the face, a dark bottom edge."""
-    hi, lo = shade(base, 138), shade(base, 60)
-    if pressed:
-        hi, lo = lo, shade(base, 120)
-    return (f"qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {hi}, stop:0.09 {hi}, stop:0.091 {base}, "
-            f"stop:0.86 {base}, stop:0.861 {lo}, stop:1 {lo})")
-
-
-
 def stylesheet() -> str:
     p, a = Theme.p, Theme.accent
     on_a = on_color(a)
@@ -115,10 +108,10 @@ def stylesheet() -> str:
     glass_pill = p["surface"]
     glass_hover = p["raised"]
     glass_edge = p["border"]
-    stone = shade(p["raised"], 128) if dark else "#d6d8de"
-    stone_off = shade(p["raised"], 92) if dark else "#c4c6cc"
-    mc_edge = "#050608" if dark else "#2a2c33"
-    mc_lit = "#ffffff" if dark else shade(a, 75)
+    btn = p["raised"] if dark else "#e4e6ec"
+    btn_hover = shade(p["raised"], 128) if dark else "#d6d9e1"
+    btn_off = p["surface"] if dark else "#eceef2"
+    ring = rgba("#ffffff", 0.09) if dark else rgba("#000000", 0.12)
     return f"""
     QWidget {{ color: {p['text']}; font-size: 14px; }}
     QMainWindow, QDialog {{ background: {p['bg']}; }}
@@ -134,7 +127,7 @@ def stylesheet() -> str:
     #faint {{ color: {p['faint']}; font-size: 12px; }}
 
     #navButton {{ background: transparent; border: none; border-left: 3px solid transparent;
-                  border-radius: 7px; padding: 10px 12px; text-align: left; color: {p['muted']};
+                  border-radius: 4px; padding: 10px 12px; text-align: left; color: {p['muted']};
                   font-weight: 600; }}
     #navButton:hover {{ background: {rgba(p['raised'], 0.55)}; color: {p['text']}; }}
     #navButton:checked {{ background: {rgba(a, 0.15)}; border-left: 3px solid {a}; color: {p['text']}; }}
@@ -142,70 +135,65 @@ def stylesheet() -> str:
     #accountChip {{ background: transparent; border: none; border-radius: 6px; padding: 4px 8px; }}
     #accountChip:hover {{ background: {p['raised']}; }}
 
-    #card, #row {{ background: {p['surface']}; border: 1px solid {p['border']}; border-radius: 8px; }}
-    #emptyIcon {{ background: {tint(a, 0.12)}; border-radius: 8px; }}
+    #card, #row {{ background: {p['surface']}; border: 1px solid {p['border']}; border-radius: 6px; }}
+    #emptyIcon {{ background: {p['raised']}; border-radius: 6px; }}
 
-    QPushButton {{ background: {_block(stone)}; border: 2px solid {mc_edge}; border-radius: 1px;
-                   padding: 8px 16px; color: {p['text']}; font-weight: 700; }}
-    QPushButton:hover {{ background: {_block(shade(stone, 114))}; border-color: {mc_lit}; }}
-    QPushButton:pressed {{ background: {_block(stone, True)}; padding-top: 9px; padding-bottom: 7px; }}
-    QPushButton:disabled {{ background: {_block(stone_off)}; color: {p['faint']}; border-color: {mc_edge}; }}
-    QPushButton:focus {{ border-color: {mc_lit}; }}
-    QPushButton#accent {{ background: {_block(a)}; color: {on_a}; border: 2px solid {mc_edge}; font-weight: 800; }}
-    QPushButton#accent:hover {{ background: {_block(hover_a)}; border-color: {mc_lit}; }}
-    QPushButton#accent:pressed {{ background: {_block(a, True)}; padding-top: 9px; padding-bottom: 7px; }}
-    QPushButton#accent:disabled {{ background: {_block(stone_off)}; color: {p['faint']}; border-color: {mc_edge}; }}
-    QPushButton#bigAccent {{ background: {_block(a)}; color: {on_a}; }}
-    QPushButton#bigAccent:hover {{ background: {_block(hover_a)}; }}
-    QPushButton#bigAccent:pressed {{ background: {_block(a, True)}; }}
-    QPushButton#bigAccent:disabled {{ background: {_block(stone_off)}; color: {p['faint']}; }}
+    QPushButton {{ background: {btn}; border: 1px solid {ring}; border-radius: 4px;
+                   padding: 7px 14px; color: {p['text']}; font-weight: 600; }}
+    QPushButton:hover {{ background: {btn_hover}; }}
+    QPushButton:pressed {{ background: {btn_off}; }}
+    QPushButton:disabled {{ background: {btn_off}; color: {p['faint']}; }}
+    QPushButton:focus {{ border-color: {a}; }}
+    QPushButton#accent, QPushButton#bigAccent {{ background: {a}; color: {on_a}; border: 1px solid {a}; font-weight: 700; }}
+    QPushButton#accent:hover, QPushButton#bigAccent:hover {{ background: {hover_a}; border-color: {hover_a}; }}
+    QPushButton#accent:pressed, QPushButton#bigAccent:pressed {{ background: {shade(a, 92)}; }}
+    QPushButton#accent:disabled, QPushButton#bigAccent:disabled {{ background: {btn_off}; color: {p['faint']}; border-color: {ring}; }}
     QPushButton#outline {{ background: {rgba(a, 0.06)}; color: {a}; border: 1px solid {rgba(a, 0.45)}; }}
     QPushButton#outline:hover {{ background: {rgba(a, 0.14)}; border-color: {a}; }}
-    QPushButton#icon {{ background: transparent; border: none; padding: 6px; border-radius: 5px; }}
+    QPushButton#icon {{ background: transparent; border: none; padding: 6px; border-radius: 4px; }}
     QPushButton#icon:hover {{ background: {p['raised']}; }}
-    QPushButton#swatch {{ border-radius: 6px; padding: 0; min-width: 28px; max-width: 28px;
+    QPushButton#swatch {{ border-radius: 14px; padding: 0; min-width: 28px; max-width: 28px;
                           min-height: 28px; max-height: 28px; }}
     QPushButton#tab {{ background: transparent; border: none; border-bottom: 2px solid transparent;
                        border-radius: 0; padding: 8px 4px; color: {p['muted']}; font-weight: 600; }}
     QPushButton#tab:checked {{ color: {p['text']}; border-bottom-color: {a}; }}
 
     QLineEdit, QComboBox, QSpinBox, QPlainTextEdit {{
-        background: {rgba(p['bg'], 0.78)}; border: 1px solid {p['border']}; border-radius: 6px;
-        padding: 8px 12px; selection-background-color: {rgba(a, 0.45)}; }}
+        background: {p['bg'] if dark else p['surface']}; border: 1px solid {p['border']}; border-radius: 4px;
+        padding: 7px 11px; selection-background-color: {rgba(a, 0.45)}; }}
     QLineEdit:focus, QComboBox:focus, QSpinBox:focus {{ border-color: {a}; }}
     QLineEdit:hover, QComboBox:hover, QSpinBox:hover {{ border-color: {p['faint']}; }}
     QComboBox::drop-down {{ border: none; width: 26px; }}
     QComboBox QAbstractItemView {{ outline: none; padding: 4px; }}
-    QComboBox QAbstractItemView::item {{ min-height: 28px; padding: 0 10px; border-radius: 5px; }}
+    QComboBox QAbstractItemView::item {{ min-height: 28px; padding: 0 10px; border-radius: 4px; }}
     QComboBox QAbstractItemView::item:hover {{ background: {p['raised']}; }}
     QComboBox QAbstractItemView {{ background: {p['surface']}; border: 1px solid {p['border']};
                                    selection-background-color: {tint(a, 0.2)}; }}
-    QPushButton#choiceCard {{ background: {rgba(p['bg'], 0.55)}; border: 1px solid {p['border']}; border-radius: 10px; text-align: left; }}
+    QPushButton#choiceCard {{ background: {p['surface']}; border: 1px solid {p['border']}; border-radius: 6px; text-align: left; }}
     QPushButton#choiceCard:hover {{ border-color: {rgba(a, 0.6)}; }}
-    QPushButton#choiceCard:checked {{ background: {rgba(a, 0.16)}; border: 1.5px solid {a}; }}
+    QPushButton#choiceCard:checked {{ background: {p['raised']}; border: 1px solid {a}; }}
     QPushButton#choiceCard:disabled {{ background: {rgba(p['bg'], 0.3)}; }}
     QLabel#choiceTitle {{ font-size: 14px; font-weight: 700; background: transparent; }}
     QLabel#choiceSub {{ color: {p['muted']}; font-size: 12px; background: transparent; }}
     #formLabel {{ color: {p['muted']}; font-size: 12px; font-weight: 600; background: transparent; }}
-    #segmented {{ background: {rgba(p['bg'], 0.78)}; border: 1px solid {p['border']}; border-radius: 9px; }}
-    QPushButton#segment {{ background: transparent; border: none; border-radius: 5px;
+    #segmented {{ background: {p['bg'] if dark else p['surface']}; border: 1px solid {p['border']}; border-radius: 6px; }}
+    QPushButton#segment {{ background: transparent; border: none; border-radius: 4px;
                            padding: 6px 14px; color: {p['muted']}; font-weight: 600; }}
     QPushButton#segment:hover {{ color: {p['text']}; }}
-    QPushButton#segment:checked {{ background: {a}; color: {on_a}; }}
+    QPushButton#segment:checked {{ background: transparent; color: {p['text']}; }}
     QPushButton#segment:disabled {{ color: {p['faint']}; }}
-    #badge {{ background: {tint(a, 0.16)}; color: {a}; border-radius: 4px; padding: 2px 7px;
+    #badge {{ background: {tint(a, 0.14)}; color: {a}; border-radius: 4px; padding: 2px 7px;
               font-size: 12px; font-weight: 600; }}
     #badgeMuted {{ background: {p['raised']}; color: {p['muted']}; border-radius: 4px; padding: 2px 7px;
                    font-size: 12px; font-weight: 600; }}
     QCheckBox {{ spacing: 10px; }}
-    QCheckBox::indicator {{ width: 18px; height: 18px; border-radius: 5px;
+    QCheckBox::indicator {{ width: 18px; height: 18px; border-radius: 4px;
                             border: 1px solid {p['faint']}; background: {p['bg']}; }}
     QCheckBox::indicator:checked {{ background: {a}; border-color: {a}; }}
     QSlider::groove:horizontal {{ height: 4px; background: {p['border']}; border-radius: 2px; }}
     QSlider::sub-page:horizontal {{ background: {a}; border-radius: 2px; }}
-    QSlider::handle:horizontal {{ background: qradialgradient(cx:0.5, cy:0.4, radius:0.7, stop:0 #ffffff,
-                                      stop:1 {shade(p['text'], 90)}); width: 16px; height: 16px;
-                                  margin: -6px 0; border-radius: 8px; border: 2px solid {a}; }}
+    QSlider::handle:horizontal {{ background: {p['text']}; width: 14px; height: 14px;
+                                  margin: -5px 0; border-radius: 7px; border: none; }}
     QProgressBar {{ background: {p['raised']}; border: none; border-radius: 2px; }}
     QProgressBar::chunk {{ background: {a}; border-radius: 2px; }}
     #console {{ background: {p['bg']}; border: none; border-top: 1px solid {p['border']};
@@ -214,21 +202,21 @@ def stylesheet() -> str:
     QScrollBar:vertical {{ background: transparent; width: 10px; }}
     QScrollBar::handle:vertical {{ background: {p['border']}; border-radius: 4px; min-height: 30px; }}
     QScrollBar::add-line, QScrollBar::sub-line {{ height: 0; }}
-    QMenu {{ background: {p['surface']}; border: 1px solid {p['border']}; border-radius: 6px; padding: 6px; }}
-    QMenu::item {{ padding: 8px 22px 8px 14px; border-radius: 8px; color: {p['text']}; background: transparent; }}
-    QMenu::item:selected {{ background: {tint(a, 0.22)}; color: {p['text']}; }}
+    QMenu {{ background: {p['surface']}; border: 1px solid {p['border']}; border-radius: 6px; padding: 5px; }}
+    QMenu::item {{ padding: 7px 22px 7px 12px; border-radius: 4px; color: {p['text']}; background: transparent; }}
+    QMenu::item:selected {{ background: {p['raised']}; color: {p['text']}; }}
     QMenu::item:disabled {{ color: {p['faint']}; }}
     QMenu::separator {{ height: 1px; background: {p['border']}; margin: 5px 8px; }}
     QToolTip {{ background: {p['raised']}; color: {p['text']}; border: 1px solid {p['border']}; }}
 
     #rail {{ background: {rail}; border: none; border-right: 1px solid {p['border']}; }}
-    #railGroup {{ background: {glass_pill}; border: 1px solid {glass_edge}; border-radius: 26px; }}
+    #railGroup {{ background: {glass_pill}; border: 1px solid {glass_edge}; border-radius: 6px; }}
     #profileTitle {{ font-size: 30px; font-weight: 800; }}
     #cardTitle {{ font-size: 17px; font-weight: 750; }}
     #detailLabel {{ font-size: 12px; color: {p['muted']}; }}
     #detailValue {{ font-size: 14px; font-weight: 600; }}
-    #modRow {{ background: {rgba(p['raised'], 0.55 if dark else 0.9)}; border: 1px solid {edge_hi}; border-radius: 6px; }}
-    #modRow:hover {{ border-color: {rgba(a, 0.45)}; }}
+    #modRow {{ background: {p['surface']}; border: 1px solid {edge_hi}; border-radius: 6px; }}
+    #modRow:hover {{ border-color: {rgba('#ffffff', 0.15) if dark else p['faint']}; }}
     #modName {{ font-size: 15px; font-weight: 700; }}
     #modAbout {{ font-size: 12px; color: {p['muted']}; }}
     #modVersion {{ font-size: 12px; color: {p['muted']}; }}
@@ -237,18 +225,18 @@ def stylesheet() -> str:
     #railAccount {{ background: transparent; border: none; }}
     #railName {{ font-size: 13px; font-weight: 700; }}
     #railSub {{ font-size: 11px; color: {p['muted']}; }}
-    #chip {{ background: {glass_pill}; border: 1px solid {glass_edge}; border-radius: 6px; }}
+    #chip {{ background: {glass_pill}; border: 1px solid {glass_edge}; border-radius: 4px; }}
     #chipText {{ font-size: 12px; font-weight: 600; color: {p['text']}; }}
     #pillTitle {{ font-size: 15px; font-weight: 750; }}
     #pillSub {{ font-size: 12px; color: {p['muted']}; }}
-    #homeHero {{ background: transparent; border: 1px solid {p['border']}; border-radius: 9px; }}
-    #heroTitle {{ font-size: 36px; font-weight: 700; color: {p['text']}; }}
+    #homeHero {{ background: {p['surface']}; border: 1px solid {p['border']}; border-radius: 6px; }}
+    #heroTitle {{ font-size: 32px; font-weight: 700; color: {p['text']}; }}
     #pageTitle {{ font-size: 28px; font-weight: 700; color: {p['text']}; }}
     #heroText {{ font-size: 16px; color: {p['muted']}; }}
     #heroStat {{ font-size: 22px; font-weight: 650; color: {p['text']}; }}
     #sectionLabel {{ font-size: 13px; font-weight: 600; color: {p['muted']}; }}
-    #glassCard {{ background: {glass_pill}; border: 1px solid {glass_edge}; border-radius: 8px; }}
-    #glassCard:hover {{ border-color: {rgba(a, 0.5)}; background: {glass_hover}; }}
+    #glassCard {{ background: {glass_pill}; border: 1px solid {glass_edge}; border-radius: 6px; }}
+    #glassCard:hover {{ border-color: {rgba('#ffffff', 0.15) if dark else p['faint']}; background: {glass_hover}; }}
     """
 
 

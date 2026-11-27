@@ -8,7 +8,7 @@ from .theme import Theme
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
     ("4.0.0", "Graphical Linux setup", "A standalone installer and graphical updates with download progress."),
-    ("4.0.0", "Textured buttons", "Classic beveled buttons in the launcher and in-game menus."),
+    ("4.0.0", "Bunny look", "A flat near-black launcher with a pink accent, hairline borders and small corners."),
     ("4.0.0", "Launcher refresh", "A clearer navigation rail, simpler controls and a redesigned Home page."),
     ("4.0.0", "In-game menu", "Simpler panels and controls, with the same motion and shortcuts."),
     ("4.0.0", "Inter throughout", "Inter is used in the launcher, installer, Minecraft menus and lyrics."),
