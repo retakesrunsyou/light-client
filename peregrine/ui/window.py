@@ -303,7 +303,7 @@ class MainWindow(QMainWindow):
         from .sky import holiday_accent, season
         Theme.set(cfg["theme"], holiday_accent(cfg))
         QApplication.instance().setStyleSheet(stylesheet())
-        self.sky.season = season() if cfg.get("seasonal", True) else ""
+        self.sky.season = season() if cfg.get("seasonal", False) else ""
         self.sky.set_enabled(bool(cfg.get("animations", True)))
         self.logo.setPixmap(logo_pixmap(32))
         self.banner.setStyleSheet(f"#banner {{ background: {tint(Theme.accent, 0.12)}; }}")

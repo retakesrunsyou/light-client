@@ -284,9 +284,9 @@ class RecentPage(QWidget):
             self.last.setText(last_played(entry["last_played"]).replace("Played ", "").capitalize())
             self.last_label.setText("Last played here")
             self.last_box.show()
-            self.play_btn.setText("PLAY")
+            self.play_btn.setText("Play")
             self.play_btn.icon_name = "s_play"
-            self.second_btn.setText("INSTANCE")
+            self.second_btn.setText("Instance")
             self.second_btn.show()
             self.play_btn.updateGeometry()
             self._show_status()
@@ -308,9 +308,9 @@ class RecentPage(QWidget):
             self.last.setText(last_played(last.data.get("last_played")).replace("Played ", "").capitalize())
             self.last_label.setText("Last played")
             self.last_box.show()
-            self.play_btn.setText("PLAY")
+            self.play_btn.setText("Play")
             self.play_btn.icon_name = "s_play"
-            self.second_btn.setText("INSTANCE")
+            self.second_btn.setText("Instance")
             self.second_btn.show()
             self._set_backdrop(last)
         else:

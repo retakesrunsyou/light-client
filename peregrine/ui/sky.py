@@ -70,7 +70,7 @@ HOLIDAY_ACCENTS = {
 
 def holiday_accent(cfg) -> str:
     """The accent to show: the holiday's while holiday themes are on, otherwise yours."""
-    if cfg.get("seasonal", True):
+    if cfg.get("seasonal", False):
         return HOLIDAY_ACCENTS.get(season(), cfg["accent"])
     return cfg["accent"]
 

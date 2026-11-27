@@ -4,7 +4,7 @@ from PySide6.QtCore import (
     Property, QEasingCurve, QPointF, QPropertyAnimation, QRect, QRectF, QSize, Qt, QTimer,
     QVariantAnimation, Signal,
 )
-from PySide6.QtGui import QColor, QFont, QIcon, QImage, QPainter, QPainterPath, QPen, QPixmap
+from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPainterPath, QPen, QPixmap
 from PySide6.QtWidgets import (QBoxLayout,
     QAbstractButton, QFrame, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QToolButton, QVBoxLayout, QWidget,
 )
@@ -38,15 +38,15 @@ def heavy_font(px: int, weight=QFont.Black, spacing: float = 0) -> QFont:
 # ------------------------------------------------------------------ buttons
 
 class PillButton(QPushButton):
-    """A Minecraft-style block button: 'primary' (accent), 'ghost' (stone grey) or 'danger',
-    with an optional icon on the left. Lights up on hover, pushes in on press."""
+    """A flat Bunny-style button: 'primary' (accent), 'ghost' (neutral) or 'danger',
+    with an optional icon on the left. Lightens on hover, darkens on press."""
 
     def __init__(self, text: str, icon_name: str = None, kind: str = "primary", big: bool = False, parent=None):
-        super().__init__(text.upper() if big else text, parent)
+        super().__init__(text, parent)
         self.kind, self.icon_name, self.big = kind, icon_name, big
         self._hover = 0.0
         self.setCursor(Qt.PointingHandCursor)
-        self.setFont(heavy_font(17 if big else 14, QFont.Black if big else QFont.Bold, 0.4 if big else 0.0))
+        self.setFont(heavy_font(15 if big else 13, QFont.Bold))
         self._anim = QVariantAnimation(self)
         self._anim.setDuration(150)
         self._anim.setEasingCurve(QEasingCurve.OutCubic)
@@ -117,117 +117,62 @@ class PillButton(QPushButton):
         super().leaveEvent(e)
 
     def sizeHint(self):
-        h = 62 if self.big else 34
-        badge = (h - 22) if self.icon_name else 0
-        w = self.fontMetrics().horizontalAdvance(self.text()) + (h * 0.75) + badge + (14 if badge else 0)
+        h = 46 if self.big else 34
+        icon = (22 if self.big else 17) + 9 if self.icon_name else 0
+        w = self.fontMetrics().horizontalAdvance(self.text()) + (44 if self.big else 30) + icon
         return QSize(int(w), h)
 
     def minimumSizeHint(self):
         return self.sizeHint()
 
-    _GRAIN = {}
-
-    @classmethod
-    def _grain(cls, w: int, h: int) -> QPixmap:
-        """Stone grain: 2 px cells, each a touch lighter or darker, like a Minecraft button's face."""
-        key = (w, h)
-        pm = cls._GRAIN.get(key)
-        if pm is None:
-            import random
-            rng = random.Random(w * 7919 + h)
-            img = QImage(max(1, w), max(1, h), QImage.Format_ARGB32_Premultiplied)
-            img.fill(Qt.transparent)
-            gp = QPainter(img)
-            for y in range(0, h, 2):
-                for x in range(0, w, 2):
-                    v = rng.random()
-                    if v < 0.28:
-                        gp.fillRect(x, y, 2, 2, QColor(0, 0, 0, 16 + int(v * 30)))
-                    elif v > 0.74:
-                        gp.fillRect(x, y, 2, 2, QColor(255, 255, 255, 10 + int((v - 0.74) * 40)))
-            gp.end()
-            pm = QPixmap.fromImage(img)
-            if len(cls._GRAIN) > 64:
-                cls._GRAIN.clear()
-            cls._GRAIN[key] = pm
-        return pm
-
     def paintEvent(self, _):
-        """Drawn like a Minecraft button: a square stone block with a dark outline, a light top
-        edge and a dark bottom edge. Hovering lifts it a little and lights the outline; pressing
-        pushes it down (and it springs back up), with a quick flash."""
+        """Flat Bunny-style button: small corners, a hairline border, a lighter fill on hover and
+        a solid accent fill with dark ink text for the primary kind."""
         p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        p.setRenderHint(QPainter.TextAntialiasing)
         enabled = self.isEnabled()
         press = max(self._press, 1.0 if self.isDown() and not animations_on() else 0.0)
         hover = (self._hover if enabled else 0.0) * (1 - press)
-        o = 2                                   # outline thickness
-        bev_top = 3 if self.big else 2
-        bev_bot = 4 if self.big else 3
-        r = self.rect().adjusted(0, 0, -1, -1)
-        # the block stands 2 px tall: up to 4 px when hovered, flat when pressed
-        top = round(2 - 2 * hover + 2 * press)
-        depth = max(1, round(bev_bot + 1 * hover - (bev_bot - 1) * press))
-        block = r.adjusted(0, top, 0, 0)
         accent = QColor(Theme.p["danger"]) if self.kind == "danger" else QColor(Theme.accent)
         if self.kind in ("primary", "danger"):
             base = QColor(accent)
             text_color = QColor(on_color(accent.name()))
+            edge = QColor(base)
+            hov = QColor(base).lighter(112)
         else:
-            base = QColor(Theme.p["raised"]).lighter(128) if dark() else QColor(214, 216, 222)
+            base = QColor(Theme.p["raised"]) if dark() else QColor(228, 230, 236)
             text_color = QColor(Theme.p["text"])
+            edge = QColor(255, 255, 255, 23) if dark() else QColor(0, 0, 0, 31)
+            hov = QColor(Theme.p["raised"]).lighter(128) if dark() else QColor(214, 217, 225)
         if not enabled:
-            g = int(base.red() * 0.3 + base.green() * 0.59 + base.blue() * 0.11)
-            base = QColor(g, g, g).darker(150 if dark() else 110)
+            base = QColor(Theme.p["surface"])
             text_color = QColor(Theme.p["faint"])
-        base = _mix(base, base.lighter(114), hover)
-        hi, lo = base.lighter(140), base.darker(170)
-        if press > 0.5:
-            hi = base.darker(118)
-        # outline: near-black, lit up on hover
-        edge = QColor(0, 0, 0, 235)
-        if hover > 0 or self.hasFocus():
-            lit = QColor(255, 255, 255) if dark() else QColor(accent).darker(130)
-            edge = _mix(edge, lit, max(hover, 0.75 if self.hasFocus() else 0))
-        p.fillRect(block, edge)
-        inner = block.adjusted(o, o, -o + 1, -o + 1)
-        p.fillRect(inner, base)
-        if inner.width() > 4 and inner.height() > 4:
-            p.setOpacity(0.55 if self.kind in ("primary", "danger") else 1.0)
-            p.drawPixmap(inner.topLeft(), self._grain(inner.width(), inner.height()))
-            p.setOpacity(1.0)
-        p.fillRect(inner.x(), inner.y(), inner.width(), bev_top, hi)
-        p.fillRect(inner.x(), inner.y(), 2, inner.height() - depth, hi)
-        p.fillRect(inner.x(), inner.bottom() - depth + 1, inner.width(), depth, lo)
-        p.fillRect(inner.right() - 1, inner.y() + bev_top, 2, inner.height() - depth - bev_top, base.darker(118))
-        # a quick flash when clicked
-        if self._ripple is not None and self._ripple[2] < 1.0:
-            p.fillRect(inner, QColor(255, 255, 255, int(70 * (1 - self._ripple[2]))))
-        face = QRectF(inner.adjusted(0, bev_top, 0, -depth))
-        p.setRenderHint(QPainter.Antialiasing)
-        p.setRenderHint(QPainter.TextAntialiasing)
-        x = face.left() + face.height() * 0.42 + 4
-        # Minecraft's hard text shadow: dark under light text, a soft light edge under dark text
-        if text_color.lightness() > 140:
-            shadow = QColor(0, 0, 0, 120 if enabled else 40)
-        else:
-            shadow = QColor(255, 255, 255, 150 if enabled else 60)
-        if self.icon_name:
-            size = int(min(face.height() - 8, 26 if self.big else 20))
+            edge = QColor(255, 255, 255, 18) if dark() else QColor(0, 0, 0, 20)
+            hov = base
+        fill = _mix(base, hov, hover)
+        if press > 0:
+            fill = _mix(fill, fill.darker(112), press)
+        if self.hasFocus() and enabled:
+            edge = QColor(Theme.accent)
+        r = QRectF(self.rect()).adjusted(0.5, 0.5, -0.5, -0.5)
+        rad = 6 if self.big else 4
+        p.setPen(QPen(edge, 1))
+        p.setBrush(fill)
+        p.drawRoundedRect(r, rad, rad)
+        # inner content, centred
+        fm = self.fontMetrics()
+        tw = fm.horizontalAdvance(self.text())
+        size = int(min(r.height() - 14, 22 if self.big else 17)) if self.icon_name else 0
+        gap = 9 if size else 0
+        x = r.left() + (r.width() - (size + gap + tw)) / 2
+        if size:
             pm = icon_pixmap(self.icon_name, text_color.name(), size)
-            sh = icon_pixmap(self.icon_name, shadow.name(), size)
-            y = face.top() + (face.height() - size) / 2
-            p.setOpacity(shadow.alphaF())
-            p.drawPixmap(QPointF(x + 1.5, y + 1.5), sh)
-            p.setOpacity(1.0)
-            p.drawPixmap(QPointF(x, y), pm)
-            x += size + 10
+            p.drawPixmap(QPointF(x, r.top() + (r.height() - size) / 2), pm)
+            x += size + gap
         p.setFont(self.font())
-        tr = QRectF(x, face.top(), face.right() - x - face.height() * 0.3, face.height())
-        p.setPen(shadow)
-        off = 1.5 if shadow.lightness() < 128 else 1.0
-        p.drawText(tr.translated(off, off), Qt.AlignVCenter | Qt.AlignLeft, self.text())
         p.setPen(text_color)
-        p.drawText(tr, Qt.AlignVCenter | Qt.AlignLeft, self.text())
+        p.drawText(QRectF(x, r.top(), tw + 2, r.height()), Qt.AlignVCenter | Qt.AlignLeft, self.text())
         p.end()
 
 
@@ -268,7 +213,7 @@ class RailButton(QAbstractButton):
         p.setRenderHint(QPainter.Antialiasing)
         if (self._hover or self.hasFocus()) and not self.isChecked():
             path = QPainterPath()
-            path.addRoundedRect(QRectF(self.rect()).adjusted(2, 1, -2, -1), 6, 6)
+            path.addRoundedRect(QRectF(self.rect()).adjusted(2, 1, -2, -1), 4, 4)
             p.fillPath(path, QColor(255, 255, 255, 12) if dark() else QColor(0, 0, 0, 10))
         on = self.isChecked()
         color = Theme.p["text"] if on or self._hover else Theme.p["muted"]
@@ -307,13 +252,12 @@ class _Highlight(QWidget):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
         r = QRectF(self.rect()).adjusted(2, 1, -2, -1)
-        c = QColor(Theme.accent)
-        c.setAlpha(34)
+        c = QColor(255, 255, 255, 20) if dark() else QColor(0, 0, 0, 16)
         path = QPainterPath()
-        path.addRoundedRect(r, 6, 6)
+        path.addRoundedRect(r, 4, 4)
         p.fillPath(path, c)
         bar = QPainterPath()
-        bar.addRoundedRect(QRectF(r.left(), r.top() + 8, 3.5, r.height() - 16), 1.75, 1.75)
+        bar.addRoundedRect(QRectF(r.left(), r.top() + 7, 2, r.height() - 14), 1, 1)
         p.fillPath(bar, QColor(Theme.accent))
         p.end()
 
@@ -348,13 +292,13 @@ class AccountCard(QAbstractButton):
         p.setRenderHint(QPainter.Antialiasing)
         r = QRectF(self.rect()).adjusted(1, 1, -1, -1)
         path = QPainterPath()
-        path.addRoundedRect(r, 12, 12)
+        path.addRoundedRect(r, 6, 6)
         p.fillPath(path, QColor(255, 255, 255, 18 if self._hover else 10) if dark() else QColor(0, 0, 0, 12))
         s = 34
         y = (self.height() - s) // 2
         if self.face is not None:
             clip = QPainterPath()
-            clip.addRoundedRect(QRectF(10, y, s, s), 9, 9)
+            clip.addRoundedRect(QRectF(10, y, s, s), 5, 5)
             p.save()
             p.setClipPath(clip)
             p.drawPixmap(10, y, s, s, self.face)

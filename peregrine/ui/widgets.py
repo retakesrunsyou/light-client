@@ -1,17 +1,17 @@
 """Custom controls: a sliding toggle switch and a segmented picker."""
 
 from PySide6.QtCore import (Property, QEasingCurve, QPropertyAnimation, QRectF, QSize, Qt,
-                            Signal)
-from PySide6.QtGui import QColor, QPainter
+                            QTimer, QVariantAnimation, Signal)
+from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import QAbstractButton, QButtonGroup, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
 from .theme import Theme
 
 
 class Toggle(QAbstractButton):
-    """A squared-off switch. One click slides the knob across."""
+    """A small round switch: grey when off, accent when on, with the knob turning dark ink."""
 
-    W, H, PAD = 42, 22, 3
+    W, H, PAD = 36, 20, 3
 
     def __init__(self, checked: bool = False, parent=None):
         super().__init__(parent)
@@ -47,7 +47,8 @@ class Toggle(QAbstractButton):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
         p.setPen(Qt.NoPen)
-        off, on = QColor(Theme.p["border"]), QColor(Theme.accent)
+        off = QColor("#30303c") if Theme.name != "light" else QColor("#c9ccd6")
+        on = QColor(Theme.accent)
         t = self._pos
         track = QColor(int(off.red() + (on.red() - off.red()) * t),
                        int(off.green() + (on.green() - off.green()) * t),
@@ -55,15 +56,19 @@ class Toggle(QAbstractButton):
         if not self.isEnabled():
             track.setAlpha(110)
         p.setBrush(track)
-        p.drawRoundedRect(QRectF(0, 0, self.W, self.H), 6, 6)
+        rad = self.H / 2
+        p.drawRoundedRect(QRectF(0, 0, self.W, self.H), rad, rad)
         k = self.H - 2 * self.PAD
         x = self.PAD + (self.W - 2 * self.PAD - k) * t
-        p.setBrush(QColor("#ffffff"))
-        p.drawRoundedRect(QRectF(x, self.PAD, k, k), 4, 4)
+        knob_off, knob_on = QColor("#d6d6e0"), QColor("#1a0610")
+        p.setBrush(QColor(int(knob_off.red() + (knob_on.red() - knob_off.red()) * t),
+                          int(knob_off.green() + (knob_on.green() - knob_off.green()) * t),
+                          int(knob_off.blue() + (knob_on.blue() - knob_off.blue()) * t)))
+        p.drawEllipse(QRectF(x, self.PAD, k, k))
         if self.hasFocus():
             p.setBrush(Qt.NoBrush)
-            p.setPen(QColor(Theme.accent))
-            p.drawRoundedRect(QRectF(0.5, 0.5, self.W - 1, self.H - 1), 6, 6)
+            p.setPen(QPen(QColor(Theme.accent), 1))
+            p.drawRoundedRect(QRectF(0.5, 0.5, self.W - 1, self.H - 1), rad, rad)
         p.end()
 
     def hitButton(self, pos):
@@ -90,7 +95,49 @@ class Segmented(QWidget):
             self.group.addButton(b)
             self.buttons[key] = b
             h.addWidget(b)
+        self._pill = QRectF()
+        self._pill_anim = QVariantAnimation(self, duration=180, easingCurve=QEasingCurve.OutCubic)
+        self._pill_anim.valueChanged.connect(self._pill_step)
+        self.group.buttonToggled.connect(lambda _b, on: on and self._move_pill(True))
         self.set(current or options[0][0])
+
+    def _target(self) -> QRectF:
+        b = next((b for b in self.buttons.values() if b.isChecked()), None)
+        return QRectF(b.geometry()) if b is not None else QRectF()
+
+    def _pill_step(self, v):
+        self._pill = v
+        self.update()
+
+    def _move_pill(self, animate):
+        t = self._target()
+        self._pill_anim.stop()
+        if animate and self.isVisible() and not self._pill.isNull() and not t.isNull():
+            self._pill_anim.setStartValue(self._pill)
+            self._pill_anim.setEndValue(t)
+            self._pill_anim.start()
+        else:
+            self._pill = t
+            self.update()
+
+    def resizeEvent(self, e):
+        super().resizeEvent(e)
+        self._move_pill(False)
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        QTimer.singleShot(0, lambda: self._move_pill(False))
+
+    def paintEvent(self, e):
+        super().paintEvent(e)       # the styled background, then the pill under the labels
+        if self._pill.isNull():
+            return
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        p.setPen(Qt.NoPen)
+        p.setBrush(QColor("#2c2c36") if Theme.name != "light" else QColor("#ffffff"))
+        p.drawRoundedRect(self._pill, 4, 4)
+        p.end()
 
     def set(self, key):
         if key in self.buttons:
