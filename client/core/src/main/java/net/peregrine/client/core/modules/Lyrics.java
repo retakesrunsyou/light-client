@@ -40,7 +40,7 @@ public final class Lyrics extends Module {
     public final SliderSetting distance = add(new SliderSetting("distance", "Distance", 2f, 30f, 0.5f, 7f, "%.1f blocks"));
     public final SliderSetting height = add(new SliderSetting("height", "Height", -3f, 6f, 0.25f, 0.5f, "%+.2f blocks"));
     // look
-    public final ChoiceSetting font = add(new ChoiceSetting("font", "Font", 1, "Inter", "Inter Medium", "Inter Bold", "Inter Italic"));
+    public final ChoiceSetting font = add(new ChoiceSetting("font", "Font", 1, "Lexend", "Lexend Medium", "Lexend Bold", "Lexend Italic"));
     public final ChoiceSetting colors = add(new ChoiceSetting("colors", "Colors", HIGHLIGHT,
             "Highlight as sung", "Solid", "Gradient", "Rainbow", "Glitch"));
     public final ColorSetting color = add(new ColorSetting("color", "Text color", 0xFFFFFFFF, false));

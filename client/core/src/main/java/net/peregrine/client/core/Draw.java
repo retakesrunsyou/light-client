@@ -27,7 +27,7 @@ public interface Draw {
 
     /**
      * Part of a texture, stretched over x, y, w, h. id is a resource id such as
-     * "peregrine-client:textures/cape/falcon.png" (or one from Platform.loadImage); u0..v1 are
+     * "peregrine-client:textures/cape/light.png" (or one from Platform.loadImage); u0..v1 are
      * fractions of the texture (0 to 1). argb tints it (0xFFFFFFFF = as it is; lower alpha fades it).
      */
     default void texture(String id, int x, int y, int w, int h, float u0, float v0, float u1, float v1, int argb) {

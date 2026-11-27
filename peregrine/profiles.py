@@ -196,7 +196,7 @@ def unshare(account: dict) -> None:
 # ---------------------------------------------------------------------- badges and capes
 
 # the in-game Cosmetics list; your own cape (the last) is never shared, so others see no cape
-CAPE_FILES = ("", "falcon", "violet", "ember", "starry", "pumpkin", "frost", "")
+CAPE_FILES = ("", "light", "violet", "ember", "starry", "pumpkin", "frost", "")
 RESEND_AFTER = 20 * 3600
 
 
@@ -213,7 +213,7 @@ def chosen_cape() -> str:
             return "custom" if custom_cape.is_shared() else ""
         return CAPE_FILES[i] if 0 <= i < len(CAPE_FILES) else ""
     except (OSError, ValueError, TypeError):
-        return CAPE_FILES[1]  # the default: Falcon
+        return CAPE_FILES[1]  # the default: Light
 
 
 def announce(account: dict, force: bool = False) -> str:

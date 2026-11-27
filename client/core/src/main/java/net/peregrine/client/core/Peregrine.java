@@ -79,7 +79,7 @@ public final class Peregrine {
     private final TitleMenu titleMenu;
     private final Deque<Long> leftClicks = new ArrayDeque<Long>();
     private final Deque<Long> rightClicks = new ArrayDeque<Long>();
-    private int accent = Theme.AMBER;
+    private int accent = 0xFFFFFFFF;
     private final SessionStats stats = new SessionStats();
     private final JoinScreen joinScreen = new JoinScreen();
     private boolean dirty;

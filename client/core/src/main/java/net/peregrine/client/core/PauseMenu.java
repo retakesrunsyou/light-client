@@ -1,10 +1,10 @@
 package net.peregrine.client.core;
 
 /**
- * Light Client's pause menu: a glass card in the middle of the screen. The server's own icon,
- * your name and where you're playing at the top, a big Resume, four tiles (modules, Options,
- * Locker, and the rest of Minecraft's menu), and Leave at the bottom. Under it, when music is
- * playing on the computer: the song with its cover art, and back, play / pause and skip buttons.
+ * Light Client's pause menu, laid out like the main menu: the mark and name at the left, a card
+ * with you and where you're playing, then a stack of full-width buttons (Resume on top, Leave at
+ * the bottom). Under the stack, when music is playing on the computer: the song with its cover
+ * art, and back, play / pause and skip buttons. The buttons can be dragged to swap places.
  */
 public final class PauseMenu {
 
@@ -112,35 +112,47 @@ public final class PauseMenu {
         lastFrame = 0;
     }
 
+    private int left, logoY, rowGap = 5;
+    private final int[] who = new int[4];   // the player card: x, y, w, h
+
     private void layout(Platform p) {
         String l = p.localWorld() ? "Save and quit to title" : "Leave server";
         if (!leave.label.equals(l)) {
             leave = new TitleMenu.Button(l, "leave", null, false);
         }
-        int w = Math.min(W + 2 * PAD, p.screenWidth() - 16);
-        int inner = w - 2 * PAD;
-        int h = PAD + 30 + 24 + GAP + 2 * (TILE_H + GAP) + 18 + PAD;
+        int sw = p.screenWidth(), sh = p.screenHeight();
         boolean music = showMusic() && NowPlaying.get() != null;
-        int total = h + (music ? NP_GAP + NP_H : 0);
-        box[0] = (p.screenWidth() - w) / 2;
-        box[1] = Math.max(4, (p.screenHeight() - total) / 2);
+        boolean tight = sh < 260;
+        int rowH = tight ? 15 : 20;
+        rowGap = tight ? 3 : 5;
+        int head = tight ? 28 : 40;
+        int whoH = tight ? 0 : 30;
+        left = Math.max(12, sw / 15);
+        int w = Math.min(182, Math.max(106, sw - 2 * left));
+        int stack = head + (whoH > 0 ? whoH + 7 : 0) + 6 * (rowH + rowGap) - rowGap;
+        int total = stack + (music && !tight ? NP_GAP + NP_H : 0);
+        logoY = Math.max(7, (sh - total) / 2);
+        int y = logoY + head;
+        if (whoH > 0) {
+            who[0] = left;
+            who[1] = y;
+            who[2] = w;
+            who[3] = whoH;
+            y += whoH + 7;
+        } else {
+            who[2] = 0;
+        }
+        box[0] = left;
+        box[1] = logoY;
         box[2] = w;
-        box[3] = h;
-        int x = box[0] + PAD, y = box[1] + PAD + 30;
-        TitleMenu.Button[] bs = buttons();   // places: a wide one, four tiles, a bar at the bottom
-        bs[0].place(x, y, inner, 24);
-        y += 24 + GAP;
-        int half = (inner - GAP) / 2;
-        bs[1].place(x, y, half, TILE_H);
-        bs[2].place(x + half + GAP, y, inner - half - GAP, TILE_H);
-        y += TILE_H + GAP;
-        bs[3].place(x, y, half, TILE_H);
-        bs[4].place(x + half + GAP, y, inner - half - GAP, TILE_H);
-        y += TILE_H + GAP;
-        bs[5].place(x, y, inner, 18);
-        if (music) {
-            np[0] = box[0];
-            np[1] = box[1] + h + NP_GAP;
+        box[3] = stack;
+        for (TitleMenu.Button b : buttons()) {
+            b.place(left, y, w, rowH);
+            y += rowH + rowGap;
+        }
+        if (music && !tight) {
+            np[0] = left;
+            np[1] = y - rowGap + NP_GAP;
             np[2] = w;
             np[3] = NP_H;
             int cx = np[0] + np[2] - 10 - 58;   // three buttons at the top right
@@ -218,90 +230,84 @@ public final class PauseMenu {
             holidayScene.render(d, holiday, 0, 0, sw, sh, dt);
         }
 
-        // the card rises into place with a little overshoot
-        int rise = Math.round((1f - Glass.backOut(t)) * 14);
-        int x = box[0], y = box[1] + rise;
-        Glass.window(d, x, y, box[2], box[3], 0xD80F1218, a);
-        Glass.falcon(d, x + box[2] - 58, y + box[3] - 62, 6f, 0x0AFFFFFF);
+        // the whole column slides in from the left, like the main menu
+        int rise = 0;
+        int slide = -Math.round((1f - Glass.backOut(t)) * 10);
+
+        // the mark and the name
+        float pulse = 0.5f + 0.5f * (float) Math.sin((System.currentTimeMillis() % 4000) / 4000.0 * Math.PI * 2);
+        d.glow(left - 4 + slide, logoY - 2, 26, 26, Theme.withAlpha(a, Math.round(0x30 + 0x20 * pulse)));
+        TitleMenu.lightMark(d, left + 1 + slide, logoY + 3, a);
+        d.textScaled(TitleMenu.BRAND, left + 26 + slide, logoY, Theme.TEXT, 1.6f, true);
+        d.text("Game menu  \u00B7  Minecraft " + p.minecraftVersion(), left + 27 + slide, logoY + 17, Theme.MUTED, true);
 
         // you, and where you are
-        int[] face = SkinFaces.get(p.playerUuid());
-        int hx = x + PAD;
-        String serverId = d.hasTextures() ? serverTexture(p, p.serverAddress()) : null;
-        int[] serverGrid = serverId == null && !p.localWorld() ? ServerIcons.get(p.serverAddress(), p.serverIcon()) : null;
-        if (serverId != null || serverGrid != null) {   // the server's own icon, with your face on its corner
-            d.roundRect(hx - 1, y + PAD - 1, 22, 22, 4, Theme.withAlpha(a, 0x60));
-            if (serverId != null) {
-                d.texture(serverId, hx, y + PAD, 20, 20, 0f, 0f, 1f, 1f, 0xFFFFFFFF);
-            } else {
-                d.pushScale(hx, y + PAD, 20f / ServerIcons.CELLS);
-                for (int i = 0; i < serverGrid.length; i++) {
-                    if ((serverGrid[i] >>> 24) != 0) {
-                        d.rect(i % ServerIcons.CELLS, i / ServerIcons.CELLS, 1, 1, serverGrid[i]);
+        if (who[2] > 0) {
+            int x = who[0] + slide, y = who[1], w = who[2], h = who[3];
+            d.shadow(x, y, w, h);
+            d.roundRect(x, y, w, h, 3, 0xD81C1C1C);
+            d.rect(x + 1, y + 6, 2, h - 12, Theme.withAlpha(a, 0xC0));
+            int[] face = SkinFaces.get(p.playerUuid());
+            int hx = x + 9;
+            String serverId = d.hasTextures() ? serverTexture(p, p.serverAddress()) : null;
+            int[] serverGrid = serverId == null && !p.localWorld() ? ServerIcons.get(p.serverAddress(), p.serverIcon()) : null;
+            int icon = 20, iy = y + (h - icon) / 2;
+            if (serverId != null || serverGrid != null) {
+                if (serverId != null) {
+                    d.texture(serverId, hx, iy, icon, icon, 0f, 0f, 1f, 1f, 0xFFFFFFFF);
+                } else {
+                    d.pushScale(hx, iy, icon / (float) ServerIcons.CELLS);
+                    for (int i = 0; i < serverGrid.length; i++) {
+                        if ((serverGrid[i] >>> 24) != 0) {
+                            d.rect(i % ServerIcons.CELLS, i / ServerIcons.CELLS, 1, 1, serverGrid[i]);
+                        }
                     }
+                    d.popScale();
                 }
-                d.popScale();
+                if (face != null) {
+                    d.rect(hx + 12, iy + 12, 10, 10, 0xFF181818);
+                    SkinFaces.draw(d, face, hx + 13, iy + 13, 8);
+                }
+            } else if (face != null) {
+                SkinFaces.draw(d, face, hx, iy, icon);
+            } else {
+                Glass.logo(d, hx, iy, 2.2f, 0xFFFFFFFF);
             }
-            if (face != null) {
-                d.rect(hx + 12, y + PAD + 12, 10, 10, 0xFF0F1218);
-                SkinFaces.draw(d, face, hx + 13, y + PAD + 13, 8);
+            hx += icon + 8;
+            String where = p.localWorld() ? "Singleplayer" : p.serverName() != null && !p.serverName().isEmpty()
+                    ? p.serverName() : p.serverAddress() == null ? "Playing" : p.serverAddress();
+            int right = x + w - 8;
+            if (!p.localWorld() && p.ping() > 0) {   // a ping chip
+                String ping = p.ping() + " ms";
+                int pw = d.width(ping) + 14, px = right - pw;
+                int col = p.ping() < 80 ? Theme.GOOD : p.ping() < 160 ? Theme.OK : Theme.BAD;
+                d.roundRect(px, y + 9, pw, 12, 6, Theme.withAlpha(col, 0x30));
+                d.roundRect(px + 4, y + 13, 4, 4, 2, col);
+                d.text(ping, px + 10, y + 11, Theme.TEXT, false);
+                right = px - 4;
             }
-            hx += 26;
-        } else if (face != null) {
-            d.roundRect(hx - 1, y + PAD - 1, 22, 22, 4, Theme.withAlpha(a, 0x60));
-            SkinFaces.draw(d, face, hx + 1, y + PAD + 1, 18);
-            hx += 26;
-        } else {
-            Glass.logo(d, hx, y + PAD, 2.2f, 0xFFFFFFFF);
-            hx += 24;
-        }
-        d.text(p.playerName(), hx, y + PAD + 2, Theme.TEXT, true);
-        String where = p.localWorld() ? "Singleplayer" : p.serverName() != null && !p.serverName().isEmpty()
-                ? p.serverName() : p.serverAddress() == null ? "Playing" : p.serverAddress();
-        d.text(d.trim(where, box[2] - (hx - x) - 64), hx, y + PAD + 12, Theme.MUTED, false);
-        if (!p.localWorld() && p.ping() > 0) {  // a ping chip
-            String ping = p.ping() + " ms";
-            int pw = d.width(ping) + 14, px = x + box[2] - PAD - pw;
-            int col = p.ping() < 80 ? Theme.GOOD : p.ping() < 160 ? Theme.OK : Theme.BAD;
-            d.roundRect(px, y + PAD + 4, pw, 12, 6, Theme.withAlpha(col, 0x30));
-            d.roundRect(px + 4, y + PAD + 8, 4, 4, 2, col);
-            d.text(ping, px + 10, y + PAD + 6, Theme.TEXT, false);
+            d.text(d.trim(p.playerName(), right - hx), hx, y + 5, Theme.TEXT, true);
+            d.text(d.trim(where, right - hx), hx, y + 16, Theme.MUTED, false);
         }
 
         int i = 0;
         for (TitleMenu.Button b : buttons()) {
             float ti = FadeDraw.progress(shownAt + 60 + i * 40L, 260);
             Draw bd = ti < 1f ? new FadeDraw(d, Math.max(0.02f, Math.min(1f, ti * 1.4f))) : d;
-            int offset = rise + Math.round((1f - Glass.backOut(ti)) * 8);
-            buttonOffsets[i++] = offset;
-            int by = b.y + offset;
-            int bx0 = b.x;
+            int sx = -Math.round((1f - Glass.backOut(ti)) * 8);
+            buttonOffsets[i++] = 0;
+            int bx0 = b.x, by0 = b.y;
+            b.x += sx;
             if (dragging && b == grabbed) {   // the button you're moving follows the mouse
                 b.x += dragX - grabX;
-                by += dragY - grabY;
+                b.y += dragY - grabY;
             }
-            boolean hover = b.contains(mx, my - offset) || (dragging && b == grabbed);
+            boolean hover = b.contains(mx - sx, my) || (dragging && b == grabbed);
             b.glow = Glass.ease(b.glow, hover, dt);
             boolean pressed = b == grabbed && hover && !dragging;
-            int contentY = by + (pressed ? 1 : 0);
-            if (b == resume) {
-                MenuStyle.button(bd, b.x, by, b.w, b.h, true, b.glow, a, pressed);
-                MenuIcons.draw(bd, "play", b.x + b.w / 2 - bd.width(b.label) / 2 - 8, contentY + 8, Theme.onColor(a));
-                bd.text(b.label, b.x + (b.w - bd.width(b.label)) / 2 + 6, contentY + 8, Theme.onColor(a), Theme.lightText(Theme.onColor(a)));
-            } else if (b == leave) {
-                MenuStyle.block(bd, b.x, by, b.w, b.h, 0xFF563239, b.glow, pressed);
-                MenuIcons.draw(bd, "leave", b.x + b.w / 2 - bd.width(b.label) / 2 - 8, contentY + 5, Theme.TEXT);
-                bd.text(b.label, b.x + (b.w - bd.width(b.label)) / 2 + 6, contentY + 5, Theme.TEXT, true);
-            } else {
-                MenuStyle.button(bd, b.x, by, b.w, b.h, false, b.glow, a, pressed);
-                bd.roundRect(b.x + 7, contentY + (b.h - 22) / 2, 22, 22, 11, Theme.mix(0x24FFFFFF, Theme.withAlpha(a, 0x70), b.glow));
-                MenuIcons.draw(bd, b.icon, b.x + 13, contentY + (b.h - 11) / 2, 11, Theme.mix(0xFFD3D6DE, 0xFFFFFFFF, b.glow));
-                String label = b == more ? "More" : b.label;
-                bd.text(bd.trim(label, b.w - 40), b.x + 35, contentY + b.h / 2 - 7, Theme.TEXT, false);
-                String sub = b == modules ? "Right Shift" : b == options ? "Video, sound..." : b == locker ? "Capes, skins" : "Stats, LAN...";
-                bd.text(bd.trim(sub, b.w - 40), b.x + 35, contentY + b.h / 2 + 3, Theme.FAINT, false);
-            }
+            drawRow(bd, b, a, pressed);
             b.x = bx0;
+            b.y = by0;
         }
         if (np[2] > 0) {
             float ti = shownAt < 0 ? 1f : FadeDraw.progress(shownAt + 300, 300);
@@ -310,7 +316,36 @@ public final class PauseMenu {
             drawMusic(nd, p, mx, my - musicOffset, musicOffset, dt, a);
         }
         if (holiday != Holidays.NONE) {
-            Holidays.greetingChip(d, holiday, sw / 2, Math.max(2, y - 20));
+            Holidays.greetingChip(d, holiday, sw / 2, Math.max(2, logoY - 20));
+        }
+    }
+
+    /** A stacked button, drawn like the main menu's: lifts on hover, accent bar, chevron. */
+    private void drawRow(Draw d, TitleMenu.Button b, int accent, boolean pressed) {
+        float g = b.glow;
+        boolean danger = b == leave;
+        boolean primary = b == resume;
+        int x = b.x, y = b.y - (pressed ? 0 : Math.round(g)), w = b.w, h = b.h;
+        if (danger) {
+            MenuStyle.block(d, x, y, w, h, 0xFF4A2A2E, g, pressed);
+        } else {
+            MenuStyle.button(d, x, y, w, h, primary, g, accent, pressed);
+        }
+        y += pressed ? 1 : 0;
+        if (g > 0.01f && !primary && !danger) {   // the accent bar grows in from the middle
+            int bh = Math.round((h - 8) * g);
+            d.rect(x + 1, y + (h - bh) / 2, 2, bh, Theme.withAlpha(accent, Math.round(0xFF * g)));
+        }
+        int fg = primary ? Theme.onColor(accent) : Theme.mix(0xFFDDDDDD, 0xFFFFFFFF, g);
+        int iy = y + (h - 9) / 2;
+        MenuIcons.draw(d, b.icon, x + 7, iy, fg);
+        String label = b == more ? "Advancements, stats & more" : b.label;
+        boolean chevron = !danger && h >= 19 && w > 90;
+        d.text(d.trim(label, w - (chevron ? 34 : 24)), x + 21 + Math.round(g * 2), y + (h - d.lineHeight()) / 2 + 1, fg,
+                Theme.lightText(fg));
+        if (chevron) {
+            MenuIcons.draw(d, "chevron", x + w - 13 + Math.round(g * 2), iy,
+                    Theme.withAlpha(primary ? 0xFFFFFFFF : accent, Math.round(0x60 + 0x9F * g)));
         }
     }
 
@@ -326,7 +361,8 @@ public final class PauseMenu {
             return;
         }
         int x = np[0], y = np[1] + lift, w = np[2], h = np[3];
-        Glass.window(d, x, y, w, h, 0xD80F1218, a);
+        d.shadow(x, y, w, h);
+        d.roundRect(x, y, w, h, 3, 0xD81C1C1C);
         // the cover: sharp if we have it, the small colour grid otherwise
         int cs = 42, cx = x + 8, cy = y + 8;
         String cover = d.hasTextures() ? coverTexture(p) : null;

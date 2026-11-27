@@ -399,7 +399,7 @@ final class HudEditor {
 
     private void slider(Draw d, int y, float t, int a) {
         t = Math.max(0f, Math.min(1f, t));
-        d.roundRect(sliderX, y, sliderW, 3, 0xFF2F3542);
+        d.roundRect(sliderX, y, sliderW, 3, 0xFF343434);
         int fill = Math.round(sliderW * t);
         if (fill > 0) {
             d.roundRect(sliderX, y, Math.max(3, fill), 3, a);
@@ -553,7 +553,7 @@ final class HudEditor {
     private void toggleRow(Draw d, String label, int y, boolean on, int a) {
         d.text(label, panelX + 8, y, Theme.MUTED, false);
         int tx = panelX + PANEL_W - 8 - 18;
-        d.roundRect(tx, y - 1, 18, 9, on ? a : 0xFF2F3542);
+        d.roundRect(tx, y - 1, 18, 9, on ? a : 0xFF343434);
         int kx = tx + (on ? 10 : 2);
         d.rect(kx, y + 1, 6, 5, 0xFFFFFFFF);
     }

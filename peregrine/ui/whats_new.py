@@ -7,6 +7,11 @@ from .theme import Theme
 
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
+    ("4.2.0", "Grey and white", "The launcher, installers, updaters and game now share one neutral grey and white look."),
+    ("4.2.0", "Lexend", "A bolder, rounder typeface used by the launcher, game menus and HUD."),
+    ("4.2.0", "Light cape", "A new grey cape with the logo, and every cape is now 1024 px and sharp."),
+    ("4.2.0", "Stacked Esc menu", "The pause menu now matches the main menu, with the music card kept below."),
+    ("4.2.0", "More module options", "Text case, refresh rate, CPS, ping, memory, clock and Fullbright fade controls."),
     ("4.1.0", "Resizable mod menu", "Drag any edge or corner of the in-game menu to resize it, with a highlight and matching pointer."),
     ("4.1.0", "New Light logo", "A monochrome split-beam mark across the launcher, installers and game."),
     ("4.1.0", "More module controls", "Rename modules, choose keybind notifications and use finer sliders."),

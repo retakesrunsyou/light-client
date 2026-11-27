@@ -35,9 +35,9 @@ import net.peregrine.client.core.settings.ChoiceSetting;
  */
 public final class Cosmetics extends Module {
 
-    public static final String[] CAPES = {"None", "Falcon", "Violet", "Ember", "Starry night", "Pumpkin", "Frost", "Your own", "Prism", "Lightspeed"};
+    public static final String[] CAPES = {"None", "Light", "Violet", "Ember", "Starry night", "Pumpkin", "Frost", "Your own", "Prism", "Lightspeed"};
     /** Texture names, under assets/peregrine-client/textures/cape/ ("custom" is your own, made in the launcher). */
-    public static final String[] FILES = {null, "falcon", "violet", "ember", "starry", "pumpkin", "frost", "custom", "prism", "lightspeed"};
+    public static final String[] FILES = {null, "light", "violet", "ember", "starry", "pumpkin", "frost", "custom", "prism", "lightspeed"};
     /** "Your own" cape: a picture, GIF or video made into a cape in the launcher's Locker. Shared with other
      *  Peregrine players once the service's safety check has passed it. */
     public static final int CUSTOM = 7;
@@ -750,6 +750,9 @@ public final class Cosmetics extends Module {
             return null;
         }
         String n = name.trim().toLowerCase().replace(" ", "");
+        if (n.equals("falcon")) {
+            n = "light";   // the old main cape
+        }
         for (int i = 1; i < FILES.length; i++) {
             if (FILES[i].equals(n) || CAPES[i].toLowerCase().replace(" ", "").equals(n)) {
                 return FILES[i];
