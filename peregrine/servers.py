@@ -81,6 +81,8 @@ def srv_lookup(host: str, timeout: float = 2.0):
             continue
         if len(data) < 12 or struct.unpack(">H", data[:2])[0] != qid:
             continue
+        if data[3] & 0x0F not in (0, 3):
+            continue  # this server couldn't answer (some routers don't do SRV): ask the next
         qd, an = struct.unpack(">HH", data[4:8])
         i = 12
         for _ in range(qd):
@@ -98,7 +100,25 @@ def srv_lookup(host: str, timeout: float = 2.0):
                     best = (prio, target, port)
             i += rdlen
         return (best[1], best[2]) if best else None
-    return None
+    return _srv_over_https(host, timeout)
+
+
+def _srv_over_https(host: str, timeout: float):
+    """The SRV lookup through Cloudflare's DNS over HTTPS, for networks whose DNS can't do it."""
+    try:
+        from . import net
+        r = net.session.get("https://cloudflare-dns.com/dns-query", timeout=timeout + 2,
+                            params={"name": f"_minecraft._tcp.{host}", "type": "SRV"},
+                            headers={"accept": "application/dns-json"})
+        best = None
+        for a in r.json().get("Answer", []) if r.ok else []:
+            if a.get("type") == 33:
+                prio, _, port, target = str(a.get("data", "")).split()
+                if best is None or int(prio) < best[0]:
+                    best = (int(prio), target.rstrip("."), int(port))
+        return (best[1], best[2]) if best else None
+    except Exception:
+        return None
 
 
 def resolve(address: str):
