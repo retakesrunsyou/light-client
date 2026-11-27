@@ -1602,7 +1602,8 @@ public final class Menu {
             } else if (st instanceof SliderSetting) {
                 SliderSetting sl = (SliderSetting) st;
                 String val = sl.text();
-                int vw = Math.max(d.width(val) + 8, 30);
+                int vw = Math.max(42, Math.max(d.width(val),
+                        Math.max(d.width(sl.textAt(sl.min)), d.width(sl.textAt(sl.max)))) + 8);
                 d.roundRect(right - vw, y + 4, vw, 15, 3, Theme.FIELD);
                 d.text(val, right - (vw + d.width(val)) / 2, y + 7, Theme.TEXT, false);
                 int tw = Math.max(40, Math.min(110, w - 16 - w / 2 - vw));

@@ -42,7 +42,11 @@ public final class SliderSetting extends Setting {
     }
 
     public String text() {
-        return labeler != null ? labeler.apply(value) : String.format(format, value);
+        return textAt(value);
+    }
+
+    public String textAt(float number) {
+        return labeler != null ? labeler.apply(number) : String.format(format, number);
     }
 
     @Override

@@ -52,6 +52,6 @@ final class MenuStyle {
         d.roundRect(x, y, w, h, 3, track);
         int knob = h - 4;
         int kx = x + 2 + Math.round(on * (w - h));
-        d.roundRect(kx, y + 2, knob, knob, 2, 0xFFF1F2F5);
+        d.roundRect(kx, y + 2, knob, knob, 2, Theme.mix(0xFFF1F2F5, Theme.onColor(accent), on));
     }
 }
