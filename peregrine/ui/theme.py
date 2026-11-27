@@ -100,6 +100,15 @@ def round_menu(menu):
     return menu
 
 
+def check_icon() -> str:
+    """The tick inside a checked box: dark on a light accent, white on a dark one."""
+    import sys
+    from pathlib import Path
+    base = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent.parent)) / "assets"
+    name = "check.png" if on_color(Theme.accent) != "#ffffff" else "check-light.png"
+    return (base / name).as_posix()
+
+
 def stylesheet() -> str:
     p, a = Theme.p, Theme.accent
     on_a = on_color(a)
@@ -191,7 +200,7 @@ def stylesheet() -> str:
     QCheckBox {{ spacing: 10px; }}
     QCheckBox::indicator {{ width: 18px; height: 18px; border-radius: 4px;
                             border: 1px solid {p['faint']}; background: {p['bg']}; }}
-    QCheckBox::indicator:checked {{ background: {a}; border-color: {a}; }}
+    QCheckBox::indicator:checked {{ background: {a}; border-color: {a}; image: url({check_icon()}); }}
     QSlider::groove:horizontal {{ height: 4px; background: {p['border']}; border-radius: 2px; }}
     QSlider::sub-page:horizontal {{ background: {a}; border-radius: 2px; }}
     QSlider::handle:horizontal {{ background: {p['text']}; width: 14px; height: 14px;

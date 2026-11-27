@@ -8,6 +8,11 @@ Existing instances and client settings continue to use their Peregrine storage p
 ## What it does
 
 **The launcher**
+- A flat near-black look with a white accent, hairline borders and small corners. Pick another accent or theme
+  (Light, Dusk, Midnight, Day) in Settings
+- A **customizable main menu** in game: click the wrench in the top right, then drag any button (Singleplayer,
+  Multiplayer, Settings, Locker...) anywhere on screen or hide it with its ×. Hidden buttons wait in a tray at the top
+  to bring back, Reset restores the default, and the layout is saved in `title-layout.txt` beside the client's config
 - A **side panel** with every page by name (Home, Library, Instances, Mods, Clips, Locker, Friends, Profiles,
   Settings) and you at the bottom; hide it with the button next to the name
 - **Library**: one instance at a glance. Its version, loader and performance status, Play / Update All / Add Mods,

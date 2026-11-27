@@ -252,17 +252,19 @@ class InstanceCard(QFrame):
         names = QVBoxLayout()
         names.setSpacing(2)
         names.addWidget(QLabel(inst.name, objectName="h2"))
-        sub_row = QHBoxLayout()
-        sub_row.setSpacing(8)
-        sub_row.addWidget(QLabel(inst.subtitle(), objectName="faint"))
-        if inst.performance:
-            badge = QLabel("Performance", objectName="badge")
-            badge.setToolTip("Speed-up mods for this version and fast settings, kept up to date")
-            sub_row.addWidget(badge)
-        if inst.data.get("modpack"):
-            sub_row.addWidget(QLabel("Modpack", objectName="badge"))
-        sub_row.addStretch()
-        names.addLayout(sub_row)
+        names.addWidget(QLabel(inst.subtitle(), objectName="faint"))
+        if inst.performance or inst.data.get("modpack"):
+            badges = QHBoxLayout()
+            badges.setSpacing(6)
+            badges.setContentsMargins(0, 3, 0, 0)
+            if inst.performance:
+                badge = QLabel("Performance", objectName="badge")
+                badge.setToolTip("Speed-up mods for this version and fast settings, kept up to date")
+                badges.addWidget(badge)
+            if inst.data.get("modpack"):
+                badges.addWidget(QLabel("Modpack", objectName="badge"))
+            badges.addStretch()
+            names.addLayout(badges)
         top.addLayout(names, 1)
         gear = icon_button("settings", "Instance settings")
         gear.clicked.connect(lambda: self.settings.emit(inst))

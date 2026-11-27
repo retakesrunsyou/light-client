@@ -8,6 +8,7 @@ from .theme import Theme
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
     ("4.0.0", "Graphical Linux setup", "A standalone installer and graphical updates with download progress."),
+    ("4.0.0", "Rearrange the main menu", "Click the wrench in the game's main menu to drag any button anywhere or hide it. Reset puts everything back."),
     ("4.0.0", "Light look", "A flat near-black launcher with a white accent, hairline borders and small corners. The old Light theme is now called Day."),
     ("4.0.0", "Launcher refresh", "A clearer navigation rail, simpler controls and a redesigned Home page."),
     ("4.0.0", "In-game menu", "Simpler panels and controls, with the same motion and shortcuts."),
