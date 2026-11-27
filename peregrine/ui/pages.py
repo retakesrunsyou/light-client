@@ -7,7 +7,7 @@ from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QColorDialog, QComboBox, QFileDialog, QFrame, QGridLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QScrollArea, QSlider,
-    QSpinBox, QStackedWidget, QVBoxLayout, QWidget,
+    QStackedWidget, QVBoxLayout, QWidget,
 )
 
 from .. import display
@@ -154,7 +154,7 @@ KNOWN_MODS = {
     "appleskin": "AppleSkin", "xaerominimap": "Xaero's Minimap", "xaerosminimap": "Xaero's Minimap",
     "journeymap": "JourneyMap", "jei": "Just Enough Items", "rei": "Roughly Enough Items",
     "zoomify": "Zoomify", "betterf3": "BetterF3", "fabricapi": "Fabric API", "c2me": "C2ME",
-    "krypton": "Krypton", "noisium": "Noisium", "moreculling": "More Culling",
+    "krypton": "Krypton", "noisium": "Noisium",
 }
 
 

@@ -7,7 +7,6 @@ run_installer() is the installer (packaging/setup_app.py); run_uninstaller() is 
 
 import math
 import os
-import random
 import sys
 import time
 from pathlib import Path

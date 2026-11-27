@@ -10,16 +10,16 @@ import os
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QRectF, QSize, Qt, QTimer, QUrl, Signal
+from PySide6.QtCore import QRectF, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QColor, QDesktopServices, QGuiApplication, QImage, QPainter, QPainterPath, QPen, QPixmap
 from PySide6.QtWidgets import (QDialog, QFrame, QGridLayout, QHBoxLayout, QInputDialog, QLabel, QProgressBar,
                                QPushButton, QSlider, QVBoxLayout, QWidget)
 
 from .. import ffmpeg_tool, instances, paths
 from . import workers
-from .modern import big_title, section_label
+from .modern import big_title
 from .pages import clear, scroll
-from .theme import Theme, icon_pixmap
+from .theme import Theme
 from .widgets import Segmented
 
 THUMBS = paths.CACHE / "clip-thumbnails"
