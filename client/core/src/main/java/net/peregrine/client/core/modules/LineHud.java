@@ -4,6 +4,7 @@ import net.peregrine.client.core.Draw;
 import net.peregrine.client.core.HudModule;
 import net.peregrine.client.core.Platform;
 import net.peregrine.client.core.settings.ChoiceSetting;
+import net.peregrine.client.core.settings.SliderSetting;
 
 /** A one-line HUD item: "Label value". Hidden when value() returns null. */
 abstract class LineHud extends HudModule {
@@ -12,6 +13,12 @@ abstract class LineHud extends HudModule {
     /** How the line reads: "FPS 120", "120", "FPS: 120" or "[FPS: 120]". */
     private final ChoiceSetting style = add(new ChoiceSetting("style", "Style", 0,
             "Label value", "Value only", "Label: value", "[Label: value]"));
+
+    private final ChoiceSetting textCase = add(new ChoiceSetting("case", "Text case", 0, "Normal", "UPPERCASE", "lowercase"));
+    private final SliderSetting refresh = add(new SliderSetting("refresh", "Refresh every", 0f, 1000f, 50f, 0f, "%.0f ms")
+            .withText(v -> v <= 0f ? "Every frame" : String.format("%.0f ms", v)));
+    private String cached;
+    private long cachedAt;
 
     LineHud(String id, String name, String description, String label, float fx, float fy) {
         this(id, name, description, label, false, fx, fy);
@@ -38,7 +45,25 @@ abstract class LineHud extends HudModule {
 
     private String line(String v) {
         String h = head();
-        return (h.isEmpty() ? "" : h + " ") + v + tail();
+        return cased((h.isEmpty() ? "" : h + " ") + v + tail());
+    }
+
+    private String cased(String t) {
+        return textCase.index == 1 ? t.toUpperCase(java.util.Locale.ROOT)
+                : textCase.index == 2 ? t.toLowerCase(java.util.Locale.ROOT) : t;
+    }
+
+    /** The value, held for the chosen refresh time so fast-changing numbers stay readable. */
+    private String current(Platform p) {
+        if (refresh.value <= 0f) {
+            return value(p);
+        }
+        long now = System.currentTimeMillis();
+        if (cachedAt == 0 || now - cachedAt >= refresh.value) {
+            cached = value(p);
+            cachedAt = now;
+        }
+        return cached;
     }
 
     /** The text after the label, or null for nothing to show right now. */
@@ -77,13 +102,13 @@ abstract class LineHud extends HudModule {
     }
 
     private String shown(Platform p) {
-        String v = value(p);
+        String v = current(p);
         return v == null ? "-" : v;
     }
 
     @Override
     public boolean hasContent(Platform p) {
-        return value(p) != null;
+        return current(p) != null;
     }
 
     @Override
@@ -98,7 +123,7 @@ abstract class LineHud extends HudModule {
 
     @Override
     public void render(Draw d, Platform p, int x, int y) {
-        String v = value(p);
+        String v = current(p);
         if (v == null) {
             return;
         }
@@ -108,9 +133,9 @@ abstract class LineHud extends HudModule {
         int tx = x + 4;
         int vc = valueColor(p);
         if (!h.isEmpty()) {
-            d.text(h, tx, y + 4, c == 0 ? net.peregrine.client.core.Peregrine.get().accent() : c, true);
-            tx += d.width(h + " ");
+            d.text(cased(h), tx, y + 4, c == 0 ? net.peregrine.client.core.Peregrine.get().accent() : c, true);
+            tx += d.width(cased(h + " "));
         }
-        d.text(v + tail(), tx, y + 4, vc, true);
+        d.text(cased(v + tail()), tx, y + 4, vc, true);
     }
 }

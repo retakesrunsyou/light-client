@@ -4,6 +4,9 @@ import net.peregrine.client.core.Platform;
 
 public final class PingHud extends LineHud {
 
+    private final net.peregrine.client.core.settings.BoolSetting unit = add(
+            new net.peregrine.client.core.settings.BoolSetting("unit", "Show the ms unit", true));
+
     public PingHud() {
         super("ping", "Ping", "Ping to the server", "Ping", 0f, 0.245f);
     }
@@ -11,7 +14,7 @@ public final class PingHud extends LineHud {
     @Override
     String value(Platform p) {
         int ms = p.ping();
-        return ms < 0 ? null : ms + " ms";
+        return ms < 0 ? null : unit.value ? ms + " ms" : String.valueOf(ms);
     }
 
     @Override

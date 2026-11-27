@@ -9,6 +9,9 @@ public final class Fullbright extends Module {
             new net.peregrine.client.core.settings.SliderSetting("brightness", "Brightness", 0f, 100f, 5f, 100f, "%.0f%%"));
     private final net.peregrine.client.core.settings.BoolSetting dark = add(
             new net.peregrine.client.core.settings.BoolSetting("dark", "Light up pitch-black places too", true));
+    private final net.peregrine.client.core.settings.SliderSetting fade = add(
+            new net.peregrine.client.core.settings.SliderSetting("fade", "Fade in speed", 5f, 100f, 5f, 100f, "%.0f%%")
+                    .withText(v -> v >= 100f ? "Instant" : String.format("%.0f%%", v)));
     private Double saved;
 
     public Fullbright() {
@@ -23,11 +26,14 @@ public final class Fullbright extends Module {
     @Override
     public void tick(Platform p) {
         net.peregrine.client.core.Hooks.nightVision = dark.value;
-        if (Math.abs(p.gamma() - bright.value / 100.0) > 1e-6) {
+        double target = bright.value / 100.0;
+        if (Math.abs(p.gamma() - target) > 1e-6) {
             if (saved == null) {
                 saved = p.gamma();
             }
-            p.setGamma(bright.value / 100.0);
+            double step = fade.value / 100.0 * 0.25;   // a full-speed setting jumps straight there
+            double now = p.gamma();
+            p.setGamma(fade.value >= 100f || Math.abs(target - now) <= step ? target : now + Math.signum(target - now) * step);
         }
     }
 

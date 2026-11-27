@@ -8,6 +8,11 @@ final class LightPanel extends MenuPanel {
 
     /** What changed, newest first: {version, title, what it does}. */
     static final String[][] NEWS = {
+        {"4.2.0", "Grey and white", "One neutral look across launcher, installers and game"},
+        {"4.2.0", "Lexend", "A bolder typeface used everywhere"},
+        {"4.2.0", "Light cape", "New grey cape with the logo; sharper 1024 px capes"},
+        {"4.2.0", "Stacked Esc menu", "Matches the main menu, music card kept"},
+        {"4.2.0", "More module options", "Text case, refresh rate, CPS, ping, memory, clock, Fullbright fade"},
         {"4.1.0", "Resizable mod menu", "Drag any edge or corner to resize it"},
         {"4.1.0", "New Light logo", "A monochrome split-beam mark"},
         {"4.1.0", "Module controls", "Rename modules, keybind notifications, finer sliders"},

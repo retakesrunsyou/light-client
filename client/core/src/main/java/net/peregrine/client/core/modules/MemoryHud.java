@@ -7,15 +7,19 @@ import net.peregrine.client.core.Platform;
 /** Java memory in use: if it keeps hitting the max, give the instance more. */
 public final class MemoryHud extends HudModule {
 
+    private final net.peregrine.client.core.settings.ChoiceSetting mode = add(new net.peregrine.client.core.settings.ChoiceSetting(
+            "mode", "Show", 0, "Used / max and percent", "Percent only", "Used only"));
+
     public MemoryHud() {
         super("memory", "Memory", "Memory usage", false, 0f, 0.525f);
     }
 
-    private static String value() {
+    private String value() {
         Runtime rt = Runtime.getRuntime();
         long used = (rt.totalMemory() - rt.freeMemory()) / (1024 * 1024);
         long max = rt.maxMemory() / (1024 * 1024);
-        return used + " / " + max + " MB (" + (used * 100 / Math.max(1, max)) + "%)";
+        long pct = used * 100 / Math.max(1, max);
+        return mode.index == 1 ? pct + "%" : mode.index == 2 ? used + " MB" : used + " / " + max + " MB (" + pct + "%)";
     }
 
     @Override

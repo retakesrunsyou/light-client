@@ -13,7 +13,7 @@ package net.peregrine.client.core;
  */
 public final class TitleMenu {
 
-    public static final String CLIENT_VERSION = "4.0.0";
+    public static final String CLIENT_VERSION = "4.2.0";
 
     static final String BRAND = "Light Client";
     static final int H = 20, GAP = 4, SMALL_H = 15;
@@ -207,7 +207,7 @@ public final class TitleMenu {
         Button[] row = {lockerButton, newsButton, small[0], small[1], small[2]};
         for (Button b : row) {
             int bw = chipWidth(b.label);
-            if (fx + bw > sw - left - 120 && b != lockerButton) {   // narrow windows: icons only
+            if (fx + bw > sw - left - 200 && b != lockerButton) {   // narrow windows: icons only
                 bw = 18;
             }
             b.place(fx, footerY, bw, 18);
