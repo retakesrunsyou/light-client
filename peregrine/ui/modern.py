@@ -383,7 +383,7 @@ class Rail(QFrame):
     """The side panel: the falcon and name on top, the pages with their names, and you at the
     bottom. Collapses to nothing with a slide."""
     picked = Signal(str)
-    WIDTH = 196
+    WIDTH = 208  # room for "Light Client" next to the falcon and the hide button
 
     def __init__(self, logo: QLabel, items: list, parent=None):
         """items: [(key, icon_name, name)]; None makes a divider."""

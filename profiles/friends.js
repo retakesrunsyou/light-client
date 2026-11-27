@@ -136,7 +136,8 @@ export async function handleFriends(request, env, path, proven) {
     if (!DEVICE.test(device)) return json({ error: "bad device" }, 400);
     return person(env, who.uuid).fetch(inside("/live", who, { device, upgrade: true }));
   }
-  if (!path.startsWith("/v2/")) return json({ error: "not found" }, 404);
+  // /in/... is how one player's record talks to another's, never something a launcher may ask.
+  if (!path.startsWith("/v2/") || path.startsWith("/v2/in/") || path === "/v2/hello") return json({ error: "not found" }, 404);
   const body = request.method === "GET" ? undefined : await request.text();
   if (body && body.length > MAX_MESSAGE + 4096) return json({ error: "That's too big to send" }, 413);
   return person(env, who.uuid).fetch(inside(path.slice(3) + url.search, who, { method: request.method, body, device }));

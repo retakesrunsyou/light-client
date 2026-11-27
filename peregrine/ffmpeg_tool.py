@@ -9,7 +9,6 @@ import subprocess
 import sys
 import tarfile
 import zipfile
-from pathlib import Path
 
 from . import net, paths
 

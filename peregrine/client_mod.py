@@ -44,6 +44,31 @@ def _has_fabric_api(mods: Path) -> bool:
     return any(f.name.lower().startswith(("fabric-api-", "fabric-api_")) for f in mods.glob("*.jar"))
 
 
+def _sync_direct(mods: Path, name: str, progress, inst, why: Exception) -> str:
+    """sync() for when the release can't be looked up: keep the jar we have, or download
+    it from the release's direct link."""
+    dest = mods / name
+    if dest.with_name(dest.name + ".disabled").exists():
+        return "turned off in Content"
+    if dest.is_file():
+        return "kept (release lookup failed)"
+    if not UPDATE_REPO:
+        raise why
+    url = f"https://github.com/{UPDATE_REPO}/releases/latest/download/{name}"
+    try:
+        net.fetch_all([net.Download(url, dest)], "Light Client", progress)
+    except Exception:
+        raise why from None
+    for f in _installed(mods):
+        if f != dest:
+            f.unlink()
+    # No release id to remember: the next normal lookup replaces it once with the tracked copy.
+    (mods / ".peregrine-client").write_text("direct\n")
+    if not _has_fabric_api(mods):
+        modrinth.install(["fabric-api"], inst.data["mc_version"], "fabric", mods, progress)
+    return "installed (direct link)"
+
+
 def sync(inst, enabled: bool, progress=None) -> str:
     """Make the instance's mods folder match the setting. Returns what happened."""
     if inst.data["loader"] != "fabric":
@@ -55,11 +80,17 @@ def sync(inst, enabled: bool, progress=None) -> str:
         return "removed"
 
     name = f"{PREFIX}{inst.data['mc_version']}.jar"
-    asset = _release_assets().get(name)
-    if not asset:
-        # Maybe a release came out since we last looked (its files are attached a few
-        # minutes after publishing), so check again instead of waiting an hour.
-        asset = _release_assets(max_age=60).get(name)
+    try:
+        asset = _release_assets().get(name)
+        if not asset:
+            # Maybe a release came out since we last looked (its files are attached a few
+            # minutes after publishing), so check again instead of waiting an hour.
+            asset = _release_assets(max_age=60).get(name)
+    except Exception as e:
+        # GitHub's API allows 60 lookups an hour per network, and shared networks (schools,
+        # VPNs) run out. The file itself is still at its plain download link, which has no
+        # such limit, so fetch it from there rather than starting without the menu.
+        return _sync_direct(mods, name, progress, inst, e)
     if not asset:
         return "no build for this version"
     dest = mods / asset["name"]

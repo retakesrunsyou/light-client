@@ -1,7 +1,6 @@
 """Profiles: share your setup under your Minecraft name, and look up a friend's to grab
 their mods, resource packs, shaders and in-game mod settings."""
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QCheckBox, QComboBox, QFrame, QHBoxLayout, QLabel, QLineEdit,
                                QVBoxLayout, QWidget)
 

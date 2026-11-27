@@ -868,10 +868,22 @@ public final class Menu {
 
         int cy = filterY + TABBAR_H + 5, ch = 14;
         chipHits.clear();
-        int total = 0;
-        for (int i = 0; i <= ModuleGroups.ALL.length; i++) {
-            String label = i == 0 ? "All" : ModuleGroups.ALL[i - 1];
-            total += d.width(label) + 12 + (i > 0 ? 3 : 0);
+        // Tabs tighten up before they scroll: most windows then fit every tab without hiding any.
+        int pad = 12, gap = 3, total = 0;
+        boolean shortNames = false;
+        for (int tight = 0; tight < 4; tight++) {
+            total = 0;
+            for (int i = 0; i <= ModuleGroups.ALL.length; i++) {
+                String label = i == 0 ? "All" : tabLabel(ModuleGroups.ALL[i - 1], shortNames);
+                total += d.width(label) + pad + (i > 0 ? gap : 0);
+            }
+            if (total <= listW) break;
+            if (tight < 2) {
+                pad = tight == 0 ? 8 : 6;
+                gap = tight == 0 ? 2 : 1;
+            } else {
+                shortNames = true;
+            }
         }
         chipMax = Math.max(0, total - listW);
         chipScroll = clamp(chipScroll, 0, chipMax);
@@ -879,20 +891,20 @@ public final class Menu {
         int x = listX - chipScroll;
         for (int i = 0; i <= ModuleGroups.ALL.length; i++) {
             String g = i == 0 ? null : ModuleGroups.ALL[i - 1];
-            String label = g == null ? "All" : g;
-            int w = d.width(label) + 12;
+            String label = g == null ? "All" : tabLabel(g, shortNames);
+            int w = d.width(label) + pad;
             boolean sel = g == null ? group == null : g.equals(group);
             boolean hv = in(mx, my, x, cy, w, ch) && in(mx, my, listX, cy, listW, ch);
             float hg = sideGlowOf("chip:" + label, hv, dt);
             if (sel) {
-                selX = x + 4;
-                selW = w - 8;
+                selX = x + pad / 2 - 2;   // the underline: the label's width and a little
+                selW = w - pad + 4;
             } else if (hg > 0.01f) {
                 d.roundRect(x, cy, w, ch, 3, Theme.withAlpha(0xFFFFFF, Math.round(0x14 * hg)));
             }
-            d.text(label, x + 6, cy + 3, sel ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, hg), false);
+            d.text(label, x + pad / 2, cy + 3, sel ? Theme.TEXT : Theme.mix(Theme.MUTED, Theme.TEXT, hg), false);
             chipHits.add(new Hit(g == null ? "" : g, x, cy, w, ch, null));
-            x += w + 3;
+            x += w + gap;
         }
         // the underline glides over to the chosen tab instead of jumping
         if (lineW <= 0) {
@@ -910,6 +922,14 @@ public final class Menu {
                 d.rect(fx + i, cy, 1, ch, Theme.withAlpha(MenuStyle.WINDOW, chipScroll >= chipMax ? 0 : i * 22));
             }
         }
+    }
+
+    /** A tab's name; the long ones get a short form when the window is narrow. */
+    private static String tabLabel(String group, boolean shortNames) {
+        if (!shortNames) return group;
+        if (group.equals(ModuleGroups.HAND)) return "Items";
+        if (group.equals(ModuleGroups.PERF)) return "Perf";
+        return group;
     }
 
     /** True over the row of tabs (the wheel scrolls them sideways there). */

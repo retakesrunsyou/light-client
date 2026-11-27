@@ -10,7 +10,7 @@ from .. import auth, fabric, game, instances
 from . import workers
 from .sheet import Sheet, tell
 from .theme import Theme
-from .widgets import Segmented, Toggle
+from .widgets import Toggle
 
 
 def _toggle_row(text: str, checked: bool, sub: str = ""):
