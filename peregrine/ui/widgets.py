@@ -60,7 +60,7 @@ class Toggle(QAbstractButton):
         p.drawRoundedRect(QRectF(0, 0, self.W, self.H), rad, rad)
         k = self.H - 2 * self.PAD
         x = self.PAD + (self.W - 2 * self.PAD - k) * t
-        knob_off, knob_on = QColor("#d6d6e0"), QColor("#1a0610")
+        knob_off, knob_on = QColor("#d6d6e0"), QColor("#0b0b0f")
         p.setBrush(QColor(int(knob_off.red() + (knob_on.red() - knob_off.red()) * t),
                           int(knob_off.green() + (knob_on.green() - knob_off.green()) * t),
                           int(knob_off.blue() + (knob_on.blue() - knob_off.blue()) * t)))

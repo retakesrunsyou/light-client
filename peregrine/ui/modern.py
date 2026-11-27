@@ -139,7 +139,7 @@ class PillButton(QPushButton):
             base = QColor(accent)
             text_color = QColor(on_color(accent.name()))
             edge = QColor(base)
-            hov = QColor(base).lighter(112)
+            hov = QColor(base).lighter(112) if base.lightness() < 235 else QColor(base).darker(108)
         else:
             base = QColor(Theme.p["raised"]) if dark() else QColor(228, 230, 236)
             text_color = QColor(Theme.p["text"])
