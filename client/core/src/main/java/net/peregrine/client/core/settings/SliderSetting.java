@@ -21,8 +21,12 @@ public final class SliderSetting extends Setting {
     }
 
     public void set(float v) {
-        v = Math.max(min, Math.min(max, v));
-        value = step > 0 ? Math.round(v / step) * step : v;
+        if (!Float.isFinite(v)) return;
+        if (v <= min || v >= max) {
+            value = v <= min ? min : max;
+            return;
+        }
+        value = step > 0 ? Math.min(max, min + Math.round((v - min) / step) * step) : v;
     }
 
     public float fraction() {
@@ -38,7 +42,11 @@ public final class SliderSetting extends Setting {
     }
 
     public String text() {
-        return labeler != null ? labeler.apply(value) : String.format(format, value);
+        return textAt(value);
+    }
+
+    public String textAt(float number) {
+        return labeler != null ? labeler.apply(number) : String.format(format, number);
     }
 
     @Override

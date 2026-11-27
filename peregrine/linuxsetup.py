@@ -44,7 +44,9 @@ def register(app, desktop=False, startup=None):
     exec_line = " ".join([quoted.replace("%", "%%"), *map(shlex.quote, args), "%U"])
     entry = ("[Desktop Entry]\nType=Application\nName=Light Client Launcher\n"
              f"Exec={exec_line}\nIcon=peregrine\nStartupWMClass=peregrine\n"
-             "StartupNotify=true\nCategories=Game;\nTerminal=false\n")
+             "StartupNotify=true\nCategories=Game;\nTerminal=false\nActions=uninstall;\n\n"
+             "[Desktop Action uninstall]\nName=Uninstall Light Client\n"
+             f"Exec={' '.join([quoted.replace('%', '%%'), *map(shlex.quote, args), '--uninstall'])}\n")
 
     def shortcut(folder):
         folder.mkdir(parents=True, exist_ok=True)
@@ -76,16 +78,15 @@ def install(payload, target, version, desktop, startup, progress=lambda *_: None
     progress(20, 100, "Installing Light Client")
     with tempfile.NamedTemporaryFile(dir=target, prefix=".light-client-", delete=False) as stage:
         staged = Path(stage.name)
-        try:
-            with Path(payload).open("rb") as source:
-                shutil.copyfileobj(source, stage)
-            stage.flush()
-            staged.chmod(0o755)
-            progress(80, 100, "Adding shortcuts")
-            register(app, desktop, startup)
-            os.replace(staged, app)
-        finally:
-            staged.unlink(missing_ok=True)
+        with Path(payload).open("rb") as source:
+            shutil.copyfileobj(source, stage)
+    try:
+        staged.chmod(0o755)
+        progress(80, 100, "Adding shortcuts")
+        register(app, desktop, startup)
+        os.replace(staged, app)
+    finally:
+        staged.unlink(missing_ok=True)
     app.with_suffix(".version").write_text(version or VERSION)
     config.save(dict(config.load(), desktop_shortcut_made=True, linux_install_dir=str(target)))
     progress(100, 100, "Done")
@@ -95,3 +96,33 @@ def launch(target):
     env = dict(os.environ, PYINSTALLER_RESET_ENVIRONMENT="1")
     env.pop("LD_LIBRARY_PATH", None)
     subprocess.Popen(command(target / IMAGE_NAME), env=env, start_new_session=True)
+
+
+def user_data_dirs():
+    data = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share")
+    cfg = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+    return [data / "peregrine", cfg / "peregrine"]
+
+
+def uninstall(app_dir, remove_data=False, log=print):
+    """Remove the AppImage, its shortcuts and (only when asked) instances, worlds and settings."""
+    data = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share")
+    cfg = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+    app = Path(app_dir) / IMAGE_NAME
+    app.unlink(missing_ok=True)
+    app.with_suffix(".version").unlink(missing_ok=True)
+    (data / "applications/peregrine.desktop").unlink(missing_ok=True)
+    (cfg / "autostart/peregrine.desktop").unlink(missing_ok=True)
+    (data / "icons/hicolor/512x512/apps/peregrine.png").unlink(missing_ok=True)
+    try:
+        location = subprocess.run(["xdg-user-dir", "DESKTOP"], capture_output=True, text=True).stdout.strip()
+    except OSError:
+        location = ""
+    (Path(location) if location else Path.home() / "Desktop").joinpath("peregrine.desktop").unlink(missing_ok=True)
+    if remove_data:
+        for folder in user_data_dirs():
+            shutil.rmtree(folder, ignore_errors=True)
+    cfg_file = config.load()
+    if not remove_data and cfg_file.get("linux_install_dir"):
+        config.save({k: v for k, v in cfg_file.items() if k != "linux_install_dir"})
+    log("removed")

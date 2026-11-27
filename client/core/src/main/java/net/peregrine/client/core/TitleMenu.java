@@ -617,15 +617,7 @@ public final class TitleMenu {
     }
 
     static void lightMark(Draw d, int x, int y, int accent) {
-        // Faceted prism with a cutout through the centre and a warm trailing ray.
-        for (int row = 0; row < 16; row++) {
-            int edge = 12 - row / 2;
-            d.rect(x + edge, y + row, 3, 1, Theme.mix(0xFFFFFFFF, accent, row / 18f));
-            if (row >= 7) d.rect(x + edge + 3, y + row, row - 6, 1,
-                Theme.mix(accent, 0xFF96522A, (row - 7) / 12f));
-        }
-        d.rect(x, y + 11, 6, 1, accent);
-        d.rect(x + 2, y + 9, 5, 1, Theme.mix(accent, 0xFFFFFFFF, 0.35f));
+        d.texture("peregrine-client:icon.png", x, y, 18, 18, 0, 0, 1, 1, 0xFFFFFFFF);
     }
 
     /** A textured button that lifts on hover and sinks on press. */

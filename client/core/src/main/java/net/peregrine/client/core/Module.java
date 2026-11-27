@@ -23,6 +23,9 @@ public abstract class Module {
     public int key = Keys.NONE;
     /** Starred in the menu: shown first. */
     public boolean favorite;
+    final net.peregrine.client.core.settings.TextSetting alias;
+    final net.peregrine.client.core.settings.BoolSetting keyNotice =
+            new net.peregrine.client.core.settings.BoolSetting("ui_key_notice", "Show keybind notification", true);
 
     protected Module(String id, String name, String description, Category category, boolean defaultOn) {
         this.id = id;
@@ -31,8 +34,19 @@ public abstract class Module {
         this.category = category;
         this.defaultOn = defaultOn;
         this.enabled = defaultOn;
+        alias = new net.peregrine.client.core.settings.TextSetting("ui_alias", "Display name", "", 32, name);
     }
 
+    public String displayName() {
+        String custom = alias.value.trim();
+        return custom.isEmpty() ? name : custom;
+    }
+
+    // Append after feature-specific settings so existing indices and profiles remain valid.
+    void addPersonalization() {
+        add(alias);
+        add(keyNotice);
+    }
     private final java.util.List<net.peregrine.client.core.settings.Setting> settings =
             new java.util.ArrayList<net.peregrine.client.core.settings.Setting>();
 
@@ -107,7 +121,7 @@ public abstract class Module {
             return true;
         }
         String q = query.toLowerCase();
-        return name.toLowerCase().contains(q) || description.toLowerCase().contains(q)
+        return name.toLowerCase().contains(q) || displayName().toLowerCase().contains(q) || description.toLowerCase().contains(q)
                 || category.label.toLowerCase().contains(q);
     }
 }

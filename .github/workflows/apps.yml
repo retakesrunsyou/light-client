@@ -7,9 +7,16 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'peregrine/**'
+      - 'packaging/**'
+      - 'assets/**'
+      - 'tests/**'
+      - '.github/workflows/apps.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   windows:
@@ -22,6 +29,8 @@ jobs:
           python-version: '3.12'
       - name: Install build tools
         run: pip install --quiet -r requirements.txt PySide6-Addons pyinstaller pillow   # Addons: videos for your own cape
+      - name: Windows installer regression tests
+        run: python -m unittest discover -s tests -v
       - name: Build Peregrine.exe
         shell: bash
         run: |
@@ -63,6 +72,7 @@ jobs:
           pyinstaller --noconfirm --onefile --windowed --name Peregrine-Setup \
             --icon assets/peregrine.ico \
             --add-data "payload/payload.zip:." --add-data "assets/fonts:assets/fonts" \
+            --add-data "assets/light-client-mark.svg:assets" \
             --paths . --exclude-module tkinter \
             --distpath dist-setup --workpath build-setup \
             packaging/setup_app.py 2>&1 | tail -n 30 > log/setup-build.txt
@@ -102,12 +112,17 @@ jobs:
           $p = Start-Process -FilePath "$dir\Peregrine.exe" -ArgumentList '--smoke' -PassThru
           if (-not $p.WaitForExit(60000)) { $p.Kill(); Say 'installed app did not quit'; exit 1 }
           Say "installed app smoke exit code: $($p.ExitCode)"
+          if ($p.ExitCode -ne 0) { throw 'installed launcher failed the smoke test' }
+          Set-Content "$dir\keep-this-document.txt" 'unrelated file'
           $p = Start-Process -FilePath "$dir\Peregrine.exe" -ArgumentList '--uninstall','--quiet' -PassThru
-          $p.WaitForExit(60000) | Out-Null
+          if (-not $p.WaitForExit(60000)) { $p.Kill(); throw 'uninstaller timed out' }
           Say "uninstaller exit code: $($p.ExitCode)"
+          if ($p.ExitCode -ne 0) { throw 'uninstaller returned an error' }
           Start-Sleep -Seconds 10
           Get-ChildItem "$env:LOCALAPPDATA\Peregrine\logs" -ErrorAction SilentlyContinue | ForEach-Object { Say "== $($_.Name)"; Get-Content $_.FullName -Tail 40 | ForEach-Object { Say $_ } }
           $fail = @()
+          if (-not (Test-Path "$dir\keep-this-document.txt")) { $fail += 'unrelated file was removed' }
+          if (Test-Path "$dir\_internal") { $fail += 'runtime was not removed' }
           if (Test-Path "$dir\Peregrine.exe") { $fail += 'the app folder is still there'; Get-ChildItem $dir | Select-Object -First 10 | ForEach-Object { Say "  left: $($_.Name)" } }
           if (Test-Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Peregrine') { $fail += 'the Apps entry is still there' }
           $desk = [Environment]::GetFolderPath('Desktop')
@@ -119,16 +134,9 @@ jobs:
         with:
           name: windows-installer
           path: dist/Peregrine-Setup.exe
-      - name: Attach to the release
-        if: github.event_name == 'release'
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          cp dist/Peregrine-Setup.exe dist/Light-Client-Setup.exe
-          gh release upload "${{ github.event.release.tag_name }}" dist/Peregrine-Setup.exe dist/Light-Client-Setup.exe --clobber
 
   appimage:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
@@ -188,6 +196,7 @@ jobs:
           pyinstaller --noconfirm --onefile --name Light-Client-Linux-Setup \
             --add-data "payload/Light-Client.AppImage:." \
             --add-data "assets/fonts:assets/fonts" --add-data "assets/peregrine-512.png:assets" \
+            --add-data "assets/light-client-mark.svg:assets" \
             --paths . --exclude-module tkinter packaging/setup_linux.py
       - name: Install and reinstall from the Linux executable
         env:
@@ -218,12 +227,23 @@ jobs:
         with:
           name: linux-appimage
           path: Peregrine-x86_64.AppImage
-      - name: Attach to the release
-        if: github.event_name == 'release'
+  attach:
+    if: github.event_name == 'release'
+    needs: [windows, appimage]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: bundles
+          merge-multiple: true
+      - name: Attach validated apps to the release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
         run: |
-          cp Peregrine-x86_64.AppImage Light-Client-x86_64.AppImage
-          gh release upload "${{ github.event.release.tag_name }}" Peregrine-x86_64.AppImage Light-Client-x86_64.AppImage \
-            dist/Light-Client-Linux-Setup packaging/Light-Client-Linux-Installer.sh --clobber
-
+          cp bundles/Peregrine-Setup.exe bundles/Light-Client-Setup.exe
+          cp bundles/Peregrine-x86_64.AppImage bundles/Light-Client-x86_64.AppImage
+          gh release upload "$TAG" bundles/* packaging/Light-Client-Linux-Installer.sh --clobber

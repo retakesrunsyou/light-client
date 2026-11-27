@@ -7,6 +7,10 @@ from .theme import Theme
 
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
+    ("4.1.0", "Resizable mod menu", "Drag any edge or corner of the in-game menu to resize it, with a highlight and matching pointer."),
+    ("4.1.0", "New Light logo", "A monochrome split-beam mark across the launcher, installers and game."),
+    ("4.1.0", "More module controls", "Rename modules, choose keybind notifications and use finer sliders."),
+    ("4.1.0", "Safer installers", "Windows installs roll back on failure; Linux gets the same uninstall screen."),
     ("4.0.0", "Graphical Linux setup", "A standalone installer and graphical updates with download progress."),
     ("4.0.0", "Rearrange the main menu", "Click the wrench in the game's main menu to drag any button anywhere or hide it. Reset puts everything back."),
     ("4.0.0", "Light look", "A flat near-black launcher with a white accent, hairline borders and small corners. The old Light theme is now called Day."),

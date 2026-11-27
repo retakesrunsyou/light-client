@@ -16,6 +16,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import zipfile
 from pathlib import Path
@@ -129,47 +130,14 @@ def install(payload: Path, app_dir: Path, version: str, desktop_icon=True, start
     progress = progress or (lambda *a: None)
     app_dir = Path(app_dir)
     progress(0, 1, "Getting ready")
-    close_running(app_dir, log=log)
     app_dir.mkdir(parents=True, exist_ok=True)
-    # Move the old program files out of the way first (games and settings live elsewhere).
-    old = app_dir / "_internal"
-    trash = None
-    if old.exists():
-        trash = app_dir.parent / f".peregrine-old-{int(time.time())}"
-        try:
-            os.replace(old, trash)
-        except OSError:
-            shutil.rmtree(old, ignore_errors=True)
-            trash = None
-    with zipfile.ZipFile(payload) as z:
-        members = [m for m in z.infolist() if not m.is_dir()]
-        total = sum(m.file_size for m in members) or 1
-        done = 0
-        root = app_dir.resolve()
-        for i, m in enumerate(members):
-            target = (app_dir / m.filename).resolve()
-            if not str(target).startswith(str(root)):
-                raise RuntimeError("The installer file looks damaged. Download it again.")
-            target.parent.mkdir(parents=True, exist_ok=True)
-            tmp = target.with_name(target.name + ".part")
-            with z.open(m) as src, open(tmp, "wb") as dst:
-                while True:
-                    block = src.read(1 << 20)
-                    if not block:
-                        break
-                    dst.write(block)
-                    done += len(block)
-                    progress(done, total, f"Copying files  {i + 1:,} / {len(members):,}")
-            for attempt in range(10):
-                try:
-                    os.replace(tmp, target)
-                    break
-                except OSError:
-                    if attempt == 9:
-                        raise
-                    time.sleep(0.3)
-    if trash is not None:
-        shutil.rmtree(trash, ignore_errors=True)
+    with tempfile.TemporaryDirectory(prefix=".light-stage-", dir=app_dir) as stage:
+        staged = Path(stage)
+        total = _extract_payload(payload, staged, progress)
+        if (app_dir / "_internal").exists() and not (app_dir / EXE).is_file():
+            raise RuntimeError("Choose another installation folder: _internal is already in use.")
+        close_running(app_dir, log=log)
+        _activate_payload(staged, app_dir)
     progress(total, total, "Adding shortcuts")
     _remove_old_installer(app_dir)
     exe = app_dir / EXE
@@ -187,6 +155,54 @@ def install(payload: Path, app_dir: Path, version: str, desktop_icon=True, start
         _unlink(link.with_name(f"{OLD_APP_NAME}.lnk"))
     register(app_dir, version)
     progress(total, total, "Done")
+
+
+def _extract_payload(payload, stage, progress):
+    """Verify and unpack the complete onedir bundle before touching the installed copy."""
+    with zipfile.ZipFile(payload) as z:
+        members = [m for m in z.infolist() if not m.is_dir()]
+        total = sum(m.file_size for m in members) or 1
+        done = 0
+        for i, m in enumerate(members):
+            parts = m.filename.split("/")
+            if (any(p in ("", ".", "..") or "\\" in p or ":" in p for p in parts)
+                    or not (parts == [EXE] or (parts[0] == "_internal" and len(parts) > 1))):
+                raise RuntimeError("The installer file looks damaged. Download it again.")
+            target = stage.joinpath(*parts)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with z.open(m) as src, target.open("xb") as dst:
+                while True:
+                    block = src.read(1 << 20)
+                    if not block:
+                        break
+                    dst.write(block)
+                    done += len(block)
+                    progress(done, total, f"Copying files  {i + 1:,} / {len(members):,}")
+        if not (stage / EXE).is_file() or not (stage / "_internal").is_dir():
+            raise RuntimeError("Incomplete installer: launcher or runtime is missing.")
+    return total
+
+
+def _activate_payload(stage, target):
+    backup = Path(tempfile.mkdtemp(prefix=".light-backup-", dir=target))
+    old, new = [], []
+    try:
+        for name in (EXE, "_internal"):
+            if (target / name).exists():
+                os.replace(target / name, backup / name)
+                old.append(name)
+        for name in ("_internal", EXE):
+            os.replace(stage / name, target / name)
+            new.append(name)
+    except OSError:
+        # If rollback itself fails, keep the backup for recovery.
+        for name in reversed(new):
+            os.replace(target / name, stage / name)
+        for name in reversed(old):
+            os.replace(backup / name, target / name)
+        backup.rmdir()
+        raise
+    shutil.rmtree(backup, ignore_errors=True)
 
 
 def _unlink(p: Path):
@@ -353,16 +369,18 @@ def uninstall(app_dir: Path, remove_data: bool = False, log=print) -> None:
         winreg.DeleteKey(winreg.HKEY_CURRENT_USER, UNINSTALL_KEY)
     except (ImportError, OSError):
         pass
-    targets = [Path(app_dir)] + (user_data_dirs() if remove_data else [])
-    # A running exe can't delete its own folder: a short-lived helper does it once we've quit.
-    import tempfile
-    lines = ["@echo off", "ping 127.0.0.1 -n 3 > nul"]
-    for t in targets:
-        lines.append(f'for /l %%i in (1,1,15) do if exist "{t}" (rmdir /s /q "{t}" 2>nul & ping 127.0.0.1 -n 2 > nul)')
-    lines.append('del "%~f0"')
-    fd, bat = tempfile.mkstemp(prefix="peregrine-uninstall-", suffix=".bat")
-    with os.fdopen(fd, "w") as f:
-        f.write("\r\n".join(lines) + "\r\n")
-    subprocess.Popen(["cmd", "/c", bat], cwd=tempfile.gettempdir(), close_fds=True,
+    # Never recursively remove the chosen installation directory: it may contain
+    # other apps or documents. Delete only the files the installer owns.
+    import base64
+    targets = [exe, Path(app_dir) / "_internal"] + (user_data_dirs() if remove_data else [])
+    literals = ",".join(map(_ps_quote, targets))
+    script = (f"$targets=@({literals}); for ($i=0; $i -lt 20; $i++) {{"
+              "Start-Sleep -Seconds 1; foreach ($t in $targets) {"
+              "Remove-Item -LiteralPath $t -Recurse -Force -ErrorAction SilentlyContinue };"
+              "if (-not @($targets | Where-Object {Test-Path -LiteralPath $_}).Count) {break} };"
+              f"try {{ [IO.Directory]::Delete({_ps_quote(app_dir)}, $false) }} catch {{}}")
+    encoded = base64.b64encode(script.encode("utf-16-le")).decode("ascii")
+    subprocess.Popen(["powershell", "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded],
+                     cwd=tempfile.gettempdir(), close_fds=True,
                      creationflags=CREATE_NO_WINDOW | 0x00000200)
     log("removal scheduled")

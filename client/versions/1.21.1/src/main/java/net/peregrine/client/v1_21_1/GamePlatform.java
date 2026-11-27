@@ -590,6 +590,34 @@ final class GamePlatform implements Platform {
         }
     }
 
+    private static final long[] CURSORS = new long[5];
+    private static int cursorShape;
+
+    @Override
+    public void setCursor(int shape) {
+        if (shape == cursorShape) {
+            return;
+        }
+        try {
+            long window = org.lwjgl.glfw.GLFW.glfwGetCurrentContext();
+            if (window == 0) {
+                return;
+            }
+            if (shape > 0 && CURSORS[shape] == 0) {
+                // 0x36009 / 0x3600A are the diagonal arrows (GLFW 3.4); older builds fall back to a plain arrow pair.
+                int[] kinds = {0, 0x33005, 0x33006, 0x36009, 0x3600A};
+                CURSORS[shape] = org.lwjgl.glfw.GLFW.glfwCreateStandardCursor(kinds[shape]);
+                if (CURSORS[shape] == 0 && shape > 2) {
+                    CURSORS[shape] = org.lwjgl.glfw.GLFW.glfwCreateStandardCursor(0x36001);
+                }
+            }
+            org.lwjgl.glfw.GLFW.glfwSetCursor(window, shape == 0 ? 0L : CURSORS[shape]);
+            cursorShape = shape;
+        } catch (Throwable ignored) {
+            cursorShape = shape;
+        }
+    }
+
     @Override
     public int mouseHeld() {
         try {

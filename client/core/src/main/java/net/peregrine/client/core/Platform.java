@@ -318,6 +318,10 @@ public interface Platform {
         return false;
     }
 
+    /** The mouse pointer shape: 0 arrow, 1 left-right, 2 up-down, 3 and 4 the two diagonals. Optional. */
+    default void setCursor(int shape) {
+    }
+
     /** The left mouse button: 1 held, 0 not, -1 can't tell. (A slider stops following once it's let go.) */
     default int mouseHeld() {
         return -1;

@@ -12,15 +12,20 @@ public final class ClockHud extends HudModule {
 
     private final SimpleDateFormat format12 = new SimpleDateFormat("h:mm a");
     private final SimpleDateFormat format24 = new SimpleDateFormat("HH:mm");
+    private final SimpleDateFormat seconds12 = new SimpleDateFormat("h:mm:ss a");
+    private final SimpleDateFormat seconds24 = new SimpleDateFormat("HH:mm:ss");
     private final net.peregrine.client.core.settings.BoolSetting h24 = add(
             new net.peregrine.client.core.settings.BoolSetting("24h", "24-hour clock", false));
+    private final net.peregrine.client.core.settings.BoolSetting seconds = add(
+            new net.peregrine.client.core.settings.BoolSetting("seconds", "Show seconds", false));
 
     public ClockHud() {
         super("clock", "Clock", "Real time", false, 1f, 0f);
     }
 
     private String value() {
-        return (h24.value ? format24 : format12).format(new Date());
+        SimpleDateFormat format = seconds.value ? (h24.value ? seconds24 : seconds12) : (h24.value ? format24 : format12);
+        return format.format(new Date());
     }
 
     @Override

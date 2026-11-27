@@ -15,7 +15,7 @@ DEFAULTS = {
     "extra_jvm_args": "",
     "show_snapshots": False,
     # Appearance
-    "theme": "bunny",         # light, dusk, midnight, day
+    "theme": "light",         # light, dusk, midnight, day
     "accent": "#ffffff",      # white: Light Client
     "featured_server": "bunnymc.org",   # Home's big Play button joins this server ("" for none)
     "featured_name": "BunnyMC",
@@ -71,7 +71,7 @@ def load() -> dict:
         if not saved.get("memory_5g") and saved.get("max_memory_mb") == 4096:
             cfg["max_memory_mb"] = DEFAULTS["max_memory_mb"]  # the old 4 GB default moves to 5 GB once
         if not saved.get("look_light"):  # the Light look: old default theme/accent move over once
-            old = cfg.get("theme", "dusk")
+            old = saved.get("theme", "dusk")
             if old == "light":
                 cfg["theme"] = "day"             # the pale theme is now called Day
             elif old in ("dusk", "bunny"):
@@ -81,6 +81,8 @@ def load() -> dict:
             cfg["seasonal"] = False  # holiday colours would override the pink
     except (FileNotFoundError, json.JSONDecodeError):
         pass
+    if cfg.get("theme") == "bunny":
+        cfg["theme"] = "light"
     cfg["look_light"] = True
     cfg["memory_5g"] = True
     cfg["max_memory_mb"] = max(MIN_MEMORY_MB, min(MAX_MEMORY_MB, int(cfg.get("max_memory_mb") or DEFAULTS["max_memory_mb"])))
