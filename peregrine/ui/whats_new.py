@@ -7,6 +7,7 @@ from .theme import Theme
 
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
+    ("5.0.1", "Your cape for everyone", "Other players now get your own cape at up to 2048 x 1024 (moving ones 1024 x 512, up to 120 frames: 60 fps for two seconds)."),
     ("5.0.1", "Joining servers", "The launcher now looks up a server's real address first, so Play no longer ends on an unknown host screen."),
     ("5.0.1", "Light cape for others", "Other players see your Light cape again (needs the profiles service updated)."),
     ("5.0.0", "Friends in game", "The in-game menu now has the launcher's Friends: text and call your friends without leaving Minecraft. The launcher has to be running."),
