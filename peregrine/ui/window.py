@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
     RAIL = [("recent", "s_home", "Home"), ("library", "library", "Library"), ("home", "s_grid", "Instances"),
             ("browse", "s_layers", "Mods"), None,
             ("clips", "s_film", "Clips"), ("locker", "s_shirt", "Locker"), ("friends", "s_user", "Friends"),
-            ("profiles", "users", "Profiles"), ("news", "s_layers", "What's new"), ("settings", "s_gear", "Settings")]
+            ("profiles", "users", "Profiles"), ("news", "s_spark", "What's new"), ("settings", "s_gear", "Settings")]
     RAIL_OF = {"content": "library", "accounts": None}
 
     def __init__(self):
