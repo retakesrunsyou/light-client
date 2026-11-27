@@ -47,7 +47,7 @@ class Toggle(QAbstractButton):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
         p.setPen(Qt.NoPen)
-        off = QColor("#30303c") if Theme.name != "light" else QColor("#c9ccd6")
+        off = QColor("#30303c") if Theme.name != "day" else QColor("#c9ccd6")
         on = QColor(Theme.accent)
         t = self._pos
         track = QColor(int(off.red() + (on.red() - off.red()) * t),
@@ -135,7 +135,7 @@ class Segmented(QWidget):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
         p.setPen(Qt.NoPen)
-        p.setBrush(QColor("#2c2c36") if Theme.name != "light" else QColor("#ffffff"))
+        p.setBrush(QColor("#2c2c36") if Theme.name != "day" else QColor("#ffffff"))
         p.drawRoundedRect(self._pill, 4, 4)
         p.end()
 

@@ -143,7 +143,7 @@ class Sky(QWidget):
         pm = QPixmap(int(w * dpr), int(h * dpr))
         pm.setDevicePixelRatio(dpr)
         p = QPainter(pm)
-        dark = Theme.name != "light"
+        dark = Theme.name != "day"
         bg = QColor(Theme.p["bg"])
         p.fillRect(0, 0, w, h, bg)
         if self.season in THEMES:

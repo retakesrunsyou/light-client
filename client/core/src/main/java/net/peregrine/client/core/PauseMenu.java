@@ -287,7 +287,7 @@ public final class PauseMenu {
             if (b == resume) {
                 MenuStyle.button(bd, b.x, by, b.w, b.h, true, b.glow, a, pressed);
                 MenuIcons.draw(bd, "play", b.x + b.w / 2 - bd.width(b.label) / 2 - 8, contentY + 8, Theme.onColor(a));
-                bd.text(b.label, b.x + (b.w - bd.width(b.label)) / 2 + 6, contentY + 8, Theme.onColor(a), true);
+                bd.text(b.label, b.x + (b.w - bd.width(b.label)) / 2 + 6, contentY + 8, Theme.onColor(a), Theme.lightText(Theme.onColor(a)));
             } else if (b == leave) {
                 MenuStyle.block(bd, b.x, by, b.w, b.h, 0xFF563239, b.glow, pressed);
                 MenuIcons.draw(bd, "leave", b.x + b.w / 2 - bd.width(b.label) / 2 - 8, contentY + 5, Theme.TEXT);

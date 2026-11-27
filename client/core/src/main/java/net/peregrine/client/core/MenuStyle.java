@@ -21,31 +21,30 @@ final class MenuStyle {
     }
 
     static void button(Draw d, int x, int y, int w, int h, boolean primary, float hover, int accent, boolean pressed) {
-        int face = primary ? accent : 0xFF41454E;
-        block(d, x, y, w, h, face, hover, pressed);
+        if (primary) {
+            flat(d, x, y, w, h, accent, Theme.mix(accent, 0xFFFFFFFF, 0.14f), accent, hover, pressed);
+        } else {
+            flat(d, x, y, w, h, 0xF01D1E25, 0xF02B2C36, 0x26FFFFFF, hover, pressed);
+        }
     }
 
-    static void block(Draw d, int x, int y, int w, int h, int face, float hover, boolean pressed) {
+    /** A flat rounded button: a face that lightens on hover, a hairline edge, nothing else. */
+    static void flat(Draw d, int x, int y, int w, int h, int face, int faceHover, int edge, float hover, boolean pressed) {
         if (w < 6 || h < 6) {
             d.rect(x, y, w, h, face);
             return;
         }
-        int top = y + (pressed ? 1 : 0);
-        int height = h - (pressed ? 1 : 0);
-        int depth = pressed ? 1 : 2;
-        int faceHeight = height - depth - 2;
-        int fill = Theme.mix(face, pressed ? 0xFF000000 : 0xFFFFFFFF, pressed ? 0.14f : 0.12f * hover);
-        d.rect(x, top, w, height, hover > 0.7f && !pressed ? 0xFFCFD2D8 : 0xFF08090B);
-        d.rect(x + 1, top + 1, w - 2, height - 2, Theme.mix(fill, 0xFF000000, 0.45f));
-        d.rect(x + 1, top + 1, w - 2, faceHeight, fill);
-        if (d.hasTextures()) {
-            d.texture(Draw.GUI + "button-grain.png", x + 1, top + 1, w - 2, faceHeight,
-                    0, 0, 1, 1, 0xFFFFFFFF);
+        int fill = Theme.mix(face, faceHover, hover);
+        if (pressed) {
+            fill = Theme.mix(fill, 0xFF000000, 0.16f);
         }
-        int light = Theme.mix(fill, 0xFFFFFFFF, 0.42f);
-        d.rect(x + 1, top + 1, w - 2, 1, light);
-        d.rect(x + 1, top + 1, 1, faceHeight, light);
-        d.rect(x + w - 2, top + 2, 1, faceHeight - 1, Theme.mix(fill, 0xFF000000, 0.17f));
+        d.roundRect(x, y, w, h, 3, fill);
+        d.roundOutline(x, y, w, h, 3, Theme.mix(edge, Theme.withAlpha(0xFFFFFF, 0x4A), hover * ((edge >>> 24) < 0xF0 ? 1f : 0f)));
+    }
+
+    /** The old name, kept for callers that pass their own face colour (the pause menu's Leave). */
+    static void block(Draw d, int x, int y, int w, int h, int face, float hover, boolean pressed) {
+        flat(d, x, y, w, h, face, Theme.mix(face, 0xFFFFFFFF, 0.12f), Theme.withAlpha(0xFFFFFF, 0x26), hover, pressed);
     }
 
     static void toggle(Draw d, int x, int y, int w, int h, float on, int accent, boolean hover) {

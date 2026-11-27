@@ -15,11 +15,11 @@ DEFAULTS = {
     "extra_jvm_args": "",
     "show_snapshots": False,
     # Appearance
-    "theme": "bunny",         # bunny, dusk, midnight, light
+    "theme": "bunny",         # light, dusk, midnight, day
     "accent": "#ffffff",      # white: Light Client
     "featured_server": "bunnymc.org",   # Home's big Play button joins this server ("" for none)
     "featured_name": "BunnyMC",
-    "look_white": True,
+    "look_light": True,
     "look_1_1": True,         # set once settings have seen the 1.1 look (see load)
     "rail_open": True,        # the side panel
     "seasonal": False,        # holiday themes in the launcher's background, by the date
@@ -70,15 +70,18 @@ def load() -> dict:
             cfg["accent"] = DEFAULTS["accent"]  # the old default amber moves to the new violet once
         if not saved.get("memory_5g") and saved.get("max_memory_mb") == 4096:
             cfg["max_memory_mb"] = DEFAULTS["max_memory_mb"]  # the old 4 GB default moves to 5 GB once
-        if not saved.get("look_white"):  # the Bunny look: old default theme/accent move over once
-            if cfg.get("theme", "dusk") == "dusk":
+        if not saved.get("look_light"):  # the Light look: old default theme/accent move over once
+            old = cfg.get("theme", "dusk")
+            if old == "light":
+                cfg["theme"] = "day"             # the pale theme is now called Day
+            elif old in ("dusk", "bunny"):
                 cfg["theme"] = DEFAULTS["theme"]
             if str(cfg.get("accent", "")).lower() in ("#7c5cff", "#e8a33d", "#ff5fa8"):
                 cfg["accent"] = DEFAULTS["accent"]
             cfg["seasonal"] = False  # holiday colours would override the pink
     except (FileNotFoundError, json.JSONDecodeError):
         pass
-    cfg["look_white"] = True
+    cfg["look_light"] = True
     cfg["memory_5g"] = True
     cfg["max_memory_mb"] = max(MIN_MEMORY_MB, min(MAX_MEMORY_MB, int(cfg.get("max_memory_mb") or DEFAULTS["max_memory_mb"])))
     if not cfg["client_id"]:

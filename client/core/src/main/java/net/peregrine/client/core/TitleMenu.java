@@ -24,6 +24,7 @@ public final class TitleMenu {
         final String icon;
         final Platform.Screen action;
         final boolean primary;
+        String id;           // what the layout editor remembers it by
         int x, y, w, h;
         float glow;  // hover highlight, eased in and out
 
@@ -32,6 +33,11 @@ public final class TitleMenu {
             this.icon = icon;
             this.action = action;
             this.primary = primary;
+        }
+
+        Button named(String id) {
+            this.id = id;
+            return this;
         }
 
         boolean contains(int mx, int my) {
@@ -92,25 +98,25 @@ public final class TitleMenu {
     private long shownAt = -1;
     private long lastFrame;
     private final Button[] buttons = {
-        new Button("Singleplayer", "controller", Platform.Screen.SINGLEPLAYER, true),
-        new Button("Multiplayer", "globe", Platform.Screen.MULTIPLAYER, false),
-        new Button("Light Client menu", "grid", Platform.Screen.PEREGRINE_MENU, false),
-        new Button("Settings", "sliders", Platform.Screen.OPTIONS, false),
-        new Button("Quit game", "power", Platform.Screen.QUIT, false),
+        new Button("Singleplayer", "controller", Platform.Screen.SINGLEPLAYER, true).named("singleplayer"),
+        new Button("Multiplayer", "globe", Platform.Screen.MULTIPLAYER, false).named("multiplayer"),
+        new Button("Light Client menu", "grid", Platform.Screen.PEREGRINE_MENU, false).named("menu"),
+        new Button("Settings", "sliders", Platform.Screen.OPTIONS, false).named("settings"),
+        new Button("Quit game", "power", Platform.Screen.QUIT, false).named("quit"),
     };
     private final Button[] small = {
-        new Button("Realms", "castle", Platform.Screen.REALMS, false),
-        new Button("Language", "language", Platform.Screen.LANGUAGE, false),
-        new Button("Accessibility", "person", Platform.Screen.ACCESSIBILITY, false),
+        new Button("Realms", "castle", Platform.Screen.REALMS, false).named("realms"),
+        new Button("Language", "language", Platform.Screen.LANGUAGE, false).named("language"),
+        new Button("Accessibility", "person", Platform.Screen.ACCESSIBILITY, false).named("accessibility"),
     };
     private final int[] card = new int[4];  // the "Jump back in" card: x, y, w, h (w 0 = none)
     private float cardGlow;
-    private final Button newsButton = new Button("What's new", "layers", null, false);
+    private final Button newsButton = new Button("What's new", "layers", null, false).named("news");
     private int left, logoY, homeWidth;
     static final String COPYRIGHT = "Copyright Mojang AB. Do not distribute!";
 
     // ---- the right-hand panel and the Locker
-    private final Button lockerButton = new Button("Locker", "shirt", null, false);
+    private final Button lockerButton = new Button("Locker", "shirt", null, false).named("locker");
     private final Button backButton = new Button("Back", "back", null, false);
     private final int[] panel = new int[4];      // the player panel on the right: x, y, w, h (w 0 = none)
     private boolean lockerOpen;
@@ -131,6 +137,17 @@ public final class TitleMenu {
     private final PlayerPreview preview = new PlayerPreview();
     private boolean pressedPlayer;
     private int pressX;
+
+    // ---- the layout editor: hide buttons, drag them anywhere
+    private final TitleLayout layout = new TitleLayout();
+    private boolean editing;
+    private String dragId;
+    private int dragDX, dragDY;
+    private boolean dragMoved;
+    private final Button editChip = new Button("Edit layout", "wrench", null, false);
+    private final Button doneButton = new Button("Done", "check", null, true);
+    private final Button resetButton = new Button("Reset", "reset", null, false);
+    private final java.util.List<Object[]> trayHits = new java.util.ArrayList<Object[]>();   // {id, x, y, w, h}
 
     // ---- backgrounds
     final BackgroundEditor editor = new BackgroundEditor(this);
@@ -157,23 +174,31 @@ public final class TitleMenu {
         boolean player = (mm == null || mm.player.value) && ph >= 96 && sw >= 380;
         left = Math.max(12, sw / 15);
         homeWidth = Math.min(182, Math.max(106, sw - 2 * left - (player ? pw + 30 : 0)));
-        boolean recent = pc.lastServerName() != null && p.supportsJoin() && sh >= 180;
+        layout.load(p.configFile());
+        boolean recent = pc.lastServerName() != null && p.supportsJoin() && sh >= 180 && !layout.hidden("recent");
+        boolean recentFlows = recent && !layout.moved("recent");
         boolean shortScreen = sh < 205;
         int rowHeight = shortScreen ? 15 : 20;
         int rowGap = shortScreen ? 3 : 5;
         int headerHeight = shortScreen ? 28 : 40;
         int recentHeight = shortScreen ? 28 : 36;
-        int stackHeight = headerHeight + (recent ? recentHeight + 7 : 0) + buttons.length * (rowHeight + rowGap);
+        int flowing = 0;
+        for (Button b : buttons) {
+            if (flows(b)) flowing++;
+        }
+        int stackHeight = headerHeight + (recentFlows ? recentHeight + 7 : 0) + flowing * (rowHeight + rowGap);
         logoY = Math.max(7, (sh - 34 - stackHeight) / 2);
         int y = logoY + headerHeight;
         card[0] = left;
         card[1] = y;
         card[2] = recent ? homeWidth : 0;
         card[3] = recentHeight;
-        if (recent) y += recentHeight + 7;
+        if (recentFlows) y += recentHeight + 7;
         for (Button button : buttons) {
             button.place(left, y, homeWidth, rowHeight);
-            y += rowHeight + rowGap;
+            if (flows(button)) {
+                y += rowHeight + rowGap;
+            }
         }
 
         // the bottom row: separate chips, each its own size
@@ -186,7 +211,9 @@ public final class TitleMenu {
                 bw = 18;
             }
             b.place(fx, footerY, bw, 18);
-            fx += bw + 5;
+            if (flows(b)) {
+                fx += bw + 5;
+            }
         }
         if (player) {
             panel[0] = sw - left - pw;
@@ -196,6 +223,221 @@ public final class TitleMenu {
         } else {
             panel[2] = 0;
         }
+        applyLayout(sw, sh);
+    }
+
+    // ------------------------------------------------------------------ the player's own layout
+
+    /** Whether a button takes its place in the default stack or row (not hidden, not moved). */
+    private boolean flows(Button b) {
+        return !layout.hidden(b.id) && !layout.moved(b.id);
+    }
+
+    /** Puts moved buttons where the player left them and takes hidden ones out of play. */
+    private void applyLayout(int sw, int sh) {
+        for (Button b : allButtons()) {
+            if (layout.hidden(b.id)) {
+                b.place(0, 0, 0, 0);
+            } else if (layout.moved(b.id)) {
+                TitleLayout.Entry e = layout.get(b.id);
+                b.place(clamp(Math.round(e.fx * sw), 0, sw - b.w), clamp(Math.round(e.fy * sh), 0, sh - b.h), b.w, b.h);
+            }
+        }
+        if (layout.moved("recent") && card[2] > 0) {
+            TitleLayout.Entry e = layout.get("recent");
+            card[0] = clamp(Math.round(e.fx * sw), 0, sw - card[2]);
+            card[1] = clamp(Math.round(e.fy * sh), 0, sh - card[3]);
+        }
+    }
+
+    private static int clamp(int v, int lo, int hi) {
+        return Math.max(lo, Math.min(Math.max(lo, hi), v));
+    }
+
+    private java.util.List<Button> allButtons() {
+        java.util.List<Button> all = new java.util.ArrayList<Button>();
+        java.util.Collections.addAll(all, buttons);
+        all.add(lockerButton);
+        all.add(newsButton);
+        java.util.Collections.addAll(all, small);
+        return all;
+    }
+
+    private static String labelOf(String id) {
+        switch (id) {
+            case "singleplayer": return "Singleplayer";
+            case "multiplayer": return "Multiplayer";
+            case "menu": return "Light Client menu";
+            case "settings": return "Settings";
+            case "quit": return "Quit game";
+            case "realms": return "Realms";
+            case "language": return "Language";
+            case "accessibility": return "Accessibility";
+            case "locker": return "Locker";
+            case "news": return "What's new";
+            default: return "Jump back in";
+        }
+    }
+
+    /** Everything the player may rearrange, by id, in drawing order. */
+    private java.util.List<String> editableIds() {
+        java.util.List<String> ids = new java.util.ArrayList<String>();
+        for (Button b : allButtons()) {
+            ids.add(b.id);
+        }
+        ids.add("recent");
+        return ids;
+    }
+
+    /** {x, y, w, h} of an editable thing right now (w 0 = not on screen). */
+    private int[] rectOf(String id) {
+        if (id.equals("recent")) {
+            return new int[] {card[0], card[1], card[2], card[3]};
+        }
+        for (Button b : allButtons()) {
+            if (b.id.equals(id)) {
+                return new int[] {b.x, b.y, b.w, b.h};
+            }
+        }
+        return new int[] {0, 0, 0, 0};
+    }
+
+    private static final int TRAY_H = 14;
+
+    private static int trayWidth(String label) {
+        return 20 + Math.round(label.length() * 5.6f);
+    }
+
+    /** The Edit button's place: the top right corner. */
+    private void placeEditChip(int sw) {
+        editChip.place(sw - 6 - 18, 6, 18, 18);
+    }
+
+    private void layoutEditBar(int sw) {
+        int total = 74 + 64 + 6;
+        int x = (sw - total) / 2;
+        resetButton.place(x, 6, 64, 18);
+        doneButton.place(x + 70, 6, 74, 18);
+    }
+
+    /** The edit chip when not editing; the Done / Reset bar, outlines, hide badges and the tray of hidden buttons when editing. */
+    private void drawEditLayer(Draw d, Platform p, int mx, int my, float dt, int a) {
+        int sw = p.screenWidth();
+        trayHits.clear();
+        if (!editing) {
+            if (lockerOpen) return;
+            placeEditChip(sw);
+            drawAction(d, editChip, mx, my, dt, a);
+            if (editChip.contains(mx, my)) {
+                d.text(editChip.label, editChip.x - 6 - d.width(editChip.label), editChip.y + 5, Theme.MUTED, true);
+            }
+            return;
+        }
+        layoutEditBar(sw);
+        drawAction(d, resetButton, mx, my, dt, a);
+        drawAction(d, doneButton, mx, my, dt, a);
+        String hint = "Drag a button to move it  \u00B7  \u00D7 hides it";
+        d.text(hint, (sw - d.width(hint)) / 2, 30, Theme.MUTED, true);
+        for (String id : editableIds()) {
+            if (layout.hidden(id)) continue;
+            int[] r = rectOf(id);
+            if (r[2] <= 0) continue;
+            boolean dragging = id.equals(dragId) && dragMoved;
+            d.roundOutline(r[0] - 1, r[1] - 1, r[2] + 2, r[3] + 2, 4,
+                    dragging ? Theme.withAlpha(a, 0xFF) : Theme.withAlpha(a, 0x90));
+            int bx = r[0] + r[2] - 6, by = r[1] - 6;
+            boolean over = mx >= bx && mx < bx + 11 && my >= by && my < by + 11;
+            d.roundRect(bx, by, 11, 11, 5, over ? 0xFFE5484D : 0xF0262A33);
+            d.roundOutline(bx, by, 11, 11, 5, over ? 0xFFFF8A8E : 0x80FFFFFF);
+            MenuIcons.draw(d, "close", bx + 1, by + 1, 0xFFFFFFFF);
+        }
+        // hidden buttons wait in a tray; click one to bring it back
+        java.util.List<String> hidden = new java.util.ArrayList<String>();
+        for (String id : editableIds()) {
+            if (layout.hidden(id)) hidden.add(id);
+        }
+        if (!hidden.isEmpty()) {
+            int total = -4;
+            for (String id : hidden) total += trayWidth(labelOf(id)) + 4;
+            int x = (sw - total) / 2, y = 42;
+            for (String id : hidden) {
+                String label = labelOf(id);
+                int w = trayWidth(label);
+                boolean over = mx >= x && mx < x + w && my >= y && my < y + TRAY_H;
+                d.roundRect(x, y, w, TRAY_H, 3, over ? 0xF02A2E38 : 0xD81B1E25);
+                d.roundOutline(x, y, w, TRAY_H, 3, Theme.withAlpha(a, over ? 0xE0 : 0x60));
+                d.text("+ " + label, x + 6, y + 3, over ? Theme.TEXT : Theme.MUTED, false);
+                trayHits.add(new Object[] {id, x, y, w, TRAY_H});
+                x += w + 4;
+            }
+        }
+    }
+
+    private boolean editClick(int mx, int my) {
+        Platform p = pc.platform();
+        layoutEditBar(p.screenWidth());
+        if (doneButton.contains(mx, my)) {
+            stopEditing();
+            return true;
+        }
+        if (resetButton.contains(mx, my)) {
+            layout.reset();
+            return true;
+        }
+        for (Object[] t : trayHits) {
+            int x = (Integer) t[1], y = (Integer) t[2], w = (Integer) t[3], h = (Integer) t[4];
+            if (mx >= x && mx < x + w && my >= y && my < y + h) {
+                layout.get((String) t[0]).hidden = false;
+                layout.save();
+                return true;
+            }
+        }
+        java.util.List<String> ids = editableIds();
+        for (int i = ids.size() - 1; i >= 0; i--) {   // the hide badges first (they sit on the corners)
+            String id = ids.get(i);
+            int[] r = rectOf(id);
+            if (!layout.hidden(id) && r[2] > 0 && mx >= r[0] + r[2] - 6 && mx < r[0] + r[2] + 5 && my >= r[1] - 6 && my < r[1] + 5) {
+                layout.get(id).hidden = true;
+                layout.save();
+                return true;
+            }
+        }
+        for (int i = ids.size() - 1; i >= 0; i--) {
+            String id = ids.get(i);
+            int[] r = rectOf(id);
+            if (!layout.hidden(id) && r[2] > 0 && mx >= r[0] && mx < r[0] + r[2] && my >= r[1] && my < r[1] + r[3]) {
+                dragId = id;
+                dragDX = mx - r[0];
+                dragDY = my - r[1];
+                dragMoved = false;
+                return true;
+            }
+        }
+        return true;   // nothing else works while arranging
+    }
+
+    private void stopEditing() {
+        editing = false;
+        dragId = null;
+        layout.save();
+    }
+
+    private boolean editDrag(int mx, int my) {
+        if (dragId == null) {
+            return editing;
+        }
+        Platform p = pc.platform();
+        int sw = p.screenWidth(), sh = p.screenHeight();
+        int[] r = rectOf(dragId);
+        int nx = clamp(mx - dragDX, 0, sw - r[2]), ny = clamp(my - dragDY, 0, sh - r[3]);
+        if (!dragMoved && Math.abs(nx - r[0]) < 2 && Math.abs(ny - r[1]) < 2) {
+            return true;
+        }
+        dragMoved = true;
+        TitleLayout.Entry e = layout.get(dragId);
+        e.fx = nx / (float) sw;
+        e.fy = ny / (float) sh;
+        return true;
     }
 
     /** A footer chip's width: icon, label, padding (about 5.5 GUI px a letter). */
@@ -302,7 +544,7 @@ public final class TitleMenu {
 
         if (e < 0.98f) {
             Draw vd = e > 0.01f ? new FadeDraw(base, 1f - e) : base;
-            if (holiday != Holidays.NONE) {
+            if (holiday != Holidays.NONE && !editing) {
                 Holidays.greetingChip(vd, holiday, sw / 2, 6);
             }
             String ver = versionLine(p);
@@ -334,6 +576,10 @@ public final class TitleMenu {
         if (card[2] > 0) drawCard(home, p, mouseX, my, dt, a);
         int i = 0;
         for (Button button : buttons) {   // the tiles come in one after another
+            if (button.w <= 0) {
+                i++;
+                continue;
+            }
             float in = shownAt < 0 ? 1f : FadeDraw.progress(shownAt + 60L * i++, 260);
             if (in < 1f) {
                 Draw f = new FadeDraw(home, in);
@@ -355,9 +601,10 @@ public final class TitleMenu {
         if (measured) {
             layout(p);
         }
-        drawAction(home, lockerButton, mouseX, my, dt, a);
-        drawAction(home, newsButton, mouseX, my, dt, a);
-        for (Button button : small) drawAction(home, button, mouseX, my, dt, a);
+        if (lockerButton.w > 0) drawAction(home, lockerButton, mouseX, my, dt, a);
+        if (newsButton.w > 0) drawAction(home, newsButton, mouseX, my, dt, a);
+        for (Button button : small) if (button.w > 0) drawAction(home, button, mouseX, my, dt, a);
+        drawEditLayer(home, p, mouseX, my, dt, a);
         home.popScale();
 
         if (panel[2] > 0) {
@@ -403,7 +650,7 @@ public final class TitleMenu {
         }
         MenuIcons.draw(d, button.icon, x + 7, iy, fg);
         boolean chevron = h >= 19 && w > 90;
-        d.text(d.trim(button.label, w - (chevron ? 34 : 24)), x + 21 + Math.round(g * 2), y + (h - d.lineHeight()) / 2 + 1, fg, true);
+        d.text(d.trim(button.label, w - (chevron ? 34 : 24)), x + 21 + Math.round(g * 2), y + (h - d.lineHeight()) / 2 + 1, fg, Theme.lightText(fg));
         if (chevron) {
             MenuIcons.draw(d, "chevron", x + w - 13 + Math.round(g * 2), iy,
                     Theme.withAlpha(button.primary ? 0xFFFFFFFF : accent, Math.round(0x60 + 0x9F * g)));
@@ -671,6 +918,9 @@ public final class TitleMenu {
         if (editor.isOpen()) {
             return editor.mouseDragged(pc, mainMenu(), mx, my);
         }
+        if (editing) {
+            return editDrag(mx, my);
+        }
         if (pressedPlayer) {
             preview.drag(mx);
             return true;
@@ -681,6 +931,13 @@ public final class TitleMenu {
     public boolean mouseReleased(int mx, int my) {
         if (editor.isOpen()) {
             return editor.mouseReleased(pc);
+        }
+        if (editing) {
+            if (dragId != null) {
+                dragId = null;
+                layout.save();
+            }
+            return true;
         }
         if (!pressedPlayer) {
             return false;
@@ -712,6 +969,10 @@ public final class TitleMenu {
     }
 
     public boolean keyPressed(int key) {
+        if (key == Menu.KEY_ESCAPE && editing) {
+            stopEditing();
+            return true;
+        }
         if (key == Menu.KEY_ESCAPE && editor.isOpen()) {
             editor.close(pc);
             return true;
@@ -932,6 +1193,16 @@ public final class TitleMenu {
         }
         Platform p = pc.platform();
         layout(p);
+        if (editing) {
+            return editClick(mx, my);
+        }
+        if (!lockerOpen) {
+            placeEditChip(p.screenWidth());
+            if (editChip.contains(mx, my)) {
+                editing = true;
+                return true;
+            }
+        }
         int[] box = playerBox();
         if (box != null && mx >= box[0] && mx < box[0] + box[2] && my >= box[1] && my < box[1] + box[3]) {
             preview.press(mx);

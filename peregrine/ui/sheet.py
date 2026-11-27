@@ -32,7 +32,7 @@ def _animations_on() -> bool:
 
 
 def _dark() -> bool:
-    return Theme.name != "light"
+    return Theme.name != "day"
 
 
 class _Backdrop(QWidget):

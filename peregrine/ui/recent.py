@@ -411,7 +411,7 @@ class RecentPage(QWidget):
             image = self.backdrop
             scale = max(bounds.width() / image.width(), bounds.height() / image.height())
             width, height = image.width() * scale, image.height() * scale
-            p.setOpacity(0.52 if Theme.name != "light" else 0.3)
+            p.setOpacity(0.52 if Theme.name != "day" else 0.3)
             p.drawImage(QRectF(bounds.right() - width, bounds.center().y() - height / 2, width, height), image)
             p.setOpacity(1)
             shade = QLinearGradient(bounds.topLeft(), bounds.topRight())
