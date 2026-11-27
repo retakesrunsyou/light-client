@@ -23,7 +23,7 @@ def _mix(a: QColor, b: QColor, t: float) -> QColor:
 
 
 def dark() -> bool:
-    return Theme.name != "light"
+    return Theme.name != "day"
 
 
 def heavy_font(px: int, weight=QFont.Black, spacing: float = 0) -> QFont:
@@ -38,7 +38,7 @@ def heavy_font(px: int, weight=QFont.Black, spacing: float = 0) -> QFont:
 # ------------------------------------------------------------------ buttons
 
 class PillButton(QPushButton):
-    """A flat Bunny-style button: 'primary' (accent), 'ghost' (neutral) or 'danger',
+    """A flat button: 'primary' (accent), 'ghost' (neutral) or 'danger',
     with an optional icon on the left. Lightens on hover, darkens on press."""
 
     def __init__(self, text: str, icon_name: str = None, kind: str = "primary", big: bool = False, parent=None):
@@ -126,7 +126,7 @@ class PillButton(QPushButton):
         return self.sizeHint()
 
     def paintEvent(self, _):
-        """Flat Bunny-style button: small corners, a hairline border, a lighter fill on hover and
+        """Flat button: small corners, a hairline border, a lighter fill on hover and
         a solid accent fill with dark ink text for the primary kind."""
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)

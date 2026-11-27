@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
 from .. import instances, modrinth, performance
 from . import workers
 from .pages import clear, last_played, scroll
-from .theme import Theme, icon_pixmap, round_menu
+from .theme import Theme, icon_pixmap, on_color, round_menu
 
 
 def _version_of(filename: str, mc: str) -> str:
@@ -51,10 +51,10 @@ class Check(QAbstractButton):
         p.setRenderHint(QPainter.Antialiasing)
         r = QRectF(2, 2, 20, 20)
         path = QPainterPath()
-        path.addRoundedRect(r, 6, 6)
+        path.addRoundedRect(r, 5, 5)
         if self.isChecked():
             p.fillPath(path, QColor(Theme.accent))
-            pen = QPen(QColor("#ffffff"), 2.2)
+            pen = QPen(QColor(on_color(Theme.accent)), 2.2)
             pen.setCapStyle(Qt.RoundCap)
             pen.setJoinStyle(Qt.RoundJoin)
             p.setPen(pen)

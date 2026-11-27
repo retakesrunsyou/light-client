@@ -5,18 +5,18 @@ from PySide6.QtGui import QColor, QIcon, QImage, QPainter, QPainterPath, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 
 THEMES = {
-    # Bunny: near-black neutrals with hairline borders and a white accent (the default).
-    "bunny": dict(bg="#0b0b0f", surface="#131318", raised="#1e1e26", border="#25252d",
+    # Light: near-black neutrals with hairline borders and a white accent (the default).
+    "light": dict(bg="#0b0b0f", surface="#131318", raised="#1e1e26", border="#25252d",
                   text="#f2f2f5", muted="#a0a0b0", faint="#6f6f80", danger="#ff6b81"),
     # Dusk: slate blue-grey, like the sky a falcon hunts in.
     "dusk": dict(bg="#171a21", surface="#1f232c", raised="#272c37", border="#323846",
                  text="#edeef2", muted="#959bab", faint="#646b7b", danger="#e5676b"),
     "midnight": dict(bg="#0e1015", surface="#15181f", raised="#1c2029", border="#262b36",
                      text="#e8e9ee", muted="#8b91a0", faint="#5a6070", danger="#e5676b"),
-    "light": dict(bg="#eef0f4", surface="#ffffff", raised="#f4f5f8", border="#d8dce4",
+    "day": dict(bg="#eef0f4", surface="#ffffff", raised="#f4f5f8", border="#d8dce4",
                   text="#1a1d24", muted="#5d6474", faint="#9298a6", danger="#c9454a"),
 }
-THEME_NAMES = {"bunny": "Bunny", "dusk": "Dusk", "midnight": "Midnight", "light": "Light"}
+THEME_NAMES = {"light": "Light", "dusk": "Dusk", "midnight": "Midnight", "day": "Day"}
 
 ACCENTS = {
     "White": "#ffffff", "Pink": "#ff5fa8", "Amber": "#e8a33d", "Sky": "#5aa9e6", "Moss": "#7bc47f",
@@ -27,15 +27,15 @@ DEFAULT_ACCENT = "#ffffff"
 
 class Theme:
     """The current palette. Widgets read colors from here."""
-    name = "bunny"
+    name = "light"
     accent = "#ffffff"
-    p = THEMES["bunny"]
+    p = THEMES["light"]
 
     @classmethod
     def set(cls, name: str, accent: str) -> None:
-        cls.name = name if name in THEMES else "bunny"
+        cls.name = name if name in THEMES else "light"
         cls.accent = accent
-        if cls.name == "light" and accent.lower() == "#ffffff":
+        if cls.name == "day" and accent.lower() == "#ffffff":
             cls.accent = "#15171c"   # white would vanish on the light theme
         cls.p = THEMES[cls.name]
 
@@ -100,10 +100,19 @@ def round_menu(menu):
     return menu
 
 
+def check_icon() -> str:
+    """The tick inside a checked box: dark on a light accent, white on a dark one."""
+    import sys
+    from pathlib import Path
+    base = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent.parent)) / "assets"
+    name = "check.png" if on_color(Theme.accent) != "#ffffff" else "check-light.png"
+    return (base / name).as_posix()
+
+
 def stylesheet() -> str:
     p, a = Theme.p, Theme.accent
     on_a = on_color(a)
-    dark = Theme.name != "light"
+    dark = Theme.name != "day"
     hover_a = shade(a, 88) if dark and a.lower() == "#ffffff" else shade(a, 112 if dark else 94)
     rail = shade(p["bg"], 90) if dark else p["surface"]
     edge_hi = p["border"]
@@ -191,7 +200,7 @@ def stylesheet() -> str:
     QCheckBox {{ spacing: 10px; }}
     QCheckBox::indicator {{ width: 18px; height: 18px; border-radius: 4px;
                             border: 1px solid {p['faint']}; background: {p['bg']}; }}
-    QCheckBox::indicator:checked {{ background: {a}; border-color: {a}; }}
+    QCheckBox::indicator:checked {{ background: {a}; border-color: {a}; image: url({check_icon()}); }}
     QSlider::groove:horizontal {{ height: 4px; background: {p['border']}; border-radius: 2px; }}
     QSlider::sub-page:horizontal {{ background: {a}; border-radius: 2px; }}
     QSlider::handle:horizontal {{ background: {p['text']}; width: 14px; height: 14px;

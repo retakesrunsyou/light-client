@@ -26,6 +26,11 @@ public final class Theme {
     private Theme() {
     }
 
+    /** Whether text in this colour is light enough to want a drop shadow (dark text looks smudged with one). */
+    public static boolean lightText(int argb) {
+        return ((argb >> 16) & 0xFF) + ((argb >> 8) & 0xFF) + (argb & 0xFF) > 420;
+    }
+
     public static int withAlpha(int argb, int alpha) {
         return (alpha << 24) | (argb & 0x00FFFFFF);
     }
