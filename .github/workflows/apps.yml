@@ -20,8 +20,6 @@ permissions:
 
 jobs:
   windows:
-    permissions:
-      contents: ${{ github.event_name == 'release' && 'write' || 'read' }}
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -136,18 +134,8 @@ jobs:
         with:
           name: windows-installer
           path: dist/Peregrine-Setup.exe
-      - name: Attach to the release
-        if: github.event_name == 'release'
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          cp dist/Peregrine-Setup.exe dist/Light-Client-Setup.exe
-          gh release upload "${{ github.event.release.tag_name }}" dist/Peregrine-Setup.exe dist/Light-Client-Setup.exe --clobber
 
   appimage:
-    permissions:
-      contents: ${{ github.event_name == 'release' && 'write' || 'read' }}
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-22.04
     timeout-minutes: 30
@@ -208,6 +196,7 @@ jobs:
           pyinstaller --noconfirm --onefile --name Light-Client-Linux-Setup \
             --add-data "payload/Light-Client.AppImage:." \
             --add-data "assets/fonts:assets/fonts" --add-data "assets/peregrine-512.png:assets" \
+            --add-data "assets/light-client-mark.svg:assets" \
             --paths . --exclude-module tkinter packaging/setup_linux.py
       - name: Install and reinstall from the Linux executable
         env:
@@ -238,11 +227,23 @@ jobs:
         with:
           name: linux-appimage
           path: Peregrine-x86_64.AppImage
-      - name: Attach to the release
-        if: github.event_name == 'release'
+  attach:
+    if: github.event_name == 'release'
+    needs: [windows, appimage]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: bundles
+          merge-multiple: true
+      - name: Attach validated apps to the release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
         run: |
-          cp Peregrine-x86_64.AppImage Light-Client-x86_64.AppImage
-          gh release upload "${{ github.event.release.tag_name }}" Peregrine-x86_64.AppImage Light-Client-x86_64.AppImage \
-            dist/Light-Client-Linux-Setup packaging/Light-Client-Linux-Installer.sh --clobber
+          cp bundles/Peregrine-Setup.exe bundles/Light-Client-Setup.exe
+          cp bundles/Peregrine-x86_64.AppImage bundles/Light-Client-x86_64.AppImage
+          gh release upload "$TAG" bundles/* packaging/Light-Client-Linux-Installer.sh --clobber
