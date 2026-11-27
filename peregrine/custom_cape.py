@@ -313,11 +313,11 @@ def make(source_frames, name: str, progress=None) -> dict:
     return meta
 
 
-SHARE_STILL = 1024      # the copy other players get: a still up to 1024 x 512,
-SHARE_MOVING = 512      # a moving one up to 512 x 256, every frame at its own speed (up to 240)
-SHARE_FRAMES = 240
-SHARE_MAX_BYTES = 20 * 1024 * 1024
-SHARE_QUALITY = 2       # bumped when the shared copy gets better: capes are shared again
+SHARE_STILL = 2048      # the copy other players get: a still up to 2048 x 1024,
+SHARE_MOVING = 1024     # a moving one up to 1024 x 512, every frame at its own speed
+SHARE_FRAMES = 120      # 120 frames: two seconds at 60 frames a second
+SHARE_MAX_BYTES = 22 * 1024 * 1024
+SHARE_QUALITY = 3       # bumped when the shared copy gets better: capes are shared again
 
 
 def share_id(v) -> str:
@@ -342,8 +342,12 @@ def _write_share(folder, fr, s, v):
     n = len(fr)
     width = SHARE_STILL if n == 1 else SHARE_MOVING
     layout = is_layout(fr[0][0])
-    ss = max(1, min(width // 64, s, (fr[0][0].width() // 64) if layout else s))
+    def scale_for_width(w):
+        return max(1, min(w // 64, s, (fr[0][0].width() // 64) if layout else s))
     keep = min(n, SHARE_FRAMES)
+    # if it is too big for the service, the picture gets smaller before frames are dropped
+    widths = [width] if n == 1 else [w for w in (width, 768, 512) if w <= width]
+    wi = 0
     (folder / "share.json").unlink(missing_ok=True)   # the game waits until the new copy is whole
     for old in folder.glob("share_*.png"):
         old.unlink()
@@ -352,9 +356,9 @@ def _write_share(folder, fr, s, v):
         ms, total = [], 0
         for k, i in enumerate(picks):
             end = picks[k + 1] if k + 1 < len(picks) else n
-            ms.append(max(20, sum(int(fr[j][1]) for j in range(i, end))) if n > 1 else 0)
+            ms.append(max(16, sum(int(fr[j][1]) for j in range(i, end))) if n > 1 else 0)
             out = folder / f"share_{k:03d}.png"
-            tex = compose(fr[i][0], ss)   # made straight at the shared size: sharper than shrinking
+            tex = compose(fr[i][0], scale_for_width(width))   # made straight at the shared size
             if tex.width() > width:
                 tex = tex.scaled(width, width // 2, Qt.AspectRatioMode.IgnoreAspectRatio,
                                  Qt.TransformationMode.SmoothTransformation)
@@ -366,7 +370,11 @@ def _write_share(folder, fr, s, v):
             break
         for old in folder.glob("share_*.png"):
             old.unlink()
-        keep = max(2, keep // 2)
+        if wi + 1 < len(widths) and keep > 2:
+            wi += 1
+            width = widths[wi]
+        else:
+            keep = max(2, keep // 2)
     (folder / "share.json").write_text(json.dumps({"frames": len(picks), "ms": ms, "id": share_id(v)}))
 
 

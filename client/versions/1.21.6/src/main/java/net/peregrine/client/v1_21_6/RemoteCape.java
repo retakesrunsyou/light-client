@@ -23,7 +23,7 @@ import net.minecraft.resources.ResourceLocation;
  */
 final class RemoteCape {
 
-    private static final long BUDGET = 256L * 1024 * 1024;
+    private static final long BUDGET = 384L * 1024 * 1024;
     private static final int READ_AHEAD = 48;
     private static final Map<String, ResourceLocation> READY = new ConcurrentHashMap<String, ResourceLocation>();
     private static final Map<String, Long> BYTES = new ConcurrentHashMap<String, Long>();

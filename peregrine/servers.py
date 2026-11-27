@@ -419,3 +419,43 @@ def display_name(entry: dict) -> str:
     parts = [p for p in host.split(".") if p not in ("play", "mc", "www", "join", "hub")]
     core = parts[-2] if len(parts) >= 2 else (parts[0] if parts else host)
     return core.replace("-", " ").title() if not core.replace(".", "").isdigit() else host
+
+
+def resolve_join(address: str):
+    """(address to join, problem). Looks up the server's SRV record ourselves so the game does not have to.
+
+    Minecraft's own lookup of "_minecraft._tcp.<host>" can fail on some computers, which shows an
+    "unknown host" screen and makes you rejoin. Here the real host:port is found first (over HTTPS,
+    so it works wherever the launcher can reach the internet); when it can't be found the original
+    address is used. problem is set when the name does not exist at all, so the launcher can say so
+    instead of the game.
+    """
+    import json
+    import socket
+    import urllib.request
+    address = (address or "").strip()
+    host, _, port = address.partition(":")
+    if not host or port:
+        return address, None   # already has a port: nothing to look up
+    try:
+        url = f"https://dns.google/resolve?name=_minecraft._tcp.{host}&type=SRV"
+        req = urllib.request.Request(url, headers={"User-Agent": "peregrine-launcher"})
+        with urllib.request.urlopen(req, timeout=4) as r:
+            answers = json.load(r).get("Answer") or []
+        best = None
+        for a in answers:
+            if a.get("type") == 33:
+                prio, _weight, p, target = str(a["data"]).split()[:4]
+                if best is None or int(prio) < best[0]:
+                    best = (int(prio), int(p), target.rstrip("."))
+        if best and best[2]:
+            return f"{best[2]}:{best[1]}", None
+    except Exception:
+        pass   # no internet to the lookup service, or no SRV record: try the plain name
+    try:
+        socket.getaddrinfo(host, 25565, proto=socket.IPPROTO_TCP)
+    except socket.gaierror:
+        return address, f"Couldn't find the server \"{host}\". Check its address, or your internet connection."
+    except OSError:
+        pass
+    return address, None
