@@ -78,16 +78,15 @@ def install(payload, target, version, desktop, startup, progress=lambda *_: None
     progress(20, 100, "Installing Light Client")
     with tempfile.NamedTemporaryFile(dir=target, prefix=".light-client-", delete=False) as stage:
         staged = Path(stage.name)
-        try:
-            with Path(payload).open("rb") as source:
-                shutil.copyfileobj(source, stage)
-            stage.flush()
-            staged.chmod(0o755)
-            progress(80, 100, "Adding shortcuts")
-            register(app, desktop, startup)
-            os.replace(staged, app)
-        finally:
-            staged.unlink(missing_ok=True)
+        with Path(payload).open("rb") as source:
+            shutil.copyfileobj(source, stage)
+    try:
+        staged.chmod(0o755)
+        progress(80, 100, "Adding shortcuts")
+        register(app, desktop, startup)
+        os.replace(staged, app)
+    finally:
+        staged.unlink(missing_ok=True)
     app.with_suffix(".version").write_text(version or VERSION)
     config.save(dict(config.load(), desktop_shortcut_made=True, linux_install_dir=str(target)))
     progress(100, 100, "Done")

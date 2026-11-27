@@ -6,6 +6,7 @@ from pathlib import Path
 from peregrine import linuxsetup
 
 
+@unittest.skipIf(os.name == "nt", "Linux installer")
 class LinuxInstallTests(unittest.TestCase):
     def test_install_then_uninstall_keeps_data(self):
         with tempfile.TemporaryDirectory() as home:
