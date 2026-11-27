@@ -11,8 +11,13 @@ def main():
     parser = argparse.ArgumentParser(description="Install Light Client Launcher")
     parser.add_argument("--install-dir", type=Path)
     parser.add_argument("--quiet", action="store_true", help="Install without opening the setup window")
+    parser.add_argument("--uninstall", action="store_true", help="Remove Light Client Launcher")
     parser.add_argument("--no-desktop-shortcut", action="store_true")
     args = parser.parse_args()
+    if args.uninstall:
+        from peregrine.ui.setup_ui import run_uninstaller
+        target = args.install_dir or linuxsetup.installed().get("dir") or linuxsetup.default_dir()
+        return run_uninstaller(target, args.quiet, backend=linuxsetup)
     root = Path(getattr(sys, "_MEIPASS", Path(__file__).parent))
     payload = root / linuxsetup.IMAGE_NAME
     if not payload.is_file():

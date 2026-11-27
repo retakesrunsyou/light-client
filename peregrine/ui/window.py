@@ -886,11 +886,14 @@ def appimage_integration():
 
 def main():
     if "--uninstall" in sys.argv:
-        # What Settings → Apps → Uninstall runs (the Windows app only).
+        # Settings → Apps → Uninstall on Windows; the AppImage's own uninstall on Linux.
         from pathlib import Path
         from .setup_ui import run_uninstaller
+        if os.environ.get("APPIMAGE") and sys.platform.startswith("linux"):
+            from .. import linuxsetup
+            sys.exit(run_uninstaller(Path(os.environ["APPIMAGE"]).parent, "--quiet" in sys.argv, backend=linuxsetup))
         if not (getattr(sys, "frozen", False) and sys.platform == "win32"):
-            print("--uninstall is for the installed Windows app.")
+            print("--uninstall is for the installed app.")
             sys.exit(2)
         sys.exit(run_uninstaller(Path(sys.executable).parent, "--quiet" in sys.argv))
     paths.ensure()

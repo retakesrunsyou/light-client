@@ -52,6 +52,7 @@ public final class Menu {
     private int windowW, windowH;
     private int dragX, dragY;
     private boolean movingWindow, resizingWindow;
+    private int resizeEdges, startX, startY, startW, startH;   // edge bits: 1 left, 2 right, 4 top, 8 bottom
     private String group;         // the tab along the top of the modules list (null: all)
     private int chipScroll, chipMax;
     private final List<Hit> chipHits = new ArrayList<Hit>();
@@ -525,6 +526,8 @@ public final class Menu {
         searchFocused = false;
         movingWindow = false;
         resizingWindow = false;
+        resizeEdges = 0;
+        pc.platform().setCursor(0);
         binding = null;
         editor.mouseReleased();
         editingHud = false;
@@ -763,7 +766,23 @@ public final class Menu {
         if (in(mx, my, px + 6, py + 4, Math.max(0, menuBtnX - px - 8), TITLE_H - 9)) {
             d.rect(titleX, py + TITLE_H, Math.round(d.width(title) * 1.2f), 1, Theme.MUTED);
         }
-        int grip = resizingWindow || onResizeGrip(mx, my) ? a : Theme.MUTED;
+        int hot = resizingWindow ? resizeEdges : movingWindow ? 0 : resizeEdgesAt(mx, my);
+        p.setCursor(hot == 0 ? 0 : cursorFor(hot));
+        if (hot != 0) {
+            int len = (hot & 3) != 0 && (hot & 12) != 0 ? 16 : 0;
+            int c = Theme.TEXT;
+            if (len > 0) {
+                int cx = (hot & 1) != 0 ? px : px + pw - 2, cy = (hot & 4) != 0 ? py : py + ph - 2;
+                int hx = (hot & 1) != 0 ? px : px + pw - len, vy = (hot & 4) != 0 ? py : py + ph - len;
+                d.rect(hx, cy, len, 2, c);
+                d.rect(cx, vy, 2, len, c);
+            } else if ((hot & 3) != 0) {
+                d.rect((hot & 1) != 0 ? px : px + pw - 2, py + TITLE_H, 2, ph - TITLE_H, c);
+            } else {
+                d.rect(px, (hot & 4) != 0 ? py : py + ph - 2, pw, 2, c);
+            }
+        }
+        int grip = hot != 0 ? a : Theme.MUTED;
         for (int i = 0; i < 3; i++) {
             d.rect(px + pw - 6 - 3 * i, py + ph - 6, 1, 1, grip);
             if (i > 0) d.rect(px + pw - 6, py + ph - 6 - 3 * i, 1, 1, grip);
@@ -2393,7 +2412,30 @@ public final class Menu {
     }
 
     private boolean onResizeGrip(int mx, int my) {
-        return in(mx, my, px + pw - 15, py + ph - 15, 15, 15);
+        return resizeEdgesAt(mx, my) != 0;
+    }
+
+    /** Which edges of the window the pointer is on (a corner gives two), like a desktop window frame. */
+    private int resizeEdgesAt(int mx, int my) {
+        if (!in(mx, my, px, py, pw, ph)) {
+            return 0;
+        }
+        int e = 0, edge = 5, corner = 13;
+        boolean nearX = mx < px + corner || mx >= px + pw - corner;
+        boolean nearY = my < py + corner || my >= py + ph - corner;
+        if (mx < px + edge || (nearY && mx < px + corner)) e |= 1;
+        if (mx >= px + pw - edge || (nearY && mx >= px + pw - corner)) e |= 2;
+        if (my < py + edge || (nearX && my < py + corner)) e |= 4;
+        if (my >= py + ph - edge || (nearX && my >= py + ph - corner)) e |= 8;
+        // the top strip is the title bar; only its very top rows and corners resize
+        if ((e & 12) == 4 && (e & 3) == 0 && my >= py + 3) e = 0;
+        return e;
+    }
+
+    private static int cursorFor(int e) {
+        if (e == 1 || e == 2) return 1;
+        if (e == 4 || e == 8) return 2;
+        return e == 5 || e == 10 ? 3 : 4;
     }
 
     public boolean mouseClicked(int screenMx, int screenMy, int button) {
@@ -2451,15 +2493,24 @@ public final class Menu {
             typing = null;
             return true;
         }
-        resizingWindow = onResizeGrip(mx, my);
+        resizeEdges = resizeEdgesAt(mx, my);
+        resizingWindow = resizeEdges != 0;
         movingWindow = in(mx, my, px + 6, py + 4, Math.max(0, menuBtnX - px - 8), TITLE_H - 9);
         if (resizingWindow || movingWindow) {
             windowX = px;
             windowY = py;
             windowW = pw;
             windowH = ph;
-            dragX = mx - (resizingWindow ? px + pw : px);
-            dragY = my - (resizingWindow ? py + ph : py);
+            startX = px;
+            startY = py;
+            startW = pw;
+            startH = ph;
+            dragX = mx;
+            dragY = my;
+            if (!resizingWindow) {
+                dragX = mx - px;
+                dragY = my - py;
+            }
             return true;
         }
         for (Hit h : new ArrayList<Hit>(sideHits)) {
@@ -2630,14 +2681,22 @@ public final class Menu {
         if (movingWindow || resizingWindow) {
             Platform p = pc.platform();
             int sw = Math.round(p.screenWidth() / k), sh = Math.round(p.screenHeight() / k);
-            int x = Math.round(screenMx / k) - dragX;
-            int y = Math.round(screenMy / k) - dragY;
+            int mxs = Math.round(screenMx / k), mys = Math.round(screenMy / k);
             if (resizingWindow) {
-                windowW = clamp(x - px, Math.min(pw, 340), sw - px - 8);
-                windowH = clamp(y - py, Math.min(ph, 200), sh - py - 8);
+                int dx = mxs - dragX, dy = mys - dragY;
+                int minW = Math.min(startW, 340), minH = Math.min(startH, 200);
+                int left = startX, top = startY, right = startX + startW, bottom = startY + startH;
+                if ((resizeEdges & 1) != 0) left = clamp(left + dx, 8, right - minW);
+                if ((resizeEdges & 2) != 0) right = clamp(right + dx, left + minW, sw - 8);
+                if ((resizeEdges & 4) != 0) top = clamp(top + dy, 8, bottom - minH);
+                if ((resizeEdges & 8) != 0) bottom = clamp(bottom + dy, top + minH, sh - 8);
+                windowX = left;
+                windowY = top;
+                windowW = right - left;
+                windowH = bottom - top;
             } else {
-                windowX = clamp(x, 8, sw - pw - 8);
-                windowY = clamp(y, 8, sh - ph - 8);
+                windowX = clamp(mxs - dragX, 8, sw - pw - 8);
+                windowY = clamp(mys - dragY, 8, sh - ph - 8);
             }
             return true;
         }
@@ -2666,6 +2725,7 @@ public final class Menu {
         if (movingWindow || resizingWindow) {
             movingWindow = false;
             resizingWindow = false;
+            resizeEdges = 0;
             return true;
         }
         MenuPanel pn = editingHud ? null : panel();

@@ -746,10 +746,11 @@ class UninstallerWindow(Shell):
 
     def __init__(self, app_dir, backend=None):
         super().__init__("Uninstall Light Client")
-        from .. import winsetup
         from .modern import PillButton
+        if backend is None:
+            from .. import winsetup as backend
         self.app_dir = Path(app_dir)
-        self.backend = backend or winsetup
+        self.backend = backend
         self.done_ok = False
 
         pg = QWidget()
@@ -832,13 +833,14 @@ def _app(argv):
     return app
 
 
-def run_uninstaller(app_dir, quiet=False) -> int:
-    from .. import winsetup
+def run_uninstaller(app_dir, quiet=False, backend=None) -> int:
+    if backend is None:
+        from .. import winsetup as backend
     if quiet:
-        winsetup.uninstall(Path(app_dir), False)
+        backend.uninstall(Path(app_dir), False)
         return 0
     app = _app(sys.argv)
-    win = UninstallerWindow(app_dir)
+    win = UninstallerWindow(app_dir, backend=backend)
     win.show()
     app.exec()
     return 0
