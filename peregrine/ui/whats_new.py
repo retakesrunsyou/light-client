@@ -7,6 +7,11 @@ from .theme import Theme
 
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
+    ("5.0.0", "Friends in game", "The in-game menu now has the launcher's Friends: text and call your friends without leaving Minecraft. The launcher has to be running."),
+    ("5.0.0", "Sleeker capes", "Still capes are now 2048 x 1024 with clean edges, and moving capes run at about 30 frames a second."),
+    ("5.0.0", "Eight new capes", "Aurora, Fragments, Dawn, Mint, Rose, Midnight, Sunbeam and Obsidian."),
+    ("5.0.0", "Light Fragments", "Earn fragments each day and buy capes with them in the Locker."),
+    ("5.0.0", "Your own cape", "Moving capes of your own can now go up to 60 frames a second and 240 frames."),
     ("4.2.0", "Grey and white", "The launcher, installers, updaters and game now share one neutral grey and white look."),
     ("4.2.0", "Lexend", "A bolder, rounder typeface used by the launcher, game menus and HUD."),
     ("4.2.0", "Light cape", "A new grey cape with the logo, and every cape is now 1024 px and sharp."),

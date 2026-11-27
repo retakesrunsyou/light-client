@@ -25,11 +25,11 @@ from . import paths
 DIR = paths.DATA / "capes" / "custom"
 PICTURES = ("png", "jpg", "jpeg", "webp", "bmp", "gif", "tga", "tif", "tiff")
 VIDEOS = ("mp4", "webm", "mov", "mkv", "avi", "m4v")
-MAX_FRAMES = 160
+MAX_FRAMES = 240
 MAX_SECONDS = 8.0
-MAX_FPS = 24
+MAX_FPS = 60
 STILL_SCALE = 64                 # 64 x 32 cape layout at 64x: 4096 x 2048 ("4K")
-MOVING_BUDGET = 128 * 1024 * 1024    # all frames together, in memory and on the graphics card
+MOVING_BUDGET = 256 * 1024 * 1024    # all frames together, in memory and on the graphics card
 MOVING_MAX_SCALE = 32            # 2048 x 1024
 PREVIEW_SCALE = 6                # the launcher's previews: 384 x 192
 PREVIEW_FRAMES = 64
@@ -314,8 +314,8 @@ def make(source_frames, name: str, progress=None) -> dict:
 
 
 SHARE_STILL = 1024      # the copy other players get: a still up to 1024 x 512,
-SHARE_MOVING = 512      # a moving one up to 512 x 256, every frame at its own speed (up to 160)
-SHARE_FRAMES = 160
+SHARE_MOVING = 512      # a moving one up to 512 x 256, every frame at its own speed (up to 240)
+SHARE_FRAMES = 240
 SHARE_MAX_BYTES = 20 * 1024 * 1024
 SHARE_QUALITY = 2       # bumped when the shared copy gets better: capes are shared again
 
