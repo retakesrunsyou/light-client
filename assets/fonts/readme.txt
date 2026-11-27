@@ -1,4 +1,3 @@
-Inter by The Inter Project Authors (https://github.com/rsms/inter), under the SIL Open
-Font License 1.1 (inter-ofl.txt). These are the Regular, Medium, SemiBold and Bold cuts
-converted to TTF, with the tabular figures switched on by default so numbers keep the
-same width.
+Lexend by The Lexend Project Authors (https://github.com/googlefonts/lexend), under the SIL Open
+Font License 1.1 (lexend-ofl.txt). These are the Regular, Medium, SemiBold and Bold cuts
+instanced from the variable font.

@@ -18,8 +18,8 @@ from . import auth, config, net, paths
 
 PROFILE = "https://api.minecraftservices.com/minecraft/profile"
 LIBRARY = paths.DATA / "skins" / "library"
-CAPE_NAMES = ("None", "Falcon", "Violet", "Ember", "Starry night", "Pumpkin", "Frost", "Your own", "Prism", "Lightspeed")
-CAPE_FILES = ("", "falcon", "violet", "ember", "starry", "pumpkin", "frost", "custom", "prism", "lightspeed")
+CAPE_NAMES = ("None", "Light", "Violet", "Ember", "Starry night", "Pumpkin", "Frost", "Your own", "Prism", "Lightspeed")
+CAPE_FILES = ("", "light", "violet", "ember", "starry", "pumpkin", "frost", "custom", "prism", "lightspeed")
 CUSTOM_CAPE = 7   # your own picture, GIF or video (custom_cape.py); only you see it
 
 

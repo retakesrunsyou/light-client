@@ -2,11 +2,11 @@ package net.peregrine.client.core;
 
 /** The surfaces and controls shared by the in-game menu and its pages. */
 final class MenuStyle {
-    static final int WINDOW = 0xFA171A21;
+    static final int WINDOW = 0xFA171717;
     static final int FIELD = 0xFF101217;
-    static final int BORDER = 0xFF373D49;
-    static final int ROW = 0xFF20242D;
-    static final int ROW_HOVER = 0xFF2A2F3A;
+    static final int BORDER = 0xFF383838;
+    static final int ROW = 0xFF212121;
+    static final int ROW_HOVER = 0xFF2B2B2B;
 
     private MenuStyle() {
     }
@@ -24,7 +24,7 @@ final class MenuStyle {
         if (primary) {
             flat(d, x, y, w, h, accent, Theme.mix(accent, 0xFFFFFFFF, 0.14f), accent, hover, pressed);
         } else {
-            flat(d, x, y, w, h, 0xF01D1E25, 0xF02B2C36, 0x26FFFFFF, hover, pressed);
+            flat(d, x, y, w, h, 0xF01E1E1E, 0xF02C2C2C, 0x26FFFFFF, hover, pressed);
         }
     }
 

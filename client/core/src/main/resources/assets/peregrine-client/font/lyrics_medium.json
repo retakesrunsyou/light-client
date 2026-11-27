@@ -2,7 +2,7 @@
   "providers": [
     {
       "type": "ttf",
-      "file": "peregrine-client:inter_medium.ttf",
+      "file": "peregrine-client:lexend_medium.ttf",
       "size": 12.0,
       "oversample": 4.0,
       "shift": [

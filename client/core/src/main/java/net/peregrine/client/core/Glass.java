@@ -9,8 +9,8 @@ public final class Glass {
 
     public static final int DEEP = 0xFF0C0E13;      // the darkest glass
     public static final int GLASS = 0xC80F1218;     // a window
-    public static final int PANE = 0x9C161A22;      // a card on a window
-    public static final int PANE_HOVER = 0xC0222833;
+    public static final int PANE = 0x9C181818;      // a card on a window
+    public static final int PANE_HOVER = 0xC0262626;
     public static final int EDGE = 0x2CFFFFFF;      // the bright rim of a pane
     public static final int SHEEN = 0x12FFFFFF;
 

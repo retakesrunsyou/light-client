@@ -117,7 +117,7 @@ final class ColorPicker {
             int tx = x + W - 6 - 18;
             boolean rgb = target.chroma();
             d.text("RGB", tx - d.width("RGB") - 4, yy + 3, rgb ? Theme.TEXT : Theme.MUTED, false);
-            d.roundRect(tx, yy + 2, 18, 10, 5, rgb ? accent : 0xFF2F3542);
+            d.roundRect(tx, yy + 2, 18, 10, 5, rgb ? accent : 0xFF343434);
             d.roundRect(tx + (rgb ? 9 : 1), yy + 3, 8, 8, 4, 0xFFFFFFFF);
         }
         yy += 20;

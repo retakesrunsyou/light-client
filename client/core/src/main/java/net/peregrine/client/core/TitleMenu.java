@@ -56,7 +56,7 @@ public final class TitleMenu {
             boolean hover = contains(mx, my);
             glow = hover ? Math.min(1f, glow + dt * 9f) : Math.max(0f, glow - dt * 6f);
             d.shadow(x, y, w, h);
-            d.roundRect(x, y, w, h, 3, Theme.mix(0xD81B1E25, 0xE82A2E38, glow));
+            d.roundRect(x, y, w, h, 3, Theme.mix(0xD81C1C1C, 0xE82B2B2B, glow));
             MenuIcons.draw(d, icon, x + (w - 9) / 2, y + (h - 9) / 2, Theme.mix(0xFFD3D6DE, Theme.TEXT, glow));
             if (glow > 0.5f) {
                 d.text(label, x, y - 11, Theme.withAlpha(Theme.TEXT, Math.round(0xFF * glow)), true);
@@ -69,7 +69,7 @@ public final class TitleMenu {
             glow = hover ? Math.min(1f, glow + dt * 9f) : Math.max(0f, glow - dt * 6f);
             float g = glow;
             int bg = primary ? Theme.mix(accent, Theme.mix(accent, 0xFFFFFFFF, 0.18f), g)
-                    : Theme.mix(0xD81B1E25, 0xE82A2E38, g);
+                    : Theme.mix(0xD81C1C1C, 0xE82B2B2B, g);
             d.shadow(x, y, w, h);
             d.roundRect(x, y, w, h, 3, bg);
             // a darker lip along the bottom, like a key you can press
@@ -347,7 +347,7 @@ public final class TitleMenu {
                     dragging ? Theme.withAlpha(a, 0xFF) : Theme.withAlpha(a, 0x90));
             int bx = r[0] + r[2] - 6, by = r[1] - 6;
             boolean over = mx >= bx && mx < bx + 11 && my >= by && my < by + 11;
-            d.roundRect(bx, by, 11, 11, 5, over ? 0xFFE5484D : 0xF0262A33);
+            d.roundRect(bx, by, 11, 11, 5, over ? 0xFFE5484D : 0xF0282828);
             d.roundOutline(bx, by, 11, 11, 5, over ? 0xFFFF8A8E : 0x80FFFFFF);
             MenuIcons.draw(d, "close", bx + 1, by + 1, 0xFFFFFFFF);
         }
@@ -364,7 +364,7 @@ public final class TitleMenu {
                 String label = labelOf(id);
                 int w = trayWidth(label);
                 boolean over = mx >= x && mx < x + w && my >= y && my < y + TRAY_H;
-                d.roundRect(x, y, w, TRAY_H, 3, over ? 0xF02A2E38 : 0xD81B1E25);
+                d.roundRect(x, y, w, TRAY_H, 3, over ? 0xF02B2B2B : 0xD81C1C1C);
                 d.roundOutline(x, y, w, TRAY_H, 3, Theme.withAlpha(a, over ? 0xE0 : 0x60));
                 d.text("+ " + label, x + 6, y + 3, over ? Theme.TEXT : Theme.MUTED, false);
                 trayHits.add(new Object[] {id, x, y, w, TRAY_H});
@@ -747,7 +747,7 @@ public final class TitleMenu {
             if (kind == 2) {
                 tabGlow[i] = ease(tabGlow[i], hover || lockerTab == i, dt);
                 boolean on = lockerTab == i;
-                d.roundRect(x, y, w, h, 3, on ? Theme.mix(a, 0xFFFFFFFF, 0.1f * tabGlow[i]) : Theme.mix(0xC01B1E25, 0xE02A2E38, tabGlow[i]));
+                d.roundRect(x, y, w, h, 3, on ? Theme.mix(a, 0xFFFFFFFF, 0.1f * tabGlow[i]) : Theme.mix(0xC01C1C1C, 0xE02B2B2B, tabGlow[i]));
                 String label = TABS[i];
                 d.text(label, x + 8, y + 4, on ? Theme.onColor(a) : Theme.mix(Theme.MUTED, Theme.TEXT, tabGlow[i]), false);
                 continue;
@@ -777,7 +777,7 @@ public final class TitleMenu {
                 float g = skinGlow[i];
                 int cy = y + dy - Math.round(g * 2);
                 cd.shadow(x, cy, w, h);
-                cd.roundRect(x, cy, w, h, 4, Theme.mix(0xC01B1E25, 0xE02A2E38, g));
+                cd.roundRect(x, cy, w, h, 4, Theme.mix(0xC01C1C1C, 0xE02B2B2B, g));
                 if (trying == i) {
                     cd.roundOutline(x, cy, w, h, 4, a);
                 } else if (g > 0) {
@@ -800,7 +800,7 @@ public final class TitleMenu {
             int lift = Math.round(g * 2);
             int cy = y + dy - lift;
             cd.shadow(x, cy, w, h);
-            cd.roundRect(x, cy, w, h, 4, Theme.mix(0xC01B1E25, 0xE02A2E38, g));
+            cd.roundRect(x, cy, w, h, 4, Theme.mix(0xC01C1C1C, 0xE02B2B2B, g));
             if (picked) {  // what you wear: a ring that breathes
                 cd.roundOutline(x - 1, cy - 1, w + 2, h + 2, 5, Theme.withAlpha(a, Math.round(0x30 + 0x50 * pulse)));
                 cd.roundOutline(x, cy, w, h, 4, a);
@@ -1123,7 +1123,7 @@ public final class TitleMenu {
             // the picture doesn't reach the edges: a dark, softened copy fills in behind it
             d.rect(0, 0, sw, sh, 0xFF0B0D11);
             float[] behind = placement(tw, th, sw, sh, 1.15f, 0.5f, 0.5f);
-            drawPlaced(d, id, behind, sw, sh, 0xFF3A3D45);
+            drawPlaced(d, id, behind, sw, sh, 0xFF3A3A3A);
             d.rect(0, 0, sw, sh, 0x50000000);
             d.shadow(Math.round(r[0]), Math.round(r[1]), Math.round(r[2]), Math.round(r[3]));
         }
@@ -1139,7 +1139,7 @@ public final class TitleMenu {
         boolean hover = mx >= x && mx < x + w && my >= y && my < y + h;
         cardGlow = hover ? Math.min(1f, cardGlow + dt * 9f) : Math.max(0f, cardGlow - dt * 6f);
         d.shadow(x, y, w, h);
-        d.roundRect(x, y, w, h, 5, Theme.mix(0xB8161B26, 0xD8232A38, cardGlow));
+        d.roundRect(x, y, w, h, 5, Theme.mix(0xB8181818, 0xD8262626, cardGlow));
         d.roundOutline(x, y, w, h, 5, Theme.mix(Theme.withAlpha(a, 0x70), Theme.withAlpha(a, 0xE0), cardGlow));
         int[] icon = ServerIcons.get(pc.lastServerAddress(), null);
         int is = Math.min(26, h - 8), ix = x + 5, iy = y + (h - is) / 2;

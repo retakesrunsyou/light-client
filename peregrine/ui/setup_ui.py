@@ -24,8 +24,8 @@ from PySide6.QtWidgets import (
 from .theme import Theme, icon_pixmap, logo_pixmap, render_app_icon, stylesheet
 
 W, H, SHADOW, RADIUS = 760, 480, 22, 20
-ACCENT = "#7c5cff"
-AMBER = "#f0a33a"
+ACCENT = "#ffffff"
+AMBER = "#9a9a9a"   # the second, dimmer glow
 
 
 def _font(px, weight=QFont.Bold, spacing=0.0):
@@ -57,14 +57,14 @@ class _Sky:
 
     def paint(self, p: QPainter, r: QRectF):
         g = QLinearGradient(r.topLeft(), r.bottomRight())
-        g.setColorAt(0, QColor("#1d1740"))
-        g.setColorAt(0.55, QColor("#12131d"))
-        g.setColorAt(1, QColor("#0c0d14"))
+        g.setColorAt(0, QColor("#2a2a2c"))
+        g.setColorAt(0.55, QColor("#18181a"))
+        g.setColorAt(1, QColor("#101011"))
         p.fillRect(r, g)
         for cx, cy, rad, col in ((0.18, 0.12, 0.62, ACCENT), (0.86, 0.95, 0.55, AMBER)):
             rg = QRadialGradient(QPointF(r.left() + cx * r.width(), r.top() + cy * r.height()), rad * r.width())
             c = QColor(col)
-            c.setAlpha(46)
+            c.setAlpha(26)
             rg.setColorAt(0, c)
             c2 = QColor(col)
             c2.setAlpha(0)
@@ -92,7 +92,7 @@ class Logo(QWidget):
         c = QPointF(self.width() / 2, self.height() / 2)
         glow = QRadialGradient(c, self.size_ * 0.85)
         a = QColor(ACCENT)
-        a.setAlpha(int(70 + 30 * math.sin(t * 1.6)))
+        a.setAlpha(int(38 + 18 * math.sin(t * 1.6)))
         glow.setColorAt(0, a)
         a2 = QColor(ACCENT)
         a2.setAlpha(0)
@@ -146,7 +146,7 @@ class GlowBar(QWidget):
             fp.addRoundedRect(fill, r.height() / 2, r.height() / 2)
             g = QLinearGradient(fill.topLeft(), fill.topRight())
             g.setColorAt(0, QColor(ACCENT))
-            g.setColorAt(1, QColor("#b18cff"))
+            g.setColorAt(1, QColor("#bdbdbd"))
             p.fillPath(fp, g)
             # the shine sweeping along the filled part
             t = (time.monotonic() - self.t0) % 1.6 / 1.6
@@ -278,7 +278,7 @@ class LinkButton(QAbstractButton):
 
     def paintEvent(self, _):
         p = QPainter(self)
-        p.setPen(QColor("#ffffff" if self.h else "#b8a6ff"))
+        p.setPen(QColor("#ffffff" if self.h else "#bdbdbd"))
         p.setFont(self.font())
         p.drawText(self.rect(), Qt.AlignCenter, self.text())
         if self.h:
@@ -294,7 +294,7 @@ class Shell(QWidget):
     def __init__(self, title, setup_theme=True):
         super().__init__()
         if setup_theme:
-            Theme.set("midnight", ACCENT)
+            Theme.set("light", ACCENT)
             QApplication.instance().setStyleSheet(stylesheet())
         self.setWindowTitle(title)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
@@ -548,7 +548,7 @@ class InstallerWindow(Shell):
         lab = QLabel("LAUNCHER")
         lab.setFont(_font(13, QFont.ExtraBold, 7.0))
         lab.setAlignment(Qt.AlignCenter)
-        lab.setStyleSheet("color: #b8a6ff; font-size: 13px; font-weight: 800;")
+        lab.setStyleSheet("color: #bdbdbd; font-size: 13px; font-weight: 800;")
         v.addWidget(lab)
         v.addSpacing(10)
         if have and self.old_version and self.old_version != version:

@@ -8,9 +8,9 @@ from PySide6.QtGui import QColor, QIcon, QImage, QPainter, QPainterPath, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 
 THEMES = {
-    # Light: near-black neutrals with hairline borders and a white accent (the default).
-    "light": dict(bg="#0b0b0f", surface="#131318", raised="#1e1e26", border="#25252d",
-                  text="#f2f2f5", muted="#a0a0b0", faint="#6f6f80", danger="#ff6b81"),
+    # Light: neutral greys with hairline borders and a white accent (the default; the client uses the same).
+    "light": dict(bg="#121212", surface="#1a1a1a", raised="#242424", border="#2f2f2f",
+                  text="#f4f4f4", muted="#a6a6a6", faint="#737373", danger="#ff6b6b"),
     # Dusk: slate blue-grey, like the sky a falcon hunts in.
     "dusk": dict(bg="#171a21", surface="#1f232c", raised="#272c37", border="#323846",
                  text="#edeef2", muted="#959bab", faint="#646b7b", danger="#e5676b"),
@@ -47,7 +47,7 @@ _FONT_LOADED = False
 
 
 def load_fonts(app) -> None:
-    """Make Inter the launcher's font. Falls back to the system font if the files are missing."""
+    """Make Lexend the launcher's font. Falls back to the system font if the files are missing."""
     global _FONT_LOADED
     if _FONT_LOADED:
         return
@@ -58,16 +58,16 @@ def load_fonts(app) -> None:
     base = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent.parent)) / "assets" / "fonts"
     family = None
     for weight in ("Regular", "Medium", "SemiBold", "Bold"):
-        fid = QFontDatabase.addApplicationFont(str(base / f"Inter-{weight}.ttf"))
+        fid = QFontDatabase.addApplicationFont(str(base / f"Lexend-{weight}.ttf"))
         if fid >= 0 and family is None:
             fams = QFontDatabase.applicationFontFamilies(fid)
             family = fams[0] if fams else None
     if not family:
-        print("[peregrine] Inter isn't there; using the system font")
+        print("[peregrine] Lexend isn't there; using the system font")
         return
     f = QFont(family)
     f.setPointSizeF(max(9.5, app.font().pointSizeF()))
-    f.setHintingPreference(QFont.PreferNoHinting)   # Inter is drawn to be read unhinted
+    f.setHintingPreference(QFont.PreferNoHinting)   # Lexend reads best unhinted
     f.setStyleStrategy(QFont.PreferAntialias)
     app.setFont(f)
 
