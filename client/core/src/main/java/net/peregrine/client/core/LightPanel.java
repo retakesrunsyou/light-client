@@ -8,6 +8,8 @@ final class LightPanel extends MenuPanel {
 
     /** What changed, newest first: {version, title, what it does}. */
     static final String[][] NEWS = {
+        {"5.0.1", "Joining servers", "The launcher looks up a server's real address first, so Play avoids the unknown host screen"},
+        {"5.0.1", "Light cape for others", "Other players see your Light cape again"},
         {"5.0.0", "Friends in game", "The in-game menu now has the launcher's Friends: text and call from inside Minecraft"},
         {"5.0.0", "Sleeker capes", "Static capes at 2048 x 1024 with clean edges; moving capes at about 30 frames a second"},
         {"5.0.0", "Eight new capes", "Aurora, Fragments, Dawn, Mint, Rose, Midnight, Sunbeam and Obsidian"},

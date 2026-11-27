@@ -431,6 +431,12 @@ class MainWindow(QMainWindow):
         if self.busy():
             return
         cfg = config.load()
+        if join:
+            from .. import servers
+            join, problem = servers.resolve_join(join)
+            if problem:   # say so here instead of an error screen in the game
+                self.say(problem)
+                join = None
         self.console.clear()
         if cfg["open_console"]:
             self.console_btn.setChecked(True)

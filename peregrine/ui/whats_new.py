@@ -7,6 +7,8 @@ from .theme import Theme
 
 # Newest first: (version, title, what it does). Keep in step with the game's What's new page.
 NOTES = [
+    ("5.0.1", "Joining servers", "The launcher now looks up a server's real address first, so Play no longer ends on an unknown host screen."),
+    ("5.0.1", "Light cape for others", "Other players see your Light cape again (needs the profiles service updated)."),
     ("5.0.0", "Friends in game", "The in-game menu now has the launcher's Friends: text and call your friends without leaving Minecraft. The launcher has to be running."),
     ("5.0.0", "Sleeker capes", "Still capes are now 2048 x 1024 with clean edges, and moving capes run at about 30 frames a second."),
     ("5.0.0", "Eight new capes", "Aurora, Fragments, Dawn, Mint, Rose, Midnight, Sunbeam and Obsidian."),

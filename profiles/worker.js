@@ -12,7 +12,7 @@
 const MAX_BYTES = 256 * 1024;
 const NAME = /^[A-Za-z0-9_]{3,16}$/;
 const UUID = /^[0-9a-f]{32}$/;
-const CAPES = ["", "falcon", "violet", "ember", "starry", "pumpkin", "frost", "custom", "prism", "lightspeed", "aurora", "fragments", "dawn", "mint", "rose", "midnight", "sunbeam", "obsidian"];
+const CAPES = ["", "falcon", "light", "violet", "ember", "starry", "pumpkin", "frost", "custom", "prism", "lightspeed", "aurora", "fragments", "dawn", "mint", "rose", "midnight", "sunbeam", "obsidian"];
 const PRESENCE_DAYS = 60;
 
 // Mojang's keys for signing players' chat keys ("playerCertificateKeys" from
